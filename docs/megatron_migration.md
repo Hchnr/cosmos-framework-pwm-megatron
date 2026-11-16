@@ -228,9 +228,20 @@ PyTorch medians were 4.6472 / 4.6612 seconds and Megatron medians were
 4.3931 / 4.3881 seconds. These observations show a throughput improvement at
 this reduced-token scope, with substantially higher memory for ZeRO-2. Loss
 trajectories vary within the same backend (maximum relative difference about
-1.9% for PyTorch and 1.1% for Megatron). Full-gradient snapshots are being
-audited separately; these timings do not close the correctness or production
-memory/scaling acceptance gates.
+1.9% for PyTorch and 1.1% for Megatron). The first uncontrolled full-gradient comparison showed relative L2 difference
+0.5713 / cosine 0.8280. Input capture then showed that all 12 comparisons had
+different VAE vision tokens (maximum absolute difference 0.0390625) under the
+original nondeterministic cuDNN settings; the other network input tensors were
+identical. That comparison is retained but is not a same-input parity test.
+
+The controlled full-depth BF16 audit uses deterministic noising and cuDNN:
+all 252 network input tensors across four ranks × three microbatches are
+**bitwise identical**. Across 811 selected parameter tensors, gradient relative
+L2 error is **0.0130685** and cosine is **0.9999629**, passing the explicit
+2% / 0.999 gates. `full_depth_gradient_qualification.json` records the gate;
+`full_depth_deterministic_gradients.json` retains all per-parameter observations.
+These numerical gates do not qualify production memory or 192-GPU scaling.
+
 
 The full-depth paired replay harness is:
 
@@ -246,6 +257,21 @@ checkpoint save I/O, tokenizer compilation and live shared-prefetch loading.
 Both backends reset seed 42 after initialization; JSON files retain all timings,
 mean final-microbatch losses and peak memory. This reduced-token, four-GPU replay
 cannot establish production-token/192-GPU throughput or memory safety.
+
+A full production-capacity memory probe also completed two GA=3 forward/backward
+and clipping cycles on four GPUs with **optimizer updates/state allocation disabled**.
+Configured capacities were UND11776 / GEN62592 / ACTION2944, with the original
+short-UND5120 policy selected for this sample. Peak allocated memory was
+72.540 GB. Adding the analytic shard16 FP32 Adam master/moment state (5.993 GB)
+gives 78.534 GB, versus 84.943 GB device memory. This is a compute-memory
+measurement plus an analytic state budget, not a measured 192-GPU peak; it
+excludes optimizer workspace, replica/network workspace and tokenizer graphs.
+The VAE compile/coverage case and full-UND branch are being qualified separately.
+
+NormMonitor now computes FP32 reduction norms and extrema directly, avoiding
+full FP32 activation/square and absolute-value temporaries at production lengths.
+The FP16/BF16/FP32/FP64 strided-input, empty and non-finite CPU regression tests
+pass; the full-capacity follow-up includes the new implementation.
 
 ## Remaining acceptance gates
 

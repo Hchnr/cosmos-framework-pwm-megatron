@@ -1,0 +1,168 @@
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+| 2026-11-17 04:14:40,370 | [[ natten.context ]] [ WARNING ]: Attempted to enable KV parallelism in FNA, which is non-deterministic, but PyTorch's deterministic flag has been enabled. Ignoring...
+| 2026-11-17 04:14:40,370 | [[ natten.context ]] [ WARNING ]: Attempted to enable KV parallelism in FNA, which is non-deterministic, but PyTorch's deterministic flag has been enabled. Ignoring...
+| 2026-11-17 04:14:40,370 | [[ natten.context ]] [ WARNING ]: Attempted to enable KV parallelism in FNA, which is non-deterministic, but PyTorch's deterministic flag has been enabled. Ignoring...
+| 2026-11-17 04:14:40,370 | [[ natten.context ]] [ WARNING ]: Attempted to enable KV parallelism in FNA, which is non-deterministic, but PyTorch's deterministic flag has been enabled. Ignoring...
+[11-17 04:14:44|CRITICAL] [RANK 1] Initialized distributed training with local rank 1 using nccl with timeout 1800
+2026-11-17 04:14:44.485 | DEBUG    | cosmos_framework.utils.config:_load_py_config:608 - get_config_module: took 0.05ms
+[11-17 04:14:44|CRITICAL] [RANK 2] Initialized distributed training with local rank 2 using nccl with timeout 1800
+[11-17 04:14:44|CRITICAL] [RANK 3] Initialized distributed training with local rank 3 using nccl with timeout 1800
+[11-17 04:14:44|CRITICAL] [RANK 0] Initialized distributed training with local rank 0 using nccl with timeout 1800
+[11-17 04:14:44|INFO] Training with 4 GPUs.
+2026-11-17 04:14:44.526 | DEBUG    | cosmos_framework.utils.config:_load_py_config:608 - get_config_module: took 0.04ms
+2026-11-17 04:14:44.526 | DEBUG    | cosmos_framework.utils.config:_load_py_config:608 - get_config_module: took 0.05ms
+2026-11-17 04:14:44.534 | DEBUG    | cosmos_framework.utils.config:_load_py_config:608 - get_config_module: took 0.06ms
+2026-11-17 04:14:45.946 | DEBUG    | cosmos_framework.utils.config:_load_py_config:613 - importlib.import_module: took 1420.15ms
+2026-11-17 04:14:45.949 | DEBUG    | cosmos_framework.utils.config:_load_py_config:613 - importlib.import_module: took 1464.76ms
+2026-11-17 04:14:45.950 | DEBUG    | cosmos_framework.utils.config:_load_py_config:613 - importlib.import_module: took 1423.25ms
+2026-11-17 04:14:46.157 | DEBUG    | cosmos_framework.utils.config:_load_py_config:613 - importlib.import_module: took 1623.29ms
+2026-11-17 04:14:46.268 | DEBUG    | cosmos_framework.utils.config:_load_py_config:618 - override: took 321.31ms
+2026-11-17 04:14:46.268 | DEBUG    | cosmos_framework.utils.config:load_config:597 - total time to load config: 1741.93ms
+2026-11-17 04:14:46.270 | DEBUG    | cosmos_framework.utils.config:_load_py_config:618 - override: took 320.32ms
+2026-11-17 04:14:46.270 | DEBUG    | cosmos_framework.utils.config:load_config:597 - total time to load config: 1785.57ms
+2026-11-17 04:14:46.273 | DEBUG    | cosmos_framework.utils.config:_load_py_config:618 - override: took 322.83ms
+2026-11-17 04:14:46.273 | DEBUG    | cosmos_framework.utils.config:load_config:597 - total time to load config: 1746.54ms
+2026-11-17 04:14:46.478 | DEBUG    | cosmos_framework.utils.config:_load_py_config:618 - override: took 320.00ms
+2026-11-17 04:14:46.478 | DEBUG    | cosmos_framework.utils.config:load_config:597 - total time to load config: 1944.03ms
+[11-17 04:14:50|INFO] Time spent on init_distributed: 0.01 s
+Config is saved using pickle at /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/config.pkl.
+Config is saved using omegaconf at /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/config.yaml.
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[11-17 04:14:56|WARNING] Environment variable HF_HOME not set!
+[11-17 04:14:56|INFO] Environment variable IMAGINAIRE_OUTPUT_ROOT: /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron
+[11-17 04:14:56|INFO] Using random seed 42.
+[11-17 04:14:56|CRITICAL] Instantiating callback iter_speed: {'hit_thres': 50, 'save_s3': False, 'save_s3_every_log_n': 500, 'every_n': 1, '_target_': <class 'cosmos_framework.callbacks.iter_speed.IterSpeed'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback manual_gc: {'warm_up': 1, 'gc_level': 1, 'every_n': 5, '_target_': <class 'cosmos_framework.callbacks.manual_gc.ManualGarbageCollection'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback wandb: {'config': None, 'trainer': None, '_target_': <class 'cosmos_framework.utils.callback.WandBCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback wandb_2x: {'logging_iter_multipler': 2, 'save_logging_iter_multipler': 1, 'save_s3': False, '_target_': <class 'cosmos_framework.callbacks.wandb_log.WandbCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback param_count: {'save_s3': False, '_target_': <class 'cosmos_framework.callbacks.param_count.ParamCount'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback wandb_val: {'save_s3': False, '_target_': <class 'cosmos_framework.callbacks.wandb_log_eval.WandbCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback moe_stability: {'every_n': 250, '_target_': <class 'cosmos_framework.callbacks.moe_stability_callback.MoEStabilityCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback moe_specialization: {'every_n': 250, '_target_': <class 'cosmos_framework.callbacks.moe_specialization_callback.MoESpecializationCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback moe_router_geometry: {'every_n': 250, '_target_': <class 'cosmos_framework.callbacks.moe_specialization_callback.MoERouterGeometryCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback parameter_geometry: {'every_n': 250, '_target_': <class 'cosmos_framework.callbacks.parameter_geometry_callback.ParameterGeometryCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback expert_heatmap: {'every_n': 1000, '_target_': <class 'cosmos_framework.callbacks.expert_heatmap.ExpertHeatmap'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback load_pretrained: {'config': None, 'trainer': None, '_target_': <class 'cosmos_framework.callbacks.load_pretrained.LoadPretrained'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback compile_tokenizer: {'enabled': False, 'compile_after_iterations': 3, 'warmup_resolutions': None, 'aspect_ratio': None, 'backend': 'inductor', 'mode': 'reduce-overhead', 'fullgraph': False, 'dynamic': False, 'spatial_sizes': [[480, 848], [720, 640], [640, 752], [480, 720], [848, 640], [640, 640], [480, 640], [960, 640]], 'require_full_coverage': True, '_target_': <class 'cosmos_framework.callbacks.compile_tokenizer.CompileTokenizer'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback norm_monitor: {'every_n': 5000, 'step_size': 1, 'layer_norm_only': False, 'model_key': None, 'log_stat_wandb': True, 'save_s3': False, 'track_activations': True, '_target_': <class 'cosmos_framework.callbacks.norm_monitor.NormMonitor'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback sigma_loss_analysis: {'every_n': 5000, 'every_n_viz': 5000, 'save_s3': False, '_target_': <class 'cosmos_framework.callbacks.sigma_loss_analysis.SigmaLossAnalysis'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback sequence_packing_padding: {'every_n': 1, '_target_': <class 'cosmos_framework.callbacks.sequence_packing_padding.SequencePackingPadding'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback sampled_media: {'enabled': False, 'output_uri': '/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/sampled_media.lance', 'creds_path': None, 'flush_every_n_batches': 100, 'record_caption': False, '_target_': <class 'cosmos_framework.callbacks.sampled_media_recorder.SampledMediaRecorder'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback load_balance_trace: {'enabled': False, 'output_dir': '/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/load_balance_trace', 'flush_every_n_batches': 100, 'record_cuda_timing': True, 'max_samples_per_record': 64, '_target_': <class 'cosmos_framework.callbacks.load_balance_trace.LoadBalanceTrace'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback mfu: {'backwardpass_ratio': 2.0, 'hit_thres': 5, 'include_vae_encoder': True, 'include_padding': True, 'grad_accum_iter': 3, 'every_n': 1, '_target_': <class 'cosmos_framework.callbacks.mfu.MFUCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback ofu: {'hit_thres': 5, 'every_n': 1, '_target_': <class 'cosmos_framework.callbacks.ofu.OFUCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback skip_nan_step: {'max_consecutive_nan': 100, '_target_': <class 'cosmos_framework.callbacks.skip_nan_step.SkipNaNStep'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback grad_clip: {'clip_norm': 1.0, 'force_finite': True, 'track_per_modality': True, 'error_if_nonfinite': False, '_target_': <class 'cosmos_framework.callbacks.grad_clip.GradClip'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback low_precision: {'update_iter': 1, 'config': None, 'trainer': None, '_target_': <class 'cosmos_framework.utils.callback.LowPrecisionCallback'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback heart_beat: {'step_size': 1, 'update_interval_in_minute': 20, 'save_s3': False, 'every_n': 200, '_target_': <class 'cosmos_framework.callbacks.heart_beat.HeartBeat'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback device_monitor: {'every_n': 200, 'step_size': 1, 'save_s3': False, 'upload_every_n_mul': 5, 'log_memory_detail': True, '_target_': <class 'cosmos_framework.callbacks.device_monitor.DeviceMonitor'>}
+[11-17 04:14:56|CRITICAL] Instantiating callback termination_signal_checkpoint: {'min_save_fraction': 0.3333333333333333, '_target_': <class 'cosmos_framework.callbacks.termination_signal_checkpoint.TerminationSignalCheckpoint'>}
+[11-17 04:14:56|CRITICAL] Callback dataloader_speed is missing the '_target_' field.
+ SKip {'every_n': 100, 'save_s3': False, 'step_size': 1}
+[11-17 04:14:56|CRITICAL] Instantiating callback training_stats: {'log_freq': 100, '_target_': 'cosmos_framework.callbacks.training_stats.TrainingStatsCallback'}
+[11-17 04:14:56|CRITICAL] Instantiating callback dataloader_state: {'outer_loader': None, '_target_': <class 'cosmos_framework.callbacks.cosmos_dataloader_state.JointCosmosDataLoaderStateCallback'>}
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+[11-17 04:15:07|WARNING] OmniMoTModel: precision torch.bfloat16
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[11-17 04:15:09|INFO] Checkpoint background process is ready for next task, waiting for new state_dict
+[11-17 04:15:10|INFO] loading /share-mixed/project/eai_pwm/models/wan22_vae/Wan2.2_VAE.pth
+[11-17 04:15:10|INFO] Synchronizing model states from rank 0 to all ranks in process group [0, 1, 2, 3].
+[11-17 04:15:10|INFO] Time spent on OmniMoTModel: set_up_tokenizers: 3.59 s
+[11-17 04:15:10|INFO] dp_replicate is set to -1, will be automatically determined based on world_size 4 // dp_shard 4.
+[11-17 04:15:10|INFO] dp_replicate is set to 1.
+[11-17 04:15:10|INFO] Building 2-D device mesh with ['dp_replicate', 'dp_shard'], [1, 4]
+[11-17 04:15:11|INFO] Time spent on meta to cuda and broadcast model states: 0.62 s
+[11-17 04:15:11|INFO] Time spent on Creating PyTorch model and ema if enabled: 1.20 s
+[11-17 04:15:11|INFO] Time spent on OmniMoTModel: set_up_model: 1.20 s
+FULL_DEPTH_MODEL_INITIALIZED
+[11-17 04:15:11|INFO] Total tensors: 1210, trainable tensors: 1210, selected tensors: 811
+[11-17 04:15:19|INFO] Building optimizer for mesh 'shard'
+[11-17 04:15:19|INFO] Param group (lr=1e-05, WD=True): 806 tensors, 7,970,258,880 elements
+[11-17 04:15:19|INFO] Param group (lr=5e-05, WD=True): 5 tensors, 21,062,912 elements
+[11-17 04:15:19|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 04:15:19|INFO] FusedAdam master_weights: True capturable: True
+[11-17 04:15:19|INFO] Created 1 optimizers
+[11-17 04:15:19|INFO] Created 1 schedulers
+[11-17 04:15:19|CRITICAL] Resuming ckpt /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200 (warm-start, local) with keys: ['model']
+[11-17 04:15:19|INFO] Action128 checkpoint mode=warm_start, skips=['action_normalization.']
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+  return func(*args, **kwargs)
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+  return func(*args, **kwargs)
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+  return func(*args, **kwargs)
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/checkpoint/utils.py:483: UserWarning: torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.
+  return func(*args, **kwargs)
+[11-17 04:15:20|INFO] Action128 warm_start: load all model heads; use new normalization and fresh training state
+[11-17 04:15:20|CRITICAL] Start loading checkpoint from /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200/model
+[11-17 04:15:20|INFO] Skipping loading of keys that match the following patterns: ['action_normalization.']
+[11-17 04:15:20|INFO] - Loading the model...
+[11-17 04:15:21|WARNING] Skipping loading of key: net.action_normalization.bias
+[11-17 04:15:21|WARNING] Skipping loading of key: net.action_normalization.contract_digest
+[11-17 04:15:21|WARNING] Skipping loading of key: net.action_normalization.normalization_mask
+[11-17 04:15:21|WARNING] Skipping loading of key: net.action_normalization.scale
+[11-17 04:15:21|INFO] [RANK 0] [DCP-LOAD-SKIP-KEYS] kept_keys=1210 dropped_keys=4
+[11-17 04:15:21|INFO] [RANK 0] [DCP-LOAD-DEDUP] kept_read_items=2403 dropped_read_items=0
+[11-17 04:15:21|INFO] [RANK 1] [DCP-LOAD-SKIP-KEYS] kept_keys=1210 dropped_keys=4
+[11-17 04:15:21|INFO] [RANK 2] [DCP-LOAD-SKIP-KEYS] kept_keys=1210 dropped_keys=4
+[11-17 04:15:21|INFO] [RANK 3] [DCP-LOAD-SKIP-KEYS] kept_keys=1210 dropped_keys=4
+[11-17 04:15:21|INFO] [RANK 1] [DCP-LOAD-DEDUP] kept_read_items=3519 dropped_read_items=0
+[11-17 04:15:21|INFO] [RANK 2] [DCP-LOAD-DEDUP] kept_read_items=3196 dropped_read_items=0
+[11-17 04:15:21|INFO] [RANK 3] [DCP-LOAD-DEDUP] kept_read_items=10536 dropped_read_items=0
+[11-17 04:15:25|INFO] [RANK 0] [DCP-LOAD-TIMING] broadcast: tensors=0.0s, objects=0.0s, rebuild=0.0s
+[11-17 04:15:25|INFO] [RANK 2] [DCP-LOAD-TIMING] broadcast: tensors=0.0s, objects=0.0s, rebuild=0.0s
+[11-17 04:15:25|INFO] [RANK 1] [DCP-LOAD-TIMING] broadcast: tensors=0.0s, objects=0.0s, rebuild=0.0s
+[11-17 04:15:26|INFO] Loaded checkpoint from /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200 (warm-start, local) in iteration 0
+[11-17 04:15:26|INFO] Time spent on checkpoint loading: 6.55 s
+[11-17 04:15:26|CRITICAL] Distributed parallelism mode: fsdp
+[11-17 04:15:26|INFO] Starting training...
+[11-17 04:15:26|INFO] Generating new wandb ID: 16lf3tr6
+[11-17 04:15:28|INFO] [RANK 3] [DCP-LOAD-TIMING] broadcast: tensors=0.0s, objects=0.0s, rebuild=0.0s
+Config is saved using omegaconf at /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/config.yaml.
+[11-17 04:15:31|INFO] [RANK 0] Total number of parameters on current rank: 7991321792
+[11-17 04:15:31|INFO] NormMonitor callback: local_dir: /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/norm_monitor
+[11-17 04:15:31|INFO] NormMonitor: Registered activation hooks on 36 transformer blocks
+[11-17 04:15:31|INFO] OFUCallback: launched nvidia-smi dmon --gpm-metrics 5
+[11-17 04:15:31|INFO] DeviceMonitor callback: local_dir: /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/deterministic_audit_train_megatron/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/DeviceMonitor
+[11-17 04:15:31|INFO] [TerminationSignalCheckpoint] Installed SIGTERM handler.
+[11-17 04:15:31|INFO] Using random seed 42.
+[11-17 04:15:31|INFO] Using random seed 42.
+[11-17 04:15:31|INFO] OFUCallback: found mmaact at column 12, pclk at column 11
+[11-17 04:15:47|INFO] Time spent on norm_monitor: 0.21 s
+GRADIENT_AUDIT rank=0 fp32_global_norm=2.2048003673553467
+GRADIENT_AUDIT rank=1 fp32_global_norm=2.2048003673553467
+GRADIENT_AUDIT rank=3 fp32_global_norm=2.2048003673553467
+GRADIENT_AUDIT rank=2 fp32_global_norm=2.2048003673553467
+[11-17 04:16:02|INFO] [RANK 0] Iteration 1: Loss: 0.1143 | Time: 66.04s | Warmup: 1/50 | video_batch_size: 1
+[11-17 04:16:02|INFO] [RANK 1] Iteration 1: Loss: 0.1256 | Time: 66.13s | Warmup: 1/50 | video_batch_size: 1
+[11-17 04:16:02|INFO] [RANK 2] Iteration 1: Loss: 0.1002 | Time: 66.15s | Warmup: 1/50 | video_batch_size: 1
+[11-17 04:16:02|INFO] [RANK 3] Iteration 1: Loss: 0.1763 | Time: 66.19s | Warmup: 1/50 | video_batch_size: 1
+[11-17 04:16:02|INFO] clip_grad_norm/video/global: 2.20480 (iteration 1)
+[11-17 04:16:02|INFO]
+JointCosmosDataLoader global_id=3
+  [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
+
+[11-17 04:16:02|SUCCESS] Done with training.
+[11-17 04:16:03|INFO] Checkpoint background process received new state_dict
+[11-17 04:16:03|INFO] Checkpoint background process received termination signal, closing sender queue
+[11-17 04:16:03|INFO] Cleaning up: destroying distributed process group
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)

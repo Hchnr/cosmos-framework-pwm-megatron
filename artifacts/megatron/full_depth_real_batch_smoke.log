@@ -33,7 +33,7 @@
 [11-17 03:45:01|CRITICAL] Instantiating callback heart_beat: {'step_size': 1, 'update_interval_in_minute': 20, 'save_s3': False, 'every_n': 200, '_target_': <class 'cosmos_framework.callbacks.heart_beat.HeartBeat'>}
 [11-17 03:45:01|CRITICAL] Instantiating callback device_monitor: {'every_n': 200, 'step_size': 1, 'save_s3': False, 'upload_every_n_mul': 5, 'log_memory_detail': True, '_target_': <class 'cosmos_framework.callbacks.device_monitor.DeviceMonitor'>}
 [11-17 03:45:01|CRITICAL] Instantiating callback termination_signal_checkpoint: {'min_save_fraction': 0.3333333333333333, '_target_': <class 'cosmos_framework.callbacks.termination_signal_checkpoint.TerminationSignalCheckpoint'>}
-[11-17 03:45:01|CRITICAL] Callback dataloader_speed is missing the '_target_' field. 
+[11-17 03:45:01|CRITICAL] Callback dataloader_speed is missing the '_target_' field.
 [11-17 03:45:01|CRITICAL] Instantiating callback training_stats: {'log_freq': 100, '_target_': 'cosmos_framework.callbacks.training_stats.TrainingStatsCallback'}
 [11-17 03:45:01|CRITICAL] Instantiating callback dataloader_state: {'outer_loader': None, '_target_': <class 'cosmos_framework.callbacks.cosmos_dataloader_state.JointCosmosDataLoaderStateCallback'>}
 [11-17 03:45:11|WARNING] OmniMoTModel: precision torch.bfloat16
@@ -95,7 +95,7 @@
 [11-17 03:45:50|INFO] [RANK 1] Iteration 1: Loss: 0.1756 | Time: 49.01s | Warmup: 1/50 | video_batch_size: 1
 [11-17 03:45:50|INFO] [RANK 3] Iteration 1: Loss: 0.1192 | Time: 49.05s | Warmup: 1/50 | video_batch_size: 1
 [11-17 03:45:50|INFO] clip_grad_norm/video/global: 0.74295 (iteration 1)
-[11-17 03:45:50|INFO] 
+[11-17 03:45:50|INFO]
 [11-17 03:45:50|SUCCESS] Done with training.
 [11-17 03:45:50|INFO] Collecting checkpoint model state
 [11-17 03:45:50|INFO] Collecting checkpoint optimizer state

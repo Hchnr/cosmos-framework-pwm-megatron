@@ -1,0 +1,235 @@
+{
+  "bitwise_equal": false,
+  "files": 12,
+  "tensors": 252,
+  "differences": [
+    {
+      "file": "input_rank_0_micro_0.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.0234375
+    },
+    {
+      "file": "input_rank_0_micro_1.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.0234375
+    },
+    {
+      "file": "input_rank_0_micro_2.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.0234375
+    },
+    {
+      "file": "input_rank_1_micro_0.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_1_micro_1.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_1_micro_2.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.0234375
+    },
+    {
+      "file": "input_rank_2_micro_0.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_2_micro_1.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_2_micro_2.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_3_micro_0.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    },
+    {
+      "file": "input_rank_3_micro_1.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.0390625
+    },
+    {
+      "file": "input_rank_3_micro_2.pt",
+      "name": "kwargs.packed_seq.vision.tokens.0",
+      "source_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "candidate_shape": [
+        1,
+        48,
+        16,
+        30,
+        40
+      ],
+      "max_absolute_difference": 0.015625
+    }
+  ]
+}

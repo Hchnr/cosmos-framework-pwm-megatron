@@ -1,0 +1,12 @@
+{
+  "passed": false,
+  "inputs": "artifacts/megatron/full_depth_default_inputs.json",
+  "gradients": "artifacts/megatron/full_depth_gradient_audit.json",
+  "input_tensor_count": 252,
+  "inputs_bitwise_equal": false,
+  "gradient_relative_l2_error": 0.5713351815559531,
+  "relative_l2_limit": 0.02,
+  "gradient_cosine": 0.8279972554845116,
+  "minimum_cosine": 0.999,
+  "scope": "See source audit"
+}

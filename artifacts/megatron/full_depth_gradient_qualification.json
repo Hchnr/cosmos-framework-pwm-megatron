@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "inputs": "artifacts/megatron/full_depth_deterministic_inputs.json",
+  "gradients": "artifacts/megatron/full_depth_deterministic_gradients.json",
+  "input_tensor_count": 252,
+  "inputs_bitwise_equal": true,
+  "gradient_relative_l2_error": 0.013068461001774851,
+  "relative_l2_limit": 0.02,
+  "gradient_cosine": 0.9999628864380823,
+  "minimum_cosine": 0.999,
+  "scope": "full pretrained 36-layer model, 811 selected parameter tensors, real-batch replay, reduced token capacities, deterministic noising and cuDNN"
+}

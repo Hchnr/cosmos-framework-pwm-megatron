@@ -61,7 +61,7 @@ Config is saved using omegaconf at /share-mixed/project/eai_pwm/repos/cosmos-fra
 [11-17 04:02:13|CRITICAL] Instantiating callback heart_beat: {'step_size': 1, 'update_interval_in_minute': 20, 'save_s3': False, 'every_n': 200, '_target_': <class 'cosmos_framework.callbacks.heart_beat.HeartBeat'>}
 [11-17 04:02:13|CRITICAL] Instantiating callback device_monitor: {'every_n': 200, 'step_size': 1, 'save_s3': False, 'upload_every_n_mul': 5, 'log_memory_detail': True, '_target_': <class 'cosmos_framework.callbacks.device_monitor.DeviceMonitor'>}
 [11-17 04:02:13|CRITICAL] Instantiating callback termination_signal_checkpoint: {'min_save_fraction': 0.3333333333333333, '_target_': <class 'cosmos_framework.callbacks.termination_signal_checkpoint.TerminationSignalCheckpoint'>}
-[11-17 04:02:13|CRITICAL] Callback dataloader_speed is missing the '_target_' field. 
+[11-17 04:02:13|CRITICAL] Callback dataloader_speed is missing the '_target_' field.
  SKip {'every_n': 100, 'save_s3': False, 'step_size': 1}
 [11-17 04:02:13|CRITICAL] Instantiating callback training_stats: {'log_freq': 100, '_target_': 'cosmos_framework.callbacks.training_stats.TrainingStatsCallback'}
 [11-17 04:02:13|CRITICAL] Instantiating callback dataloader_state: {'outer_loader': None, '_target_': <class 'cosmos_framework.callbacks.cosmos_dataloader_state.JointCosmosDataLoaderStateCallback'>}
@@ -147,7 +147,7 @@ Config is saved using omegaconf at /share-mixed/project/eai_pwm/repos/cosmos-fra
 [11-17 04:03:01|INFO] [RANK 2] Iteration 1: Loss: 0.1179 | Time: 48.19s | Warmup: 1/50 | video_batch_size: 1
 [11-17 04:03:01|INFO] [RANK 3] Iteration 1: Loss: 0.1153 | Time: 48.21s | Warmup: 1/50 | video_batch_size: 1
 [11-17 04:03:01|INFO] clip_grad_norm/video/global: 0.63637 (iteration 1)
-[11-17 04:03:01|INFO] 
+[11-17 04:03:01|INFO]
 JointCosmosDataLoader global_id=3
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -156,7 +156,7 @@ JointCosmosDataLoader global_id=3
 [11-17 04:03:05|INFO] [RANK 1] Iteration 2: Loss: 0.1074 | Time: 4.49s | Warmup: 2/50 | video_batch_size: 1
 [11-17 04:03:05|INFO] [RANK 3] Iteration 2: Loss: 0.0898 | Time: 4.48s | Warmup: 2/50 | video_batch_size: 1
 [11-17 04:03:05|INFO] clip_grad_norm/video/global: 0.48370 (iteration 2)
-[11-17 04:03:05|INFO] 
+[11-17 04:03:05|INFO]
 JointCosmosDataLoader global_id=6
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -165,7 +165,7 @@ JointCosmosDataLoader global_id=6
 [11-17 04:03:10|INFO] [RANK 1] Iteration 3: Loss: 0.1241 | Time: 4.42s | Warmup: 3/50 | video_batch_size: 1
 [11-17 04:03:10|INFO] [RANK 3] Iteration 3: Loss: 0.1044 | Time: 4.41s | Warmup: 3/50 | video_batch_size: 1
 [11-17 04:03:10|INFO] clip_grad_norm/video/global: 0.82240 (iteration 3)
-[11-17 04:03:10|INFO] 
+[11-17 04:03:10|INFO]
 JointCosmosDataLoader global_id=9
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -174,7 +174,7 @@ JointCosmosDataLoader global_id=9
 [11-17 04:03:14|INFO] [RANK 2] Iteration 4: Loss: 0.0985 | Time: 4.42s | Warmup: 4/50 | video_batch_size: 1
 [11-17 04:03:14|INFO] [RANK 3] Iteration 4: Loss: 0.0903 | Time: 4.42s | Warmup: 4/50 | video_batch_size: 1
 [11-17 04:03:14|INFO] clip_grad_norm/video/global: 0.83681 (iteration 4)
-[11-17 04:03:14|INFO] 
+[11-17 04:03:14|INFO]
 JointCosmosDataLoader global_id=12
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -184,7 +184,7 @@ JointCosmosDataLoader global_id=12
 [11-17 04:03:19|INFO] [RANK 2] Iteration 5: Loss: 0.0862 | Time: 4.43s | Warmup: 5/50 | video_batch_size: 1
 [11-17 04:03:19|INFO] [RANK 3] Iteration 5: Loss: 0.0998 | Time: 4.43s | Warmup: 5/50 | video_batch_size: 1
 [11-17 04:03:19|INFO] clip_grad_norm/video/global: 0.47254 (iteration 5)
-[11-17 04:03:19|INFO] 
+[11-17 04:03:19|INFO]
 JointCosmosDataLoader global_id=15
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -196,7 +196,7 @@ JointCosmosDataLoader global_id=15
 /opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
   return func(*args, **kwargs)
 [11-17 04:03:23|INFO] clip_grad_norm/video/global: 0.82262 (iteration 6)
-[11-17 04:03:23|INFO] 
+[11-17 04:03:23|INFO]
 JointCosmosDataLoader global_id=18
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -207,7 +207,7 @@ JointCosmosDataLoader global_id=18
 [11-17 04:03:27|INFO] [RANK 0] 7 : real_tokens_per_sec_per_gpu 3426.7 | physical_tokens_per_sec_per_gpu 5966.3 | effective_samples_per_sec_per_gpu 0.6855 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3765
 [11-17 04:03:27|WARNING] OFUCallback: no nvidia-smi samples collected at iteration 7. Check that the dmon subprocess launched and that the mmaact column is present.
 [11-17 04:03:27|INFO] clip_grad_norm/video/global: 0.25337 (iteration 7)
-[11-17 04:03:27|INFO] 
+[11-17 04:03:27|INFO]
 JointCosmosDataLoader global_id=21
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -217,7 +217,7 @@ JointCosmosDataLoader global_id=21
 [11-17 04:03:32|INFO] [RANK 3] Iteration 8: Loss: 0.4004 | Time: 4.41s | Warmup: 8/50 | video_batch_size: 1
 [11-17 04:03:32|INFO] [RANK 0] 8 : real_tokens_per_sec_per_gpu 3428.3 | physical_tokens_per_sec_per_gpu 5969.1 | effective_samples_per_sec_per_gpu 0.6858 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3745
 [11-17 04:03:32|INFO] clip_grad_norm/video/global: 0.25481 (iteration 8)
-[11-17 04:03:32|INFO] 
+[11-17 04:03:32|INFO]
 JointCosmosDataLoader global_id=24
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -227,7 +227,7 @@ JointCosmosDataLoader global_id=24
 [11-17 04:03:36|INFO] [RANK 3] Iteration 9: Loss: 0.0658 | Time: 4.42s | Warmup: 9/50 | video_batch_size: 1
 [11-17 04:03:36|INFO] [RANK 0] 9 : real_tokens_per_sec_per_gpu 3423.3 | physical_tokens_per_sec_per_gpu 5960.5 | effective_samples_per_sec_per_gpu 0.6848 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3809
 [11-17 04:03:36|INFO] clip_grad_norm/video/global: 0.22493 (iteration 9)
-[11-17 04:03:36|INFO] 
+[11-17 04:03:36|INFO]
 JointCosmosDataLoader global_id=27
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -237,7 +237,7 @@ JointCosmosDataLoader global_id=27
 [11-17 04:03:41|INFO] [RANK 3] Iteration 10: Loss: 0.0766 | Time: 4.42s | Warmup: 10/50 | video_batch_size: 1
 [11-17 04:03:41|INFO] [RANK 0] 10 : real_tokens_per_sec_per_gpu 3416.7 | physical_tokens_per_sec_per_gpu 5948.9 | effective_samples_per_sec_per_gpu 0.6835 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3894
 [11-17 04:03:41|INFO] clip_grad_norm/video/global: 0.17990 (iteration 10)
-[11-17 04:03:41|INFO] 
+[11-17 04:03:41|INFO]
 JointCosmosDataLoader global_id=30
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -247,7 +247,7 @@ JointCosmosDataLoader global_id=30
 [11-17 04:03:45|INFO] [RANK 3] Iteration 11: Loss: 0.0978 | Time: 4.45s | Warmup: 11/50 | video_batch_size: 1
 [11-17 04:03:45|INFO] [RANK 0] 11 : real_tokens_per_sec_per_gpu 3404.7 | physical_tokens_per_sec_per_gpu 5928.0 | effective_samples_per_sec_per_gpu 0.6811 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.4048
 [11-17 04:03:45|INFO] clip_grad_norm/video/global: 0.13185 (iteration 11)
-[11-17 04:03:45|INFO] 
+[11-17 04:03:45|INFO]
 JointCosmosDataLoader global_id=33
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -257,7 +257,7 @@ JointCosmosDataLoader global_id=33
 [11-17 04:03:50|INFO] [RANK 3] Iteration 12: Loss: 0.1008 | Time: 4.42s | Warmup: 12/50 | video_batch_size: 1
 [11-17 04:03:50|INFO] [RANK 0] 12 : real_tokens_per_sec_per_gpu 3419.9 | physical_tokens_per_sec_per_gpu 5954.5 | effective_samples_per_sec_per_gpu 0.6841 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3853
 [11-17 04:03:50|INFO] clip_grad_norm/video/global: 0.18702 (iteration 12)
-[11-17 04:03:50|INFO] 
+[11-17 04:03:50|INFO]
 JointCosmosDataLoader global_id=36
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -267,7 +267,7 @@ JointCosmosDataLoader global_id=36
 [11-17 04:03:54|INFO] [RANK 3] Iteration 13: Loss: 0.0594 | Time: 4.43s | Warmup: 13/50 | video_batch_size: 1
 [11-17 04:03:54|INFO] [RANK 0] 13 : real_tokens_per_sec_per_gpu 3418.9 | physical_tokens_per_sec_per_gpu 5952.8 | effective_samples_per_sec_per_gpu 0.6839 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3865
 [11-17 04:03:54|INFO] clip_grad_norm/video/global: 0.14204 (iteration 13)
-[11-17 04:03:54|INFO] 
+[11-17 04:03:54|INFO]
 JointCosmosDataLoader global_id=39
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -277,7 +277,7 @@ JointCosmosDataLoader global_id=39
 [11-17 04:03:58|INFO] [RANK 3] Iteration 14: Loss: 0.0605 | Time: 4.41s | Warmup: 14/50 | video_batch_size: 1
 [11-17 04:03:58|INFO] [RANK 0] 14 : real_tokens_per_sec_per_gpu 3423.1 | physical_tokens_per_sec_per_gpu 5960.1 | effective_samples_per_sec_per_gpu 0.6848 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3811
 [11-17 04:03:58|INFO] clip_grad_norm/video/global: 0.15053 (iteration 14)
-[11-17 04:03:58|INFO] 
+[11-17 04:03:58|INFO]
 JointCosmosDataLoader global_id=42
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -288,7 +288,7 @@ JointCosmosDataLoader global_id=42
 [11-17 04:04:03|INFO] [RANK 0] 15 : real_tokens_per_sec_per_gpu 3417.3 | physical_tokens_per_sec_per_gpu 5950.0 | effective_samples_per_sec_per_gpu 0.6836 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3886
 [11-17 04:04:03|WARNING] OFUCallback: no nvidia-smi samples collected at iteration 15. Check that the dmon subprocess launched and that the mmaact column is present.
 [11-17 04:04:03|INFO] clip_grad_norm/video/global: 0.12404 (iteration 15)
-[11-17 04:04:03|INFO] 
+[11-17 04:04:03|INFO]
 JointCosmosDataLoader global_id=45
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -298,7 +298,7 @@ JointCosmosDataLoader global_id=45
 [11-17 04:04:07|INFO] [RANK 3] Iteration 16: Loss: 0.0583 | Time: 4.43s | Warmup: 16/50 | video_batch_size: 1
 [11-17 04:04:07|INFO] [RANK 0] 16 : real_tokens_per_sec_per_gpu 3414.1 | physical_tokens_per_sec_per_gpu 5944.4 | effective_samples_per_sec_per_gpu 0.6830 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3927
 [11-17 04:04:07|INFO] clip_grad_norm/video/global: 0.11969 (iteration 16)
-[11-17 04:04:07|INFO] 
+[11-17 04:04:07|INFO]
 JointCosmosDataLoader global_id=48
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -308,7 +308,7 @@ JointCosmosDataLoader global_id=48
 [11-17 04:04:12|INFO] [RANK 3] Iteration 17: Loss: 0.0530 | Time: 4.42s | Warmup: 17/50 | video_batch_size: 1
 [11-17 04:04:12|INFO] [RANK 0] 17 : real_tokens_per_sec_per_gpu 3427.6 | physical_tokens_per_sec_per_gpu 5968.0 | effective_samples_per_sec_per_gpu 0.6857 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3753
 [11-17 04:04:12|INFO] clip_grad_norm/video/global: 0.14601 (iteration 17)
-[11-17 04:04:12|INFO] 
+[11-17 04:04:12|INFO]
 JointCosmosDataLoader global_id=51
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -318,7 +318,7 @@ JointCosmosDataLoader global_id=51
 [11-17 04:04:16|INFO] [RANK 3] Iteration 18: Loss: 0.0583 | Time: 4.42s | Warmup: 18/50 | video_batch_size: 1
 [11-17 04:04:16|INFO] [RANK 0] 18 : real_tokens_per_sec_per_gpu 3416.5 | physical_tokens_per_sec_per_gpu 5948.7 | effective_samples_per_sec_per_gpu 0.6834 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3895
 [11-17 04:04:16|INFO] clip_grad_norm/video/global: 0.13428 (iteration 18)
-[11-17 04:04:16|INFO] 
+[11-17 04:04:16|INFO]
 JointCosmosDataLoader global_id=54
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -328,7 +328,7 @@ JointCosmosDataLoader global_id=54
 [11-17 04:04:21|INFO] [RANK 3] Iteration 19: Loss: 0.0517 | Time: 4.45s | Warmup: 19/50 | video_batch_size: 1
 [11-17 04:04:21|INFO] [RANK 0] 19 : real_tokens_per_sec_per_gpu 3401.6 | physical_tokens_per_sec_per_gpu 5922.8 | effective_samples_per_sec_per_gpu 0.6805 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.4088
 [11-17 04:04:21|INFO] clip_grad_norm/video/global: 0.14595 (iteration 19)
-[11-17 04:04:21|INFO] 
+[11-17 04:04:21|INFO]
 JointCosmosDataLoader global_id=57
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 
@@ -338,7 +338,7 @@ JointCosmosDataLoader global_id=57
 [11-17 04:04:25|INFO] [RANK 3] Iteration 20: Loss: 0.0770 | Time: 4.42s | Warmup: 20/50 | video_batch_size: 1
 [11-17 04:04:25|INFO] [RANK 0] 20 : real_tokens_per_sec_per_gpu 3418.3 | physical_tokens_per_sec_per_gpu 5951.7 | effective_samples_per_sec_per_gpu 0.6838 | real_und_tokens 414 | real_gen_tokens 14583 | physical_und_tokens 1536 | physical_gen_tokens 24576 | und_utilization 0.2695 | gen_utilization 0.5934 | effective_samples 3 | microbatches 3 | avg_time_per_step_s 4.3873
 [11-17 04:04:25|INFO] clip_grad_norm/video/global: 0.17501 (iteration 20)
-[11-17 04:04:25|INFO] 
+[11-17 04:04:25|INFO]
 JointCosmosDataLoader global_id=60
   [RoboMIND-v1-joint:39] worker 0: epoch=0, index=0
 

@@ -250,10 +250,12 @@ class NormMonitor(Callback):
                 "max": torch.zeros((), device=data.device, dtype=data.dtype),  # []
             }
 
-        return {
-            "sq_sum": (data.float() ** 2).sum(),
-            "max": data.abs().max(),
-        }
+        # Reduce directly instead of materializing FP32 activation and squared
+        # copies. At production lengths those temporaries consume gigabytes.
+        norm_data = data if data.dtype in (torch.float16, torch.bfloat16, torch.float32) else data.float()
+        norm = torch.linalg.vector_norm(norm_data, dtype=torch.float32)
+        minimum, maximum = torch.aminmax(data)
+        return {"sq_sum": norm.square(), "max": torch.maximum(minimum.abs(), maximum.abs())}
 
     @misc.timer("norm_monitor")
     def _compute_and_log_stats(self, model: nn.Module, iteration: int = 0) -> None:
