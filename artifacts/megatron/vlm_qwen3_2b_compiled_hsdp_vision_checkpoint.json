@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "steps": 3,
+  "gradient_accumulation": 3,
+  "compile": true,
+  "replicas": 2,
+  "sharding_strategy": "optim_grads",
+  "maximum_loss_relative_error": 0.003222637576982379,
+  "weight_relative_l2": 0.00019759543434117133,
+  "native_checkpoint_continuation": true,
+  "megatron_checkpoint_restart": true,
+  "restart_weights_bitwise_equal": true,
+  "vision_input": true,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-2B-Instruct",
+  "frozen_vision_bitwise_equal": true,
+  "tied_embeddings_preserved": true
+}

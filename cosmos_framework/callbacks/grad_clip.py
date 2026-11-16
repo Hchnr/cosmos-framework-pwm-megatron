@@ -384,8 +384,9 @@ class GradClip(Callback):
         iteration: int = 0,
     ) -> None:
         del optimizer, scheduler, grad_scaler
-        net = getattr(model, "net", model) if not isinstance(model, list) else None
-        megatron_runtime = getattr(net, "__dict__", {}).get("_cosmos_megatron_runtime")
+        from cosmos_framework.training_backends.megatron import get_runtime
+
+        megatron_runtime = get_runtime(model) if not isinstance(model, list) else None
 
         # 1. Resolve which parameters to clip.
         if self.track_per_modality:

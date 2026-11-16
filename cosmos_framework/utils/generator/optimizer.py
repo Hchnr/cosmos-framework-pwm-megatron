@@ -404,7 +404,11 @@ class OptimizersContainer(Stateful):
             runtime_options = dict(megatron_options)
             if "unit_types" not in runtime_options:
                 runtime_options["unit_types"] = tuple({type(block) for block in model.net.language_model.model.layers})
-            self._megatron_runtime = MegatronRuntime(model.net, **runtime_options)
+            initial_masters = model.net.__dict__.pop("_cosmos_megatron_initial_master_weights", None)
+            self._megatron_runtime = MegatronRuntime(
+                model.net, initial_master_weights=initial_masters, **runtime_options
+            )
+            del initial_masters
             distributed_params = dict(model.net.named_parameters())
             params_with_metadata = [(distributed_params[name], metadata) for name, metadata in selected]
 

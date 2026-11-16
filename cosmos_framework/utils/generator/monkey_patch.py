@@ -418,6 +418,9 @@ def patch_qwen3_vl_moe_grouped_mm_experts(model: torch.nn.Module) -> int:
         # for 8 bytes, once per layer per step. full() fills on device, passing the scalar
         # as a kernel argument, so no host memory is involved and nothing waits. The masked
         # token count is a device-side sum of the mask for the same reason.
+        # Replay the same differentiable ops under eager AC. Suppressing the
+        # stash must not remove saved tensors from checkpoint recomputation.
+        mean_router_prob = _weighted_mean(routing_weights, token_weight).squeeze(0)
         if not _in_autograd_backward():
             self.lbl_metadata = LBLMetadata(
                 num_tokens_per_expert=num_tokens_per_expert.to(dtype=torch.int64),  # [num_experts]
@@ -426,7 +429,7 @@ def patch_qwen3_vl_moe_grouped_mm_experts(model: torch.nn.Module) -> int:
                     if token_weight is None
                     else token_weight.sum().to(torch.int64).reshape(1)
                 ),  # [1]
-                mean_router_prob_per_expert=_weighted_mean(routing_weights, token_weight).squeeze(0),  # [num_experts]
+                mean_router_prob_per_expert=mean_router_prob,  # [num_experts]
                 top_k=torch.full((1,), self.top_k, dtype=torch.int64, device=hidden_states.device),  # [1]
             )
 

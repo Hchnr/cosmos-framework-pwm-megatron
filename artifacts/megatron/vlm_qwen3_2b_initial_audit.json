@@ -1,0 +1,7481 @@
+{
+  "initial_weight_differences": [],
+  "losses": [
+    14.922246932983398,
+    14.922246932983398
+  ],
+  "module_comparisons": [
+    {
+      "name": "model.language_model.embed_tokens",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.patch_embed",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1536
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.pos_embed",
+      "inputs": [
+        {
+          "shape": [
+            4,
+            16
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            4,
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.0",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.1",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.2",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.3",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.4",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.5",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.deepstack_merger_list.0.norm",
+      "inputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.6",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.7",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.8",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.9",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.10",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.11",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.deepstack_merger_list.1.norm",
+      "inputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.12",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.13",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.14",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.15",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.16",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.17",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.deepstack_merger_list.2.norm",
+      "inputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            4,
+            4096
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.18",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.19",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.20",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.21",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.22",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.blocks.23",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            2
+          ],
+          "source_dtype": "torch.int32",
+          "target_dtype": "torch.int32",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            16,
+            64
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.merger.norm",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.visual.merger",
+      "inputs": [
+        {
+          "shape": [
+            16,
+            1024
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            4,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.0.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.0.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.0.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.0.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.0",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.1.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.1.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.1.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.1.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.1",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.2.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.2.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.2.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.2.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.2",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.3.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.3.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.3.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.3.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.3",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.4.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.4.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.4.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.4.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.4",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.5.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.5.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.5.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.5.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.5",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.6.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.6.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.6.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.6.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.6",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.7.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.7.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.7.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.7.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.7",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.8.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.8.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.8.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.8.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.8",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.9.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.9.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.9.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.9.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.9",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.10.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.10.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.10.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.10.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.10",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.11.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.11.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.11.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.11.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.11",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.12.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.12.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.12.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.12.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.12",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.13.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.13.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.13.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.13.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.13",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.14.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.14.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.14.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.14.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.14",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.15.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.15.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.15.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.15.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.15",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.16.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.16.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.16.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.16.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.16",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.17.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.17.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.17.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.17.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.17",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.18.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.18.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.18.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.18.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.18",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.19.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.19.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.19.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.19.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.19",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.20.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.20.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.20.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.20.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.20",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.21.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.21.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.21.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.21.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.21",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.22.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.22.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.22.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.22.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.22",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.23.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.23.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.23.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.23.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.23",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.24.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.24.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.24.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.24.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.24",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.25.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.25.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.25.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.25.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.25",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.26.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.26.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.26.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.26.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.26",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.27.input_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.27.self_attn.q_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            16,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.27.self_attn.k_norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            8,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.27.post_attention_layernorm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.layers.27",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            17
+          ],
+          "source_dtype": "torch.int64",
+          "target_dtype": "torch.int64",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        },
+        {
+          "shape": [
+            1,
+            17,
+            128
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "model.language_model.norm",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "name": "lm_head",
+      "inputs": [
+        {
+          "shape": [
+            1,
+            17,
+            2048
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ],
+      "outputs": [
+        {
+          "shape": [
+            1,
+            17,
+            151936
+          ],
+          "source_dtype": "torch.bfloat16",
+          "target_dtype": "torch.bfloat16",
+          "bitwise_equal": true,
+          "maximum_absolute_error": 0.0,
+          "relative_l2": 0.0
+        }
+      ]
+    }
+  ]
+}

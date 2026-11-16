@@ -28,18 +28,20 @@ import torch
 import torch.nn as nn
 from torch.nn.modules.module import _IncompatibleKeys
 
-from cosmos_framework.utils.lazy_config import instantiate
-from cosmos_framework.model._base import ImaginaireModel
-from cosmos_framework.utils import log
-from cosmos_framework.model.generator.algorithm.loss.cross_entropy import cross_entropy_loss, weighted_cross_entropy_loss
-from cosmos_framework.model.generator.algorithm.loss.load_balancing import compute_load_balancing_loss
 from cosmos_framework.configs.base.defaults.parallelism import PRECISION_TO_TORCH_DTYPE
 from cosmos_framework.configs.base.defaults.reasoner import validate_sound_understanding_config
 from cosmos_framework.configs.base.reasoner.defaults.policy_config import VLMModelConfig
+from cosmos_framework.model._base import ImaginaireModel
+from cosmos_framework.model.generator.algorithm.loss.cross_entropy import (
+    cross_entropy_loss,
+    weighted_cross_entropy_loss,
+)
+from cosmos_framework.model.generator.algorithm.loss.load_balancing import compute_load_balancing_loss
 from cosmos_framework.model.generator.hf_model import HFModel
 from cosmos_framework.model.generator.parallelize_vlm import parallelize
 from cosmos_framework.model.generator.utils.moe_utils import collect_hf_moe_lbl_metadata, set_hf_moe_token_mask
 from cosmos_framework.model.generator.utils.safetensors_loader import load_vlm_model
+from cosmos_framework.utils import log
 from cosmos_framework.utils.generator.input_probe import (
     maybe_dump_forward_result,
     maybe_dump_gradients,
@@ -51,6 +53,7 @@ from cosmos_framework.utils.generator.reasoner.constant import IGNORE_INDEX
 from cosmos_framework.utils.generator.reasoner.pretrained_models_downloader import (
     maybe_download_hf_model_from_s3,
 )
+from cosmos_framework.utils.lazy_config import instantiate
 
 # Model-type dispatch sets. Using hf_config.model_type (stable HF-defined string)
 # rather than backbone.model_name avoids the brittleness of substring-matching a local
@@ -481,8 +484,13 @@ class VLMModel(ImaginaireModel):
         # empty CUDA tensors here for load_weights() to copy into.
         # To enable FSDP-2 CPU offload later: add a CPU-materialize branch and
         # pair with ``offload_policy=CPUOffloadPolicy()`` in ``parallelize_vlm``.
+        materialization_device = "cpu" if config.parallelism.backend == "megatron" else "cuda"
         hf_model.model._apply(
-            lambda t: torch.empty_like(t, device="cuda") if t.device.type == "meta" else t.to("cuda"),
+            lambda t: (
+                torch.empty_like(t, device=materialization_device)
+                if t.device.type == "meta"
+                else t.to(materialization_device)
+            ),
             recurse=True,
         )
         if config.sound_und:
@@ -566,6 +574,20 @@ class VLMModel(ImaginaireModel):
                 f"VLMModel: loaded {len(loaded_audio_keys)} audio encoder tensors from "
                 f"{audio_config.encoder_checkpoint_path}"
             )
+
+        if config.parallelism.backend == "megatron":
+            # Preserve exact CPU master values before casting compute parameters.
+            # Optimizer construction consumes these references after sharding;
+            # frozen FP32 values remain as local shards for checkpoint parity.
+            hf_model.net.__dict__["_cosmos_megatron_initial_master_weights"] = hf_model.net.state_dict()
+            compute_dtype = PRECISION_TO_TORCH_DTYPE[config.precision]
+            for parameter in hf_model.net.parameters():
+                parameter.data = parameter.data.to(device="cuda", dtype=compute_dtype)
+            # RoPE and other floating buffers retain their original dtype.
+            for module in hf_model.net.modules():
+                for name, buffer in module._buffers.items():
+                    if buffer is not None:
+                        module._buffers[name] = buffer.to(device="cuda")
 
         self.model = hf_model
         self.parallel_dims = parallel_dims

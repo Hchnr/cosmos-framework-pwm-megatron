@@ -501,8 +501,22 @@ def parallelize(
         compile_config:           Optional ``CompileConfig``; ``None``/``enabled=False``
                                   skips compile.
     """
-    if parallelism_config.backend != "pytorch":
-        raise NotImplementedError("Megatron backend is currently implemented for VFM/MoT; standalone VLM is pending")
+    if parallelism_config.backend not in ("pytorch", "megatron"):
+        raise ValueError(f"Unknown training backend: {parallelism_config.backend}")
     slots = apply_ac(model, activation_checkpointing)
     slots = apply_compile(slots, compile_config)
-    apply_fsdp(model, slots, parallel_dims, parallelism_config, precision)
+    if parallelism_config.backend == "megatron":
+        # Delay wrapping until the optimizer has applied name-based freezing.
+        # Materialization/weight loading in VLMModel happens on CPU first.
+        model.net.__dict__["_cosmos_megatron_options"] = {
+            "shard_degree": parallel_dims.dp_shard,
+            "replicate_degree": parallel_dims.dp_replicate,
+            "unit_types": tuple({type(block) for _, _, block in slots}),
+            "sharding_strategy": parallelism_config.megatron_sharding_strategy,
+            "compute_dtype": PRECISION_TO_TORCH_DTYPE[precision],
+            "main_params_dtype": PRECISION_TO_TORCH_DTYPE[parallelism_config.fsdp_master_dtype],
+            "main_grads_dtype": PRECISION_TO_TORCH_DTYPE[parallelism_config.fsdp_master_dtype],
+            "grad_comm_dtype": _resolve_reduce_dtype(parallelism_config),
+        }
+    else:
+        apply_fsdp(model, slots, parallel_dims, parallelism_config, precision)

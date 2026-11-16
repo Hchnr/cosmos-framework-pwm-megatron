@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/exported_live_model",
+  "model_parameters": 16182057152,
+  "load_seconds": 15.714025720953941,
+  "generation_seconds": 7.827895890921354,
+  "num_steps": 2,
+  "seed": 42,
+  "outputs": {
+    "vision": [
+      [
+        1,
+        48,
+        2,
+        16,
+        16
+      ]
+    ],
+    "action": [
+      [
+        4,
+        128
+      ]
+    ]
+  },
+  "video_shape": [
+    3,
+    5,
+    256,
+    256
+  ],
+  "video_finite": true,
+  "video_file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/export_verify_consumption/vision.mp4",
+  "inverse_transform_verified": true,
+  "action_finite": true,
+  "inactive_slots_zero": true,
+  "peak_allocated_bytes": 34477353984,
+  "exported_weight_bytes": 32364243344,
+  "encoded_video_verified": {
+    "decoded_frames": 5,
+    "height": 256,
+    "width": 256
+  }
+}

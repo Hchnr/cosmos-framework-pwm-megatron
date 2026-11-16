@@ -8,8 +8,8 @@ reads the original repository's 52-source run unless explicitly overridden.
 
 **Status: implementation in progress. Production end-to-end correctness and
 192-GPU throughput have not yet been accepted.** A synthetic component speedup
-does not establish a production speedup. Other training recipes and model
-families have not yet been migrated or qualified.
+does not establish a production speedup. Standalone dense Qwen3-VL and a small Qwen3-VL-MoE configuration are also
+qualified below; other model families and production scales remain unqualified.
 
 ## Backend integration
 
@@ -103,12 +103,12 @@ export LD_LIBRARY_PATH=''
 export PYTHONPATH="$PWD"
 export OMP_NUM_THREADS=1
 export TORCHINDUCTOR_COMPILE_THREADS=1
-torchrun --standalone --nproc-per-node=4 tests/megatron/distributed_smoke.py
-torchrun --standalone --nproc-per-node=4 tests/megatron/three_tower_smoke.py
-torchrun --standalone --nproc-per-node=4 tests/megatron/three_tower_smoke.py --compile --replicas 2
-torchrun --standalone --nproc-per-node=4 tests/megatron/checkpoint_smoke.py
-torchrun --standalone --nproc-per-node=4 tests/megatron/checkpoint_smoke.py --optimizer FusedAdam --dtype bfloat16 --replicas 2
-torchrun --standalone --nproc-per-node=4 tests/megatron/async_checkpoint_smoke.py
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/distributed_smoke.py
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/three_tower_smoke.py
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/three_tower_smoke.py --compile --replicas 2
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/checkpoint_smoke.py
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/checkpoint_smoke.py --optimizer FusedAdam --dtype bfloat16 --replicas 2
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/async_checkpoint_smoke.py
 ```
 
 Verified so far on four H100 80GB GPUs, PyTorch
@@ -145,10 +145,10 @@ hidden size 1280, 2944 tokens/rank, BF16, full AC, GA=3 on four H100s. It exclud
 attention, VAE, data loading, full three-tower routing and checkpoint overhead.
 
 ```bash
-torchrun --standalone --nproc-per-node=4 tests/megatron/benchmark_fsdp.py \
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/benchmark_fsdp.py \
   --backend pytorch --compile --steps 30 \
   --output artifacts/megatron/benchmark_pytorch_compiled.json
-torchrun --standalone --nproc-per-node=4 tests/megatron/benchmark_fsdp.py \
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/benchmark_fsdp.py \
   --backend megatron --compile --steps 30 \
   --output artifacts/megatron/benchmark_megatron_compiled.json
 ```
@@ -299,6 +299,65 @@ directories. The five path-layout tests pass. Public HF export omits Megatron
 optimizer-sharding fields so inference chooses its own backend/CP preset; both
 serialization regression tests pass.
 
+## Standalone VLM and HF consumption
+
+`parallelize_vlm` now supports `backend="megatron"`, retaining the existing HF
+model, freeze rules, AC/compile order and optimizer groups. VLM mixed precision
+uses BF16 compute with native FP32 parameter masters and FP32 gradient buffers;
+`fsdp_reduce_dtype` controls communication precision independently. The runtime
+casts root/block floating inputs like FSDP2. This includes FP32 RoPE cos/sin kwargs:
+omitting their BF16 cast produced different outputs despite identical weights.
+The fixed full Qwen3-VL-2B audit has zero initial-weight differences and **all 174
+captured forward outputs bitwise equal**. The rejected uncast audit is retained.
+
+HF loading first materializes CPU masters, then casts compute parameters on CUDA.
+Optimizer construction shards and restores exact master values. Frozen FP32
+weights retain separate local master copies for checkpoint serialization, so
+freezing does not lose source precision. Shared embedding identities survive
+parameter swapping. This initialization still requires unsharded BF16 compute
+weights to fit on one device and full CPU masters per rank; larger VLM families
+need a different initialization path before they can be accepted.
+
+On four H100s, the actual pretrained Qwen3-VL-2B completed three GA=3 AdamW
+updates with real visual-token input, full AC, compile and 2×2 HSDP/ZeRO-2.
+Maximum loss relative error over the run was 0.003223; final parameter relative
+L2 was 0.0001976. Frozen vision weights are bitwise equal. Native FSDP2 full-state
+checkpoint continuation and Megatron restart passed; restarted weights are
+bitwise equal. This test uses a deliberately large lr=1e-3 and checks behavior,
+not model quality or throughput (`vlm_qwen3_2b_compiled_hsdp_vision_checkpoint.json`).
+
+A two-layer Qwen3-VL-MoE test also passed with visual input, compile/full AC,
+2×2 HSDP, GA=3, EP=1 and global load-balancing loss coefficient 0.01: losses and
+final weights were bitwise equal across backends, including both checkpoint
+continuations. Expert parameters receive an explicit ordinary-DP expert mesh.
+The original MoE patch suppressed differentiable auxiliary-statistic computation
+during eager AC recomputation, causing 68 saved tensors versus 66; it now runs
+the same math and suppresses only the repeated stash. Recomputed graphs are not
+retained by the module. ZeRO-3 with BF16 gradient communication also passed the same continuation
+checks (maximum loss relative error 0.000110, final weight relative L2 0.000229).
+This does not qualify the full 30B/235B MoE models.
+
+The full live-trained 16.182B checkpoint was exported through the original
+`cosmos_framework.scripts.export_model` command into 32,364,243,344 bytes of HF
+safetensors. Missing backend fields in public/older configs now default to
+PyTorch during model construction, as required for inference. The exported model
+loaded through the original HF reader and produced finite [4,128] Action128 WAM
+outputs with unused slots zero. The original VAE decoded a finite [3,5,256,256]
+video, the written MP4 was decoded back to five frames, and the physical action
+inverse transform matched the contract. The training seam contract requires WAM camera
+metadata; a generic text-to-image request is not a valid test of that checkpoint.
+See `tests/megatron/export_consumption.py` and its JSON result. This is a tiny
+2-step compatibility smoke, not a generation-quality evaluation.
+
+Reproduce the scoped VLM checks with the independent environment activated:
+
+```bash
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/vlm_smoke.py \
+  --vision --compile --replicas 2 --sharding-strategy optim_grads
+python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/vlm_smoke.py \
+  --moe --vision --compile --replicas 2 --sharding-strategy optim_grads
+```
+
 ## Remaining acceptance gates
 
 The source entry, 58-source configuration, live training, asynchronous full-state
@@ -311,9 +370,9 @@ are available, but do not replace a distributed production run.
 
 1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
    stalls and stragglers with the original 16-shard × 12-replica layout.
-2. Validate complete HF export and inference consumption, beyond metadata and
-   parameter-materialization regression checks.
-3. Extend and qualify independent VLM and other model/optimizer/parallelism
-   paths; EMA and CP>1 remain explicitly unsupported in this backend.
+2. Extend qualification to remaining model families, large-model initialization,
+   optimizers and parallelism paths; EMA and CP>1 remain explicitly unsupported.
+3. Measure representative steady-state performance for standalone VLM recipes;
+   their correctness tests do not establish a VLM throughput gain.
 
 Do not declare the entire repository migration complete before these gates pass.

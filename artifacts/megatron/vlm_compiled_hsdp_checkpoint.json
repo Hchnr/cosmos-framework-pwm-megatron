@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "steps": 3,
+  "gradient_accumulation": 3,
+  "compile": true,
+  "replicas": 2,
+  "sharding_strategy": "optim_grads",
+  "maximum_loss_relative_error": 5.956313543720171e-05,
+  "weight_relative_l2": 4.6962169689277815e-05,
+  "native_checkpoint_continuation": true,
+  "megatron_checkpoint_restart": true,
+  "model_path": "/tmp/cosmos_megatron_tiny_qwen3_vl",
+  "frozen_vision_bitwise_equal": true,
+  "tied_embeddings_preserved": true
+}

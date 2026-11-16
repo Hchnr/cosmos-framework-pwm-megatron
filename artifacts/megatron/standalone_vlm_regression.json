@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "environment": "Python 3.13 / Torch 2.10.0+cu130 / Megatron-Core 0.20.0",
+  "cpu_regression_tests": 44,
+  "cpu_router_tests": 4,
+  "mot_compiled_hsdp_ga3": {
+    "passed": true,
+    "maximum_gradient_error": 6.69620931148529e-07
+  },
+  "fp32_master_bf16_compute": {
+    "passed": true,
+    "steps": 3,
+    "gradient_accumulation": 3,
+    "devices": 4
+  }
+}

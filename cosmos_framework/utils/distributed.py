@@ -250,8 +250,9 @@ def ddp_sync_grad(model, enabled):
         else gradients will still be synchronized.
     """
     assert isinstance(model, torch.nn.Module)
-    net = getattr(model, "net", model)
-    megatron_runtime = net.__dict__.get("_cosmos_megatron_runtime")
+    from cosmos_framework.training_backends.megatron import get_runtime
+
+    megatron_runtime = get_runtime(model)
     if megatron_runtime is not None:
         with megatron_runtime.accumulate(enabled):
             yield
