@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "model": "OmniMoTModel with real Qwen MoT and Action128 heads",
+  "steps": 2,
+  "gradient_accumulation": 3,
+  "shards": 2,
+  "replicas": 2,
+  "ema_bitwise_equal": true,
+  "ema_scope_finite": true,
+  "training_weights_restored_bitwise": true,
+  "checkpoint_roundtrip": true,
+  "async_cpu_staging_spawn_queue": true
+}

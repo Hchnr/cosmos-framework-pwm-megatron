@@ -409,6 +409,13 @@ class OptimizersContainer(Stateful):
                 model.net, initial_master_weights=initial_masters, **runtime_options
             )
             del initial_masters
+            ema = model.net.__dict__.get("_cosmos_megatron_ema")
+            if ema is not None:
+                from cosmos_framework.training_backends.ema import MegatronEmaModelUpdater, shard_ema_model
+
+                shard_ema_model(self._megatron_runtime, ema)
+                model.net_ema_worker = MegatronEmaModelUpdater(self._megatron_runtime)
+                model._megatron_ema_pending = False
             distributed_params = dict(model.net.named_parameters())
             params_with_metadata = [(distributed_params[name], metadata) for name, metadata in selected]
 

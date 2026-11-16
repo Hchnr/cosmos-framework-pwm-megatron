@@ -298,8 +298,8 @@ class OmniMoTModel(ImaginaireModel):
 
     def build_net(self, dtype: torch.dtype, *, lora_enabled: bool | None = None) -> torch.nn.Module:
         backend = getattr(self.config.parallelism, "backend", "pytorch")
-        if backend == "megatron" and (self.config.ema.enabled or self.parallel_dims.cp_enabled):
-            raise ValueError("Megatron backend currently requires EMA disabled and CP=1")
+        if backend == "megatron" and self.parallel_dims.cp_enabled:
+            raise ValueError("Megatron backend currently requires CP=1")
         if self.config.tower_structure == "three_tower":
             if self.config.parallelism.context_parallel_shard_degree != 1:
                 raise ValueError("three_tower currently requires context_parallel_shard_degree=1")
@@ -454,12 +454,14 @@ class OmniMoTModel(ImaginaireModel):
 
         with misc.timer("meta to cuda and broadcast model states"):
             net = net.to(dtype=dtype)
-            net.to_empty(device=DEVICE)
+            is_cpu_ema = backend == "megatron" and getattr(self, "_building_megatron_ema", False)
+            materialization_device = Device.CPU if is_cpu_ema else DEVICE
+            net.to_empty(device=materialization_device)
             if DEVICE == Device.CUDA:
                 # Weight initialization is not needed for other devices (cpu,
                 # meta), since they are only for checkpoint conversion and smoke
                 # tests.
-                net.init_weights(buffer_device=DEVICE)
+                net.init_weights(buffer_device=materialization_device)
                 if lora_enabled:
                     self._init_lora_weights_post_materialization(net)
 
@@ -584,8 +586,15 @@ class OmniMoTModel(ImaginaireModel):
             self._uses_ema_router_bias: bool = uses_ema_router_bias(self.net)
 
             if config.ema.enabled:
-                self.net_ema = self.build_net(dtype=torch.float32)
+                self._building_megatron_ema = getattr(config.parallelism, "backend", "pytorch") == "megatron"
+                try:
+                    self.net_ema = self.build_net(dtype=torch.float32)
+                finally:
+                    self._building_megatron_ema = False
                 self.net_ema.requires_grad_(False)
+                self._megatron_ema_pending = getattr(config.parallelism, "backend", "pytorch") == "megatron"
+                if self._megatron_ema_pending:
+                    self.net.__dict__["_cosmos_megatron_ema"] = self.net_ema
 
                 self.net_ema_worker = DTensorFastEmaModelUpdater()
 
@@ -718,6 +727,19 @@ class OmniMoTModel(ImaginaireModel):
             )
         else:
             self.fixed_step_sampler = None
+
+    def to(self, *args, **kwargs):
+        # Do not materialize a complete FP32 EMA on CUDA before the optimizer
+        # has chosen trainable parameters and Megatron has allocated its shards.
+        if getattr(self, "_megatron_ema_pending", False):
+            device, dtype, _, _ = torch._C._nn._parse_to(*args, **kwargs)
+            if device is not None and device.type == "cuda" and dtype is None:
+                ema = self._modules.pop("net_ema")
+                try:
+                    return super().to(*args, **kwargs)
+                finally:
+                    self._modules["net_ema"] = ema
+        return super().to(*args, **kwargs)
 
     def init_optimizer_scheduler(
         self, optimizer_config: LazyDict, scheduler_config: LazyDict

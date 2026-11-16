@@ -70,8 +70,8 @@ hooks after the process queue transfer.
 | Full model/optimizer/scheduler/trainer/RNG/loader resume | Full stock-trainer save/restart; live batches, stream revisit, worker RNG and content hashes match uninterrupted loading |
 | Async checkpoint staging and background writer | Full 36-layer ~128 GB checkpoint save/load tested; uneven metadata coverage audited |
 
-EMA and CP>1 are explicitly rejected by the initial Megatron VFM backend.
-The baseline entry has EMA disabled and CP=1. Initialization currently
+CP>1 remains explicitly rejected by the Megatron VFM backend.
+The baseline entry has EMA disabled and CP=1; EMA support is described below. Initialization currently
 materializes the unsharded model before Megatron wrapping; peak initialization
 memory must be measured for each model size.
 
@@ -299,6 +299,30 @@ directories. The five path-layout tests pass. Public HF export omits Megatron
 optimizer-sharding fields so inference chooses its own backend/CP preset; both
 serialization regression tests pass.
 
+## EMA integration
+
+VFM EMA now keeps FP32 shadows with exactly the online Megatron parameter's
+local shard shapes and placements, including frozen parameters. It does not
+allocate an EMA gradient buffer. Construction keeps the full EMA on CPU until
+optimizer selection/sharding; the trainer's device move leaves this pending
+copy on CPU. Existing preload and generation-copy semantics still run before
+sharding. EMA updates retain the original beta schedule and foreach arithmetic.
+
+The adapter completes pending parameter gathers before cache/copy/restore and
+invalidates compute caches after changing weights. Otherwise a later evaluation
+forward could reuse stale gathered parameters. `ema_scope` still evaluates the
+online model using EMA values and restores the exact original training weights.
+
+Four-GPU 2×2 HSDP tests pass for no_shard, ZeRO-1, ZeRO-2 and ZeRO-3: three BF16/GA=3 updates,
+FP32 EMA bitwise reference equality, bitwise evaluation forward, exact training
+weight restoration and DCP restart. An actual two-layer `OmniMoTModel` with
+Qwen MoT and Action128 heads also completed forward/backward and EMA switching,
+then CPU staging → spawn queue → background DCP write → reload. The compiled
+ZeRO-2 run also verifies CPU EMA-scope caching and exact restoration after
+explicitly zeroing both online and EMA parameters. Tests use a
+small packed batch, not the full 36-layer EMA production memory footprint.
+The original owner/gradient/NaN-step regressions also pass (67 tests).
+
 ## Fresh HF initialization
 
 Language-model HF loading now slices by the destination tensor's actual layout,
@@ -392,7 +416,7 @@ are available, but do not replace a distributed production run.
 1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
    stalls and stragglers with the original 16-shard × 12-replica layout.
 2. Extend qualification to remaining model families, large-model initialization,
-   optimizers and parallelism paths; EMA and CP>1 remain explicitly unsupported.
+   optimizers and parallelism paths; CP>1 remains explicitly unsupported.
 3. Measure representative steady-state performance for standalone VLM recipes;
    their correctness tests do not establish a VLM throughput gain.
 

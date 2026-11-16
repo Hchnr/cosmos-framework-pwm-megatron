@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "steps": 3,
+  "replicas": 2,
+  "shards": 2,
+  "sharding_strategy": "no_shard",
+  "frozen_parameters": true,
+  "fp32_initial_values_preserved": true,
+  "ema_values_bitwise_equal": true,
+  "evaluation_forward_bitwise_equal": true,
+  "training_weights_restored_bitwise": true,
+  "checkpoint_roundtrip": true
+}
