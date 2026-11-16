@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
+# Pure Understanding fixed/static example for the unified Cosmos3-Nano
+# OmniMoT path. DATASET_PATH supplies a five-column Understanding Parquet
+# catalog; standalone job.task="vlm" does not use this fixed-sequence contract.
+
+[job]
+task       = "vfm"
+experiment = "understanding_sft_nano"
+project    = "cosmos3"
+group      = "understanding_sft"
+name       = "llava_ov_fixed_static"
+wandb_mode = "disabled"
+
+[model]
+precision                    = "bfloat16"
+max_num_tokens_after_packing = 16384
+joint_attn_implementation    = "two_way"
+load_vlm_visual              = true
+load_vision_tokenizer        = false
+vision_gen                   = false
+action_gen                   = false
+predict_text_tokens          = true
+
+[model.ema]
+enabled = false
+
+[model.parallelism]
+data_parallel_shard_degree     = -1
+data_parallel_replicate_degree = 1
+context_parallel_shard_degree  = 1
+cfg_parallel_shard_degree      = 1
+
+[model.compile]
+enabled         = true
+compile_dynamic = false
+compiled_region = "language"
+
+[model.fixed_sequence_length]
+enabled              = true
+understanding_tokens = 16384
+und_tokens           = 0
+gen_tokens           = 0
+
+[model.activation_checkpointing]
+mode = "full"
+
+[optimizer]
+betas          = [0.9, 0.95]
+eps            = 1.0e-8
+fused          = true
+keys_to_select = []
+lr             = 1.0e-5
+weight_decay   = 0.1
+
+[scheduler]
+cycle_lengths      = [500]
+f_max              = [1.0]
+f_min              = [0.5]
+f_start            = [0.05]
+verbosity_interval = 0
+warm_up_steps      = [1000]
+
+[trainer]
+distributed_parallelism = "fsdp"
+grad_accum_iter         = 1
+logging_iter            = 1
+max_iter                = 500
+
+[trainer.callbacks.compile_tokenizer]
+enabled = false
+
+[trainer.callbacks.grad_clip]
+clip_norm    = 1.0
+force_finite = false
+
+[checkpoint]
+keys_to_skip_loading = ["net_ema."]
+load_path            = "${oc.env:BASE_CHECKPOINT_PATH}"
+save_iter            = 100
+
+[dataloader_train]
+max_samples_per_batch = 48
+max_sequence_length   = 16384
+
+[[dataloader_train.datasets]]
+path  = "${oc.env:DATASET_PATH}"
+ratio = 1

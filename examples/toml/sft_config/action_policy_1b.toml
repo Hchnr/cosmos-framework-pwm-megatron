@@ -1,0 +1,90 @@
+# Eight-H100 offline recipe: pack92, GBS736, UND short bucket, VIDEO varlen attention.
+[job]
+task = "vfm"
+experiment = "action_policy_droid_nano"
+project = "cosmos3_action"
+group = "action_policy_1b"
+name = "droid_success_width_only_1b_seed42"
+wandb_mode = "online"
+
+[model]
+tower_structure = "three_tower"
+action_tower_init = "checkpoint"
+action_tower_preset = "width_only_1b"
+action_tower_execution = "native"
+# Production always routes video/action tokens to their own modules.
+action_tower_attention_backend = "flash3_video"
+action_tower_und_short_tokens = 5120
+action_tower_projection_mode = "routed"
+action_gen = true
+precision = "bfloat16"
+max_num_tokens_after_packing = 74368
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH}"
+
+[model.ema]
+enabled = false
+
+[model.fixed_sequence_length]
+enabled = true
+und_tokens = 11776
+gen_tokens = 62592
+action_tokens = 2944
+
+[model.compile]
+enabled = true
+compiled_region = "language"
+compile_dynamic = false
+mix_order_reduction_split_size = 32
+
+[model.parallelism]
+data_parallel_shard_degree = -1
+data_parallel_replicate_degree = 1
+context_parallel_shard_degree = 1
+
+[model.activation_checkpointing]
+mode = "full"
+
+[model.tokenizer]
+vae_path = "${oc.env:WAN_VAE_PATH}"
+
+[optimizer]
+keys_to_select = ["moe_gen", "time_embedder", "vae2llm", "llm2vae", "action2llm", "llm2action", "action_modality_embed"]
+lr = 0.00002
+lr_multipliers = { action2llm = 5.0, llm2action = 5.0, action_modality_embed = 5.0 }
+
+[scheduler]
+cycle_lengths = [50000]
+warm_up_steps = [1000]
+f_start = [0.0]
+f_max = [1.0]
+f_min = [0.1]
+
+[dataloader_train]
+max_samples_per_batch = 92
+max_sequence_length = 74368
+# Tuned on 8xH100 with a 160-core CPU quota; preserve this count for exact resume.
+num_workers = 18
+prefetch_factor = 2
+pin_memory = true
+seed = 42
+[[dataloader_train.datasets]]
+path = "${oc.env:DATASET_PATH}"
+ratio = 1
+
+[dataloader_train.visual_generation]
+vae_mode = "offline"
+
+[trainer]
+max_iter = 50000
+logging_iter = 1
+grad_accum_iter = 1
+
+[trainer.compile_cache]
+enabled = true
+path = "${oc.env:ACTION_COMPILE_CACHE_ROOT,/tmp/cosmos_compile_cache/action_policy_1b}/rank${oc.env:LOCAL_RANK,0}"
+
+[checkpoint]
+load_path = "${oc.env:BASE_CHECKPOINT_PATH}"
+keys_to_skip_loading = []
+load_training_state = false
+save_iter = 1000

@@ -1,0 +1,209 @@
+# Video sampling policy: use selected video_views[].fps, capped at 30 Hz.
+# Keep 15/20/etc. Hz video at its lower rate; never substitute episode/action FPS.
+# !!! Sampling policy only: NOT a repair or validation of source timebases !!!
+# Dataset view-FPS metadata is capped separately; MP4 timestamps are unchanged.
+# This 12-source mixture excludes RoboMIND2.0 and uses a distinct job name and checkpoint directory.
+# Original Nano two-tower loss baseline: VIDEO and ACTION share the GEN tower.
+# Paired with action128_wam_nano_160gpu.toml; keep data/training settings aligned.
+# Preserve the validated per-rank capacities and LR; shard16 x replica10, CP1.
+# Train for up to 100000 updates; this is not a full-data epoch guarantee.
+# Normalization is loaded from each published R2 root; video/VAE remain online.
+[job]
+task = "vfm"
+experiment = "action_policy_droid_nano"
+project = "cosmos3_action"
+group = "action128"
+name = "action128_wam_nano_2tower_12src_no_robomind2_160gpu_videocap30_static_vae_aot"
+wandb_mode = "online"
+
+[model]
+vision_spatial_position_mode = "action128_seam"
+tower_structure = "two_tower"
+action_tower_init = "checkpoint"
+action_tower_preset = "full"
+action_tower_execution = "native"
+action_tower_attention_backend = "auto"
+# Original Nano attention path; no separate small ACTION tower.
+joint_attn_backend = "split_default"
+# Short UND compaction is only implemented for the small three-tower model.
+action_tower_und_short_tokens = 0
+precision = "bfloat16"
+action_tower_projection_mode = "routed"
+action_gen = true
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH}"
+load_vlm_visual = false
+max_num_tokens_after_packing = 74368
+
+# Pure WAM total loss is vision_loss + action_loss.
+[model.rectified_flow_training_config]
+loss_scale = 1.0
+action_loss_weight = 1.0
+
+[model.ema]
+enabled = false
+
+# GEN includes both VIDEO (59648) and ACTION (2944) rows.
+[model.fixed_sequence_length]
+enabled = true
+und_tokens = 11776
+gen_tokens = 62592
+# Two-tower packs VIDEO + ACTION into the shared GEN capacity above;
+# separate action_tokens padding is supported only by small ACTION towers.
+
+[model.compile]
+# Fixed token capacities with static, fullgraph language compilation. Packed
+# attention metadata (max_q and cumulative_q lengths) still varies by batch;
+# allow those specialized graphs through trainer.compile_config below.
+enabled = true
+compiled_region = "language"
+compile_dynamic = false
+mix_order_reduction_split_size = 32
+
+[model.activation_checkpointing]
+mode = "full"
+
+[model.parallelism]
+data_parallel_shard_degree = 16
+data_parallel_replicate_degree = -1
+context_parallel_shard_degree = 1
+
+[model.tokenizer]
+vae_path = "${oc.env:WAN_VAE_PATH}"
+
+[optimizer]
+lr = 0.00002
+
+[scheduler]
+# Warm up for 100 steps, then keep the LR multiplier at 1.0.
+cycle_lengths = [100000]
+warm_up_steps = [100]
+f_start = [0.0]
+f_max = [1.0]
+f_min = [1.0]
+
+[dataloader_train]
+# Video sampling ceiling (legacy key name): min(selected view FPS, 30).
+# Keep lower video rates; episode FPS remains the independent action frequency.
+# This is a sampling policy, NOT a repair of source timestamps or video encoding.
+action_video_fps_default = 30.0
+# Action-1B production capacities; token admission determines actual pack size.
+max_samples_per_batch = 92
+max_sequence_length = 74368
+# Per-rank TOTAL worker budget: one worker for each of the 12 sources.
+# Prefetch one batch per worker to keep every source asynchronous while
+# limiting queued decoded video and host-memory pressure (96 workers/node).
+num_workers = 12
+prefetch_factor = 1
+pin_memory = true
+seed = 42
+
+[dataloader_train.visual_generation]
+vae_mode = "online"
+
+[dataloader_train.media]
+# InternData-A1 row groups reach ~522 MiB uncompressed; 256 MiB rejects most
+# of this source. Keep a bounded 1 GiB admission limit; peak RAM can be higher.
+action_max_row_group_bytes = 1073741824
+# !!! TEMPORARY WORKAROUND — NOT CORRECT DATA REPAIR / NOT A CLEAN DATASET !!!
+# Drop the entire Action window on media failure and refill from the same source.
+# This changes the effective sample distribution. Remove after upstream cleaning.
+# JSONL evidence: $IMAGINAIRE_OUTPUT_ROOT/media_failures/ (rank/worker-local files).
+action_skip_media_errors = true
+action_max_consecutive_skips = 100
+# Optional immutable JSONL: root + episode_index + window_index per line.
+# Window identity also depends on the recipe's window duration/stride: keep fixed.
+# action_exclusion_jsonl = "/absolute/path/action_bad_windows.jsonl"
+# Some native RoboMIND camera windows exceed the generic 120-second limit.
+# Keep bounded decoding and the published sampling semantics unchanged.
+decode_timeout_sec = 300
+# Share decoding only when timestamp seeks resolve to the same file packet.
+reuse_seek_groups = true
+
+# Sequence-based mixture from the 2026-10-09 catalog estimates.
+# Remove RoboMIND2.0 (weight 737); retain the other weights (sum=9262).
+# The loader normalizes the remaining weights. These select packed microbatches, not raw windows.
+# Do not use millions of sequence counts as weights: exact_periodic expands
+# weights into a schedule. Use a NEW OUTPUT_ROOT when changing this mixture.
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/AgiBotWorld-Beta/AgiBotWorld-Beta.parquet"
+ratio = 2333
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/AgiBotWorld2026/AgiBotWorld2026.parquet"
+ratio = 168
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/Cosmos3-DROID/Cosmos3-DROID.parquet"
+ratio = 120
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/FastUMI/FastUMI.parquet"
+ratio = 154
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/Galaxea/Galaxea.parquet"
+ratio = 158
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/Galbot/Galbot.parquet"
+ratio = 408
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/InternData-A1/InternData-A1.parquet"
+ratio = 3958
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/InternData-M1/InternData-M1.parquet"
+ratio = 519
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/RoboCasa365/RoboCasa365.parquet"
+ratio = 1107
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/RoboMIND-v1/RoboMIND-v1.parquet"
+ratio = 120
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/RoboTwin2.0/RoboTwin2.0.parquet"
+ratio = 211
+
+[[dataloader_train.datasets]]
+path = "/share/project/liyue/data/parquet-data/action128-full-20261009/libero/libero.parquet"
+ratio = 6
+
+[trainer]
+max_iter = 100000
+logging_iter = 1
+grad_accum_iter = 1
+
+# All unique H/W canvases from Action128 view_layout, not T2V resolution buckets.
+# Compile on a shared optimizer boundary; validate latents AND caches on every rank.
+[trainer.callbacks.compile_tokenizer]
+enabled = true
+compile_after_iterations = 3
+spatial_sizes = [[480, 848], [720, 640], [640, 752], [480, 720], [848, 640], [640, 640], [480, 640], [960, 640]]
+require_full_coverage = true
+
+[trainer.compile_config]
+# The default limit of 8 is too small for the multi-source attention layouts.
+recompile_limit = 128
+use_duck_shape = false
+
+[trainer.compile_cache]
+# Keep persistent cache management off while validating static compilation.
+enabled = false
+path = "${oc.env:ACTION128_COMPILE_CACHE_ROOT,/tmp/cosmos_compile_cache/action128_wam_2tower_160gpu}/rank${oc.env:LOCAL_RANK,0}"
+
+[checkpoint]
+# Prune only after all ranks finish a successful checkpoint save.
+keep_last_n = 3
+load_path = "${oc.env:BASE_CHECKPOINT_PATH}"
+# Old base: initialize Action128 heads. Trained Action128: retain heads/contract.
+# Explicit reset_heads is allowed only for model-only initialization.
+action128_load_mode = "auto"
+keys_to_skip_loading = []
+strict_resume = true
+load_training_state = false
+save_iter = 500

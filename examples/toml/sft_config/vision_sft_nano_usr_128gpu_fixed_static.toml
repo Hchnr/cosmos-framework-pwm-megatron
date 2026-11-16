@@ -1,0 +1,164 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
+# Standard USR Parquet offline-VAE training, 16 nodes x 8 GPUs.
+# Token-budget packing with gradient accumulation fixed at 4.
+# Override topology and max_iter for a short single-node smoke.
+
+[job]
+task       = "vfm"
+experiment = "vision_sft_nano"
+project    = "cosmos3-t2v"
+group      = "nano-128gpu"
+name       = "nano-usr-v1-qwen3vl8b-instruct-hybrid-128gpu-ga4-cfg01-cond731"
+wandb_mode = "online"
+
+[model]
+resolution = "480"
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH,/share/project/eai_pwm/models/Qwen3-VL-8B-Instruct}"
+max_num_tokens_after_packing = 67712
+joint_attn_implementation    = "two_way"
+precision                    = "bfloat16"
+load_vlm_visual              = false
+
+[model.fixed_sequence_length]
+enabled    = true
+# 2048 rendered text tokens plus packing specials and an isolated padding slot.
+und_tokens = 2176
+gen_tokens = 65536
+
+[model.ema]
+enabled         = false
+rate            = 0.1
+iteration_shift = 0
+
+[model.parallelism]
+data_parallel_shard_degree     = 8
+data_parallel_replicate_degree = -1
+
+[model.compile]
+enabled         = true
+compiled_region = "language"
+compile_dynamic = false
+
+[model.activation_checkpointing]
+mode               = "full"
+save_ops_regex     = ["fmha"]
+preserve_rng_state = true
+determinism_check  = "default"
+
+[optimizer]
+betas          = [0.9, 0.95]
+eps            = 1.0e-6
+fused          = true
+keys_to_select = ["moe_gen", "time_embedder", "vae2llm", "llm2vae"]
+lr             = 1.0e-4
+weight_decay   = 0
+
+[scheduler]
+# Warm up for 50 steps, then keep the LR multiplier at 1.0.
+cycle_lengths = [100000]
+f_max = [1.0]
+f_min = [1.0]
+f_start = [0.0]
+verbosity_interval = 0
+warm_up_steps = [50]
+
+[trainer]
+distributed_parallelism = "fsdp"
+grad_accum_iter         = 4
+logging_iter            = 1
+max_iter                = 100000
+
+[trainer.compile_cache]
+enabled = true
+path    = "${oc.env:USR_COMPILE_CACHE_ROOT,/tmp/cosmos_compile_cache/nano_usr_fixed_static}/rank${oc.env:LOCAL_RANK,0}"
+
+# Disable periodic generation previews for both regular and EMA weights.
+[trainer.callbacks.every_n_sample_reg]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.every_n_sample_ema]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.grad_clip]
+clip_norm    = 0.1
+force_finite = true
+
+[checkpoint]
+keys_to_skip_loading = ["net_ema."]
+load_path            = "/share/project/eai_pwm/models/Cosmos3-Nano-Qwen3-VL-8B-Instruct-Hybrid-DCP"
+load_training_state  = false
+save_iter            = 200
+
+[dataloader_train]
+max_sequence_length = 67712
+max_caption_tokens  = 2048
+seed                = 42
+num_workers         = 10
+prefetch_factor     = 4
+pin_memory          = false
+
+[dataloader_train.media]
+max_frame_pixels              = 33554432
+safetensors_handle_cache_size = 8
+max_latent_tensor_bytes       = 1073741824
+
+[dataloader_train.visual_generation]
+vae_mode                   = "offline"
+cfg_drop_ratio             = 0.1
+expected_vae_name          = "wan2pt2_tokenizer"
+expected_vae_weights_sha256 = "${oc.env:WAN_VAE_WEIGHTS_SHA256,20eb789667fa5e60e7516bf509512f6cb61f01b0aa0695eadaea930c13892b36}"
+conditioning_config = { 0 = 7.0, 1 = 3.0, 2 = 1.0 }
+
+# Dataset weights from supplied packed-sequence counts (text=3000, video=62000).
+# Total weight: 754263. These are sampling weights, not batch-size caps.
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/agibot-world"
+ratio = 150393
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/ego-exo4d"
+ratio = 9452
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/egocentric-10k"
+ratio = 225421
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/egodex"
+ratio = 42837
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/egolive"
+ratio = 109073
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/egopro"
+ratio = 18386
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/epic-kitchens-55"
+ratio = 2365
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/galbot"
+ratio = 42612
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/holoassist"
+ratio = 8050
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/openaoe-2000h"
+ratio = 69142
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/robocoin"
+ratio = 56276
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v1-20260908/full-seed0}/stereo-550"
+ratio = 20256

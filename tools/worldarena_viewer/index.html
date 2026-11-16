@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WorldArena Eval25 · Cosmos3-Nano Checkpoint 对比评测</title>
+  <style><!-- STYLE --></style>
+</head>
+<body>
+<main>
+  <header class="toolbar">
+    <div class="brand"><span class="eyebrow">COSMOS3-NANO / CHECKPOINT COMPARISON</span><h1>WorldArena <span>Eval25</span></h1></div>
+    <div class="navigation" aria-label="样本导航">
+      <span id="sampleCount" class="muted"></span>
+      <button id="prev" aria-label="上一条样本">← 上一条</button>
+      <select id="sample" aria-label="选择评测样本"></select>
+      <button id="next" aria-label="下一条样本">下一条 →</button>
+      <button id="sync" class="primary">▶ 同步播放</button>
+      <button id="pause">暂停</button>
+    </div>
+  </header>
+  <div class="page-caption"><span>Checkpoint 对比评测</span><span>480p <i>·</i> 50 采样 steps <i>·</i> CFG 5 <i>·</i> 25 个样本</span></div>
+  <details id="checkpointPicker" class="panel" open>
+    <summary class="picker-summary"><span class="section-title">选择实验组 <span id="selectedCount" class="count" aria-live="polite"></span></span><span class="sort-note">Baseline 优先 <i>·</i> 训练 step ↑</span></summary>
+    <div class="picker-controls">
+      <div class="presets"><button id="selectLatest">Baseline 对照</button><button id="selectAll">全选</button><button id="selectNone">清空</button></div>
+      <div class="filters"><label class="search-box"><span>搜索</span><input id="search" type="search" placeholder="step / 模型 / 配置" aria-label="搜索实验组"></label><select id="familyFilter" aria-label="按模型系列筛选"><option value="all">全部系列</option><option value="baseline">Baseline</option><option value="native">原生 VLM</option><option value="v1">自研 VLM v1</option><option value="v2">自研 VLM v2</option></select><label class="selected-filter"><input id="onlySelected" type="checkbox">仅看已选</label></div>
+    </div>
+    <div id="checkpointOptions" aria-label="实验组列表">
+      <section id="baselineSection"><div class="group-heading"><span>发布版基线</span><span class="muted">同一模型 · 两种 Prompt</span></div><div id="baselineOptions" class="options-grid"></div></section>
+      <section id="trainingSection"><div class="group-heading"><span>训练 Checkpoint</span><span class="shared-tags"><span class="tag neutral">T2V SFT</span><span class="tag neutral">online 权重</span><span class="muted">按实际训练 step 递增 →</span></span></div><div id="trainingOptions" class="options-grid"></div></section>
+      <p id="filterEmpty" class="empty" hidden>没有匹配的实验组。<button id="resetFilters">重置筛选</button></p>
+    </div>
+    <div class="picker-footer"><span class="list-status"><span id="filterCount"></span><button id="expandOptions" aria-expanded="false" aria-controls="checkpointOptions">展开全部</button><span id="scrollHint">可滚动查看更多实验</span></span><span>筛选仅影响列表；只加载已勾选的视频，选择自动保存。</span></div>
+  </details>
+  <section class="panel prompt-panel" aria-label="样本 Prompt">
+    <div id="promptBar"><strong class="prompt-label">原始 Prompt</strong><span id="promptText"></span><button id="promptToggle" aria-expanded="false">展开</button></div>
+    <details class="prompt-details"><summary><span class="tag reasoner">Reasoner 扩写</span><span>查看扩写 Prompt · 仅用于发布版 baseline</span></summary><pre id="upsampledPromptText"></pre></details>
+    <details class="run-details"><summary><span id="summary"></span><span class="muted"> · 查看已选实验的运行参数</span></summary><div id="meta"></div></details>
+  </section>
+  <div class="results-heading"><h2>视频对比 <span id="videoCount" class="count"></span></h2><span class="muted">与上方实验顺序一致</span></div>
+  <div id="emptySelection" class="panel empty" hidden>尚未选择实验组。勾选上方实验，或 <button id="restoreBaseline">选择 Baseline 对照</button></div>
+  <section id="videoGrid" class="video-grid" aria-label="视频对比"></section>
+  <p class="download-note">离线查看：将对应 Checkpoint 压缩包解压到本页面所在目录。<a href="DOWNLOAD.md">增量下载说明 ↗</a></p>
+  <noscript>请启用 JavaScript 以选择实验和查看视频。</noscript>
+</main>
+<script id="viewerData" type="application/json"><!-- DATA --></script>
+<script><!-- SCRIPT --></script>
+</body>
+</html>

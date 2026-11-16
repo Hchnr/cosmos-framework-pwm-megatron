@@ -1,0 +1,118 @@
+# Six Ego sources: equal ratios for coverage validation, not production weighting.
+[job]
+task = "vfm"
+experiment = "action_policy_droid_nano"
+project = "cosmos3_action"
+group = "pretrain_state"
+name = "state_h1_ego6_8gpu"
+wandb_mode = "disabled"
+
+[model]
+vision_spatial_position_mode = "action128_seam"
+tower_structure = "three_tower"
+action_tower_init = "checkpoint"
+action_tower_preset = "width_only_1b"
+action_tower_execution = "native"
+action_tower_attention_backend = "flash3_video"
+action_tower_projection_mode = "routed"
+precision = "bfloat16"
+action_gen = true
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH}"
+load_vlm_visual = false
+max_num_tokens_after_packing = 74368
+
+[model.rectified_flow_training_config]
+loss_scale = 1.0
+action_loss_weight = 1.0
+
+[model.ema]
+enabled = false
+
+[model.fixed_sequence_length]
+enabled = true
+und_tokens = 11776
+gen_tokens = 62592
+action_tokens = 2944
+
+[model.compile]
+enabled = false
+
+[model.activation_checkpointing]
+mode = "full"
+
+[model.parallelism]
+data_parallel_shard_degree = 8
+data_parallel_replicate_degree = -1
+context_parallel_shard_degree = 1
+
+[model.tokenizer]
+vae_path = "${oc.env:WAN_VAE_PATH}"
+
+[optimizer]
+lr = 0.0001
+
+[scheduler]
+cycle_lengths = [100000]
+warm_up_steps = [100]
+f_start = [0.0]
+f_max = [1.0]
+f_min = [1.0]
+
+[dataloader_train]
+action_use_state = true
+first_frame_color_jitter = true
+action_video_fps_default = 30.0
+max_samples_per_batch = 92
+max_sequence_length = 74368
+execution_backend = "shared_prefetch"
+num_workers = 4
+prefetch_factor = 4
+logical_workers = [0, 0, 0, 0, 0, 0]
+pin_memory = true
+seed = 42
+
+[dataloader_train.media]
+action_max_row_group_bytes = 2147483648
+decode_timeout_sec = 300
+reuse_seek_groups = true
+
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/egodex.parquet"
+ratio = 1
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/egolive.parquet"
+ratio = 1
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/egopro.parquet"
+ratio = 1
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/egostandard.parquet"
+ratio = 1
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/egoverse.parquet"
+ratio = 1
+
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/catalogs/ego/lightwheel.parquet"
+ratio = 1
+
+[trainer]
+max_iter = 12
+logging_iter = 1
+grad_accum_iter = 1
+
+[trainer.callbacks.compile_tokenizer]
+enabled = false
+
+[checkpoint]
+load_path = "${oc.env:BASE_CHECKPOINT_PATH}"
+action128_load_mode = "warm_start"
+keys_to_skip_loading = []
+load_training_state = false
+save_iter = 12
+keep_last_n = 1

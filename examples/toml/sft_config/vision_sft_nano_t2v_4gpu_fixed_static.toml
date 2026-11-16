@@ -1,0 +1,130 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
+# Single-node, 4-GPU smoke profile derived from
+# vision_sft_nano_t2v_8gpu_fixed_static.toml. It preserves the production model,
+# data, fixed UND/GEN layout, and gradient accumulation while using a 4-GPU FSDP
+# topology, a topology-specific compile cache, and only eight optimizer steps.
+# Warm this cache before wrapping the run with nsys so Inductor compiler
+# subprocesses are not profiled.
+
+[job]
+task       = "vfm"
+experiment = "vision_sft_nano"
+project    = "cosmos3-t2v"
+group      = "nano-4gpu-nsys"
+name       = "nano-t2v-action100m-koala-4gpu-ga2-r480-fixed-static-seqlen64k-smoke"
+wandb_mode = "online"
+
+[model]
+max_num_tokens_after_packing = 65536
+joint_attn_implementation    = "two_way"
+precision                    = "bfloat16"
+load_vlm_visual              = false
+
+[model.fixed_sequence_length]
+enabled    = true
+und_tokens = 1086
+gen_tokens = 64450
+
+[model.ema]
+enabled         = true
+rate            = 0.1
+iteration_shift = 0
+
+[model.parallelism]
+data_parallel_shard_degree     = 4
+data_parallel_replicate_degree = -1
+
+[model.compile]
+enabled         = true
+compiled_region = "language"
+compile_dynamic = false
+
+[model.activation_checkpointing]
+mode               = "full"
+save_ops_regex     = ["fmha"]
+preserve_rng_state = true
+determinism_check  = "default"
+
+[model.tokenizer]
+vae_path = "${oc.env:WAN_VAE_PATH}"
+
+[optimizer]
+betas          = [0.9, 0.95]
+eps            = 1.0e-6
+fused          = true
+keys_to_select = ["moe_gen", "time_embedder", "vae2llm", "llm2vae"]
+lr             = 1.0e-4
+weight_decay   = 0
+
+[scheduler]
+cycle_lengths      = [1000]
+f_max              = [1.0]
+f_min              = [0.0]
+f_start            = [0.0]
+verbosity_interval = 0
+warm_up_steps      = [50]
+
+[trainer]
+distributed_parallelism = "fsdp"
+grad_accum_iter         = 2
+logging_iter            = 1
+max_iter                = 8
+
+[trainer.compile_cache]
+enabled = true
+path    = ".compile_cache/nano_t2v_4gpu_fixed_static"
+
+# Disable periodic generation previews for both regular and EMA weights.
+[trainer.callbacks.every_n_sample_reg]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.every_n_sample_ema]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.compile_tokenizer]
+compile_after_iterations = 3
+enabled                  = true
+warmup_resolutions       = ["256"]
+aspect_ratio             = "1,1"
+
+[trainer.callbacks.grad_clip]
+clip_norm    = 0.1
+force_finite = true
+
+[checkpoint]
+keys_to_skip_loading = ["net_ema."]
+load_path            = "${oc.env:BASE_CHECKPOINT_PATH}"
+save_iter            = 500
+
+[dataloader_train]
+max_sequence_length = 65536
+max_caption_tokens  = 2048
+seed                = 42
+num_workers         = 10
+prefetch_factor     = 4
+pin_memory          = false
+
+[dataloader_train.media]
+max_frame_pixels              = 33554432
+safetensors_handle_cache_size = 8
+max_latent_tensor_bytes       = 1073741824
+
+[dataloader_train.visual_generation]
+vae_mode                    = "online"
+expected_vae_name           = "wan2pt2_tokenizer"
+expected_vae_weights_sha256 = "${oc.env:WAN_VAE_WEIGHTS_SHA256,20eb789667fa5e60e7516bf509512f6cb61f01b0aa0695eadaea930c13892b36}"
+conditioning_config = { 0 = 1.0, 1 = 0.0, 2 = 0.0 }
+
+[[dataloader_train.datasets]]
+path              = "${oc.env:ACTION100M_DATASET_PATH}"
+ratio             = 16
+vae_manifest_path = "${oc.env:ACTION100M_VAE_MANIFEST_PATH,}"
+
+[[dataloader_train.datasets]]
+path              = "${oc.env:KOALA_DATASET_PATH}"
+ratio             = 25
+vae_manifest_path = "${oc.env:KOALA_VAE_MANIFEST_PATH,}"

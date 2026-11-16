@@ -1,0 +1,241 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
+# FP8 training validation (128gpu); derived from the fixed-static USR production recipe.
+# Token-budget packing with gradient accumulation fixed at 2.
+# Use isolated job names/output/cache paths for BF16 and each FP8 recipe.
+# max_iter is absolute: the input checkpoint already contains 23000 optimizer updates.
+
+[job]
+task       = "vfm"
+experiment = "vision_sft_nano"
+project    = "cosmos3-t2v"
+group      = "nano-fp8-validation"
+name       = "nano-usr-fp8-128gpu-rowwise"
+wandb_mode = "disabled"
+
+[model]
+resolution = "480"
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH,/share/project/eai_pwm/models/Qwen3-VL-8B-Instruct}"
+max_num_tokens_after_packing = 101376
+joint_attn_implementation    = "two_way"
+precision                    = "bfloat16"
+load_vlm_visual              = false
+
+[model.fixed_sequence_length]
+enabled    = true
+# 3K understanding-token budget and 96K generation-token budget.
+und_tokens = 3072
+gen_tokens = 98304
+
+[model.ema]
+enabled         = false
+rate            = 0.1
+iteration_shift = 0
+
+[model.parallelism]
+data_parallel_shard_degree     = 16
+data_parallel_replicate_degree = -1
+
+[model.compile]
+enabled                        = true
+compiled_region                = "language"
+compile_dynamic                = false
+mix_order_reduction_split_size = 32
+
+[model.activation_checkpointing]
+mode               = "full"
+save_ops_regex     = ["fmha"]
+preserve_rng_state = true
+determinism_check  = "default"
+
+[optimizer]
+betas          = [0.9, 0.95]
+eps            = 1.0e-6
+fused          = true
+keys_to_select = ["moe_gen", "time_embedder", "vae2llm", "llm2vae"]
+lr             = 1.0e-4
+weight_decay   = 0
+
+[scheduler]
+# Warm up for 50 steps, then keep the LR multiplier at 1.0.
+cycle_lengths = [100000]
+f_max = [1.0]
+f_min = [1.0]
+f_start = [0.0]
+verbosity_interval = 0
+warm_up_steps = [50]
+
+[trainer]
+distributed_parallelism = "fsdp"
+grad_accum_iter         = 2
+logging_iter            = 1
+max_iter                = 23100
+
+[trainer.compile_cache]
+enabled = true
+path    = "${oc.env:USR_COMPILE_CACHE_ROOT,/tmp/cosmos_compile_cache/nano_usr_fp8_128gpu_rowwise}/rank${oc.env:LOCAL_RANK,0}"
+
+# Disable periodic generation previews for both regular and EMA weights.
+[trainer.callbacks.every_n_sample_reg]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.every_n_sample_ema]
+every_n      = 0
+run_at_start = false
+
+[trainer.callbacks.grad_clip]
+clip_norm    = 0.1
+force_finite = true
+
+[checkpoint]
+# Resume model, optimizer, scheduler and step 23000 from the USR v2 run.
+# The hardlinked restart checkpoint omits old-catalog dataloader state;
+# later same-run resumes restore the new USR v2.1 dataloader state.
+keys_to_skip_loading = ["net_ema."]
+load_path            = "/share/project/eai_pwm/models/Cosmos3-Nano-USR-v2.1-iter23000-Resume-DCP"
+load_training_state  = true
+save_iter            = 50
+
+[dataloader_train]
+max_sequence_length = 101376
+max_caption_tokens  = 2048
+seed                = 42
+num_workers         = 10
+prefetch_factor     = 4
+pin_memory          = false
+
+[dataloader_train.media]
+max_frame_pixels              = 33554432
+safetensors_handle_cache_size = 8
+max_latent_tensor_bytes       = 1073741824
+
+[dataloader_train.visual_generation]
+vae_mode                   = "offline"
+cfg_drop_ratio             = 0.1
+expected_vae_name          = "wan2pt2_tokenizer"
+expected_vae_weights_sha256 = "${oc.env:WAN_VAE_WEIGHTS_SHA256,20eb789667fa5e60e7516bf509512f6cb61f01b0aa0695eadaea930c13892b36}"
+conditioning_config = { 0 = 5.0, 1 = 4.0, 2 = 1.0 }
+
+# USR v2 supplied packed-sequence sampling weights; total: 4246463.
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/agibot-world"
+ratio = 483535
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/agibot-world_lw2030"
+ratio = 61404
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/ego-exo4d"
+ratio = 21458
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egocentric-10k"
+ratio = 245848
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egocentric-10k_lw2030"
+ratio = 13622
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egodex"
+ratio = 69344
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egodex_lw2030"
+ratio = 15560
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egolive"
+ratio = 342681
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egolive_lw2030"
+ratio = 71562
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egopro"
+ratio = 66073
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egopro_lw2030"
+ratio = 46712
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egostandard"
+ratio = 630278
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/egostandard_lw2030"
+ratio = 347062
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/epic-kitchens-55"
+ratio = 4326
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/galbot"
+ratio = 137026
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/galbot_lw2030"
+ratio = 18088
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/holoassist"
+ratio = 16970
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/lightwheel"
+ratio = 839553
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/lightwheel_lw2030"
+ratio = 219626
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/openaoe-2000h"
+ratio = 159175
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/openaoe-2000h_lw2030"
+ratio = 39418
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robocoin"
+ratio = 107040
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robocoin_lw2030"
+ratio = 29504
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robomind1"
+ratio = 22725
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robomind1_lw2030"
+ratio = 572
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robomind2"
+ratio = 186107
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/robomind2_lw2030"
+ratio = 2840
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/stereo-550"
+ratio = 34826
+
+[[dataloader_train.datasets]]
+path = "${oc.env:USR_DATASET_ROOT,/share/project/liyue/data/parquet-data/train-usr-v2.1-20260928/full-r3-80-r6b-5-r6-15-epochs4-seed0}/stereo-550_lw2030"
+ratio = 13528
+
+[model.fp8_training]
+enabled = true
+backend = "torchao"
+recipe = "rowwise"
