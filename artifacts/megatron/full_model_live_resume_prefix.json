@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "scope": "full-model real-loader restart, first 6 microbatches on four ranks",
+  "ranks": [
+    {
+      "rank": 0,
+      "initial": 3,
+      "resumed": 3,
+      "matched": true
+    },
+    {
+      "rank": 1,
+      "initial": 3,
+      "resumed": 3,
+      "matched": true
+    },
+    {
+      "rank": 2,
+      "initial": 3,
+      "resumed": 3,
+      "matched": true
+    },
+    {
+      "rank": 3,
+      "initial": 3,
+      "resumed": 3,
+      "matched": true
+    }
+  ]
+}

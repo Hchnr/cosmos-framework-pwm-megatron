@@ -1,0 +1,53 @@
+[
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND-v1-joint:39",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 0,
+    "source": 39,
+    "resume_rng_sha256": "f7a9e8f020eb589e67d19da5138ade870f7aba9e72818a10b8dac5ae9faae7a5",
+    "content_sha256": "d7e4dbbf9c973b357b8de4775e98c78eaffadca7245ec97b7773edf6ff5a20b8"
+  },
+  {
+    "iteration": 0,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 1,
+    "source": 55,
+    "resume_rng_sha256": "3005179a310aade98070d36b5ca230fabafdfa92b0c4988cc17859f02b39bcf2",
+    "content_sha256": "a1e80056cc3dbf3c1d061ae719f2173cf7879c86cdc31a4eadd5de6d5bc38f19"
+  },
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND2.0-eef:36",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 2,
+    "source": 36,
+    "resume_rng_sha256": "afd3ad018f20b0b3c8ce37d1bcec5c7ad7ecec6781e9f4c3fc02fef52fffd9a9",
+    "content_sha256": "f932d4dfed9dabc97e5a2415ae25dc886c1cf9d959530f19fa82f816bb12fc46"
+  }
+]

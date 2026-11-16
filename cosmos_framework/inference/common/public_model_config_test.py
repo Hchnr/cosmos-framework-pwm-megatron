@@ -76,3 +76,25 @@ def test_public_model_config_round_trip_removes_internal_metadata():
     assert restored == model_config
     assert load_model_config_from_hf_config({"model": public_model_config}) == model_config
     assert load_model_config_from_hf_config({"model": model_config}) == model_config
+
+
+def test_export_omits_training_sharding_backend():
+    from cosmos_framework.configs.base.defaults.parallelism import ParallelismConfig
+
+    model = {
+        "config": {
+            "parallelism": {
+                "backend": "megatron",
+                "megatron_fuse_projections": False,
+                "megatron_sharding_strategy": "optim_grads",
+                "data_parallel_shard_degree": 16,
+            }
+        }
+    }
+    public = build_public_model_config(model)
+    restored = restore_model_config_from_public_model_config(public)
+    parallelism = ParallelismConfig(**restored["config"]["parallelism"])
+    assert parallelism.backend == "pytorch"
+    assert parallelism.data_parallel_shard_degree == 16
+    assert model["config"]["parallelism"]["backend"] == "megatron"
+    assert set(restored["config"]["parallelism"]) == {"data_parallel_shard_degree"}

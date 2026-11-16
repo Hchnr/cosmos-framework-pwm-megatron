@@ -80,9 +80,13 @@ def main():
     parser.add_argument("--resume-training", action="store_true")
     parser.add_argument("--backend", choices=("pytorch", "megatron"), default="megatron")
     parser.add_argument("--live-data", action="store_true")
+    parser.add_argument("--trace-json", type=Path)
     parser.add_argument("--benchmark-json", type=Path)
     parser.add_argument("--warmup-steps", type=int, default=2)
     args = parser.parse_args()
+    os.environ.setdefault(
+        "ACTION128_EPISODE_CACHE_DIR", "/share-mixed/project/eai_pwm/cache/action128_episode_metadata_v1"
+    )
     os.environ["BASE_CHECKPOINT_PATH"] = str(args.checkpoint.resolve())
     os.environ["HF_MODEL_PATH"] = "/share-mixed/project/eai_pwm/models/Cosmos3-Nano-VLM"
     os.environ["WAN_VAE_PATH"] = "/share-mixed/project/eai_pwm/models/wan22_vae/Wan2.2_VAE.pth"
@@ -147,8 +151,16 @@ def main():
         # Isolate training-step throughput; actual async saves are tested by the
         # default integration mode. This benchmark explicitly excludes save I/O.
         trainer.checkpointer.save = lambda *args, **kwargs: None
+    if args.trace_json:
+        from live_loader_trace import LiveTrace
+
+        trainer.callbacks._callbacks.append(LiveTrace(args.trace_json))
     faulthandler.dump_traceback_later(180, repeat=True)
     loader = instantiate(config.dataloader_train) if args.live_data else ReplayBatch(args.batch)
+    if args.live_data:
+        from cosmos_framework.callbacks.cosmos_dataloader_state import attach_cosmos_dataloader_state_callback
+
+        attach_cosmos_dataloader_state_callback(trainer, loader)
     trainer.train(model, loader, None)
     faulthandler.cancel_dump_traceback_later()
     # The stock trainer destroys the process group at completion.
@@ -190,8 +202,10 @@ def main():
             )
             args.benchmark_json.parent.mkdir(parents=True, exist_ok=True)
             args.benchmark_json.write_text(json.dumps(report, indent=2) + "\n")
+        report_mode = "live_data" if args.live_data else "real_batch"
         output = (
-            Path("artifacts/megatron") / f"full_depth_real_batch_{'resume' if args.resume_training else 'smoke'}.json"
+            Path("artifacts/megatron")
+            / f"full_depth_{report_mode}_{'resume' if args.resume_training else 'smoke'}.json"
         )
         if measurement is None:
             output.write_text(json.dumps(report, indent=2) + "\n")

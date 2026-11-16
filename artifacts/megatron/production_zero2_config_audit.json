@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "config_sha256": "de5c981add47fac9282a698ffffb1380b8718cf63033fac8de8862d9e1f0e7a5",
+  "sources": 58,
+  "backend": "megatron",
+  "sharding_strategy": "optim_grads",
+  "production_world_size": 192,
+  "shard_degree": 16,
+  "expected_replicate_degree": 12,
+  "gradient_accumulation": 3,
+  "fixed_sequence_length": {
+    "enabled": true,
+    "understanding_tokens": 0,
+    "und_tokens": 11776,
+    "gen_tokens": 62592,
+    "action_tokens": 2944,
+    "_target_": "cosmos_framework.configs.base.defaults.fixed_sequence_length.FixedSequenceLengthConfig"
+  },
+  "action_tower_attention_backend": "flash3_video",
+  "compile": {
+    "enabled": true,
+    "compiled_region": "language",
+    "compile_dynamic": false,
+    "use_cuda_graphs": false,
+    "ar_post_saturation_mode": "default",
+    "max_autotune_pointwise": false,
+    "coordinate_descent_tuning": false,
+    "mix_order_reduction_split_size": 32,
+    "_target_": "cosmos_framework.configs.base.defaults.compile.CompileConfig"
+  },
+  "activation_checkpointing": {
+    "mode": "full",
+    "save_ops_regex": [
+      "fmha"
+    ],
+    "preserve_rng_state": true,
+    "determinism_check": "default",
+    "_target_": "cosmos_framework.configs.base.defaults.activation_checkpointing.ActivationCheckpointingConfig"
+  },
+  "checkpoint_training_state": true,
+  "ratio_sum": 100000
+}

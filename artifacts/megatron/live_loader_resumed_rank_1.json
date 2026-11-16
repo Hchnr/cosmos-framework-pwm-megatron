@@ -1,0 +1,98 @@
+[
+  {
+    "dataset": "InternData-M1-eef:33",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 3,
+    "source": 33,
+    "resume_rng_sha256": "77434e9f27792e928e20b4b6e8e3659d68023a6eda5042770bb056e922afb90a",
+    "content_sha256": "78dba133cae97dd8ce180500662de31cbaf1975c51dd86b096590eb2c61b702e"
+  },
+  {
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 4,
+    "source": 12,
+    "resume_rng_sha256": "986b603d872404e473ec71b8c25e3a854376bfbcdab2bf4e4d29bc9e31d768ce",
+    "content_sha256": "14bcc061e7b4a71e079ef78384fcd66029da694b1547e5221ee3b929dc993e0e"
+  },
+  {
+    "dataset": "legacy:44",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 5,
+    "source": 44,
+    "resume_rng_sha256": "573e66489717e54dc413d8a2cde18cee24f70df6ed015fb1f0f08a2734209825",
+    "content_sha256": "9fb35b45465809afe4622e761cfec9dc40405fb931d592e15425ff79dd841d02"
+  },
+  {
+    "dataset": "Galbot-joint:31",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 6,
+    "source": 31,
+    "resume_rng_sha256": "8862d11ae709aad3533547adb0f98b96185235157abb8c9217635d3fba3cd8f1",
+    "content_sha256": "033bb5b0bc9074ab82863cd547d6e1e473aa0a407d988c528ee7a0fb7a01e70c"
+  },
+  {
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 7,
+    "source": 55,
+    "resume_rng_sha256": "3005179a310aade98070d36b5ca230fabafdfa92b0c4988cc17859f02b39bcf2",
+    "content_sha256": "307d2c52e6d7a8bbaf6bae7613c8fc9e255e785f1321881dfd2feef12f425394"
+  },
+  {
+    "dataset": "egolive:53",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 8,
+    "source": 53,
+    "resume_rng_sha256": "d44061d4b37126405630240919f18e89c2fe37b7cc48a22a6ff2adf8d1ab0c66",
+    "content_sha256": "e8652761c1ae9c75780cfb45bd677d94e13bf15e23989d283be2778c9f3d4555"
+  }
+]

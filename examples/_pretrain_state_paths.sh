@@ -36,3 +36,12 @@ for mount in project projset; do
         exit 1
     fi
 done
+
+# The published EgoStandard catalog uses projset, while some installations
+# place the original MCAPs under project. Keep existing data directories intact.
+EGOSTANDARD_PUBLISHED="$MIXED_ROOT/projset/eai_pwm/datasets/EgoStandard"
+EGOSTANDARD_ACTUAL="$MIXED_ROOT/project/eai_pwm/datasets/EgoStandard"
+if [[ ! -e "$EGOSTANDARD_PUBLISHED" && ! -L "$EGOSTANDARD_PUBLISHED" && -d "$EGOSTANDARD_ACTUAL" ]]; then
+    ln -s "$EGOSTANDARD_ACTUAL" "$EGOSTANDARD_PUBLISHED" 2>/dev/null || \
+        [[ -e "$EGOSTANDARD_PUBLISHED" || -L "$EGOSTANDARD_PUBLISHED" ]]
+fi

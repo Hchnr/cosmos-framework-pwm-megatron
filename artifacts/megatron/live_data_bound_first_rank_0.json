@@ -1,0 +1,53 @@
+[
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND-v1-joint:39",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 0,
+    "source": 39,
+    "resume_rng_sha256": "dfff6523ec05926e9383996c6d2f5a2069cc813b9b8b722cc5e3d51932288c9f",
+    "content_sha256": "c59fe09ab920ef717ee7d59adbeff5287c7895019a0fbaaf858fd1183c0fa324"
+  },
+  {
+    "iteration": 0,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 1,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "e81217679b2c908b7f3edde99a868f8f56a2a0930d19eb9a9ff93cfa0725c2bd"
+  },
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND2.0-eef:36",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 2,
+    "source": 36,
+    "resume_rng_sha256": "87e17ec1ecf2bab5c38f38f145e6df7437e73f9358030170e8d5fbedb16ecb8b",
+    "content_sha256": "f10cee994ff29ee75db06b9b0598258d5a782412242640567a36fa93948c25cf"
+  }
+]

@@ -28,6 +28,8 @@ def full_capacity_config(*args, **kwargs):
     if os.environ.get("MEMORY_PROBE_TOKENIZER_COMPILE") == "1":
         prefixes += ("trainer.callbacks.compile_tokenizer.enabled=",)
     kwargs["extra_overrides"] = [item for item in kwargs["extra_overrides"] if not item.startswith(prefixes)]
+    if os.environ.get("MEMORY_PROBE_FORCE_FULL_UND") == "1":
+        kwargs["extra_overrides"].append("model.config.action_tower_und_short_tokens=0")
     return _original_load(*args, **kwargs)
 
 
@@ -50,7 +52,7 @@ if __name__ == "__main__":
             optimizer_updates_disabled=True,
             optimizer_state_allocated=False,
             token_capacities=[11776, 62592, 2944],
-            short_und_capacity=5120,
+            short_und_capacity=0 if os.environ.get("MEMORY_PROBE_FORCE_FULL_UND") == "1" else 5120,
             maximum_physical_tokens=74368,
             throughput_qualification=False,
             tokenizer_compile_enabled=os.environ.get("MEMORY_PROBE_TOKENIZER_COMPILE") == "1",

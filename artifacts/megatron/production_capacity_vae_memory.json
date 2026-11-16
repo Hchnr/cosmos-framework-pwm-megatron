@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "scope": "full 36-layer model, original production token capacities, real-batch replay, no optimizer update",
+  "sharding_strategy": "optim_grads",
+  "gradient_accumulation": 3,
+  "optimizer_steps": 4,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "token_capacities": [
+    11776,
+    62592,
+    2944
+  ],
+  "fresh_optimizer_state": true,
+  "backend": "megatron",
+  "torch_version": "2.10.0+cu130",
+  "cuda_version": "13.0",
+  "megatron_core_version": "0.20.0",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "world_size": 4,
+  "live_data": false,
+  "output_root": "outputs/megatron_validation/production_capacity_vae_memory",
+  "step_seconds": [
+    67.43608250841498,
+    52.366022892296314,
+    52.378319792449474,
+    52.04397499188781
+  ],
+  "mean_final_microbatch_losses": [
+    0.13174499571323395,
+    0.1162804514169693,
+    0.27517467737197876,
+    0.11769089102745056
+  ],
+  "seed_reset_after_initialization": 42,
+  "warmup_steps": 3,
+  "median_seconds": 52.04397499188781,
+  "peak_allocated_bytes": 72540276736,
+  "initialization_peak_allocated_bytes": 37777030656,
+  "excludes": [
+    "checkpoint save I/O",
+    "live shared-prefetch data loading",
+    "optimizer update workspace",
+    "192-GPU communication workspaces"
+  ],
+  "optimizer_updates_disabled": true,
+  "optimizer_state_allocated": false,
+  "short_und_capacity": 5120,
+  "maximum_physical_tokens": 74368,
+  "throughput_qualification": false,
+  "tokenizer_compile_enabled": true,
+  "shard16_adam_state_bytes": 5993491344,
+  "conservative_compute_plus_shard16_adam_bytes": 78533768080,
+  "gpu_total_bytes": 84942979072
+}

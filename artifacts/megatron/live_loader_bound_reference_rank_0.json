@@ -1,0 +1,98 @@
+[
+  {
+    "dataset": "RoboMIND-v1-joint:39",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 0,
+    "source": 39,
+    "resume_rng_sha256": "dfff6523ec05926e9383996c6d2f5a2069cc813b9b8b722cc5e3d51932288c9f",
+    "content_sha256": "c59fe09ab920ef717ee7d59adbeff5287c7895019a0fbaaf858fd1183c0fa324"
+  },
+  {
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 1,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "e81217679b2c908b7f3edde99a868f8f56a2a0930d19eb9a9ff93cfa0725c2bd"
+  },
+  {
+    "dataset": "RoboMIND2.0-eef:36",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 2,
+    "source": 36,
+    "resume_rng_sha256": "87e17ec1ecf2bab5c38f38f145e6df7437e73f9358030170e8d5fbedb16ecb8b",
+    "content_sha256": "f10cee994ff29ee75db06b9b0598258d5a782412242640567a36fa93948c25cf"
+  },
+  {
+    "dataset": "InternData-M1-eef:33",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 3,
+    "source": 33,
+    "resume_rng_sha256": "8ac044f31042d692b9c57f235f10e1afbc20535c6c544c1642106c5a2dbe3eba",
+    "content_sha256": "6bcf27cc3f8cfe1a024200b272cb56c808c475f0b33299f6f02e48e1d2b85ffb"
+  },
+  {
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 4,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "516693191f2798339a3a5e441f54f7cdd87a0f08750ea4075e84bf9f3a48e9fb"
+  },
+  {
+    "dataset": "legacy:44",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 5,
+    "source": 44,
+    "resume_rng_sha256": "aa8d852cd3bd226efc25b18386b5106e49ce2078ca06e7264e8d1d60a8ca6a8b",
+    "content_sha256": "eed8a0063f68e2865563d0bc3a025ed0b7088e9f67af675ca6fe1477a29a4499"
+  }
+]

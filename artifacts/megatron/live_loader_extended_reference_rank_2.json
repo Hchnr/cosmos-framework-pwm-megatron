@@ -1,0 +1,146 @@
+[
+  {
+    "dataset": "RoboMIND-v1-joint:39",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 0,
+    "source": 39,
+    "resume_rng_sha256": "5eeaf74c047d88b77c50f5232de93003889b735515f0246581165999a839592f",
+    "content_sha256": "5af571b1e9f3bb322e0c08e7f206f2770c4bff5dd9bb1ccbdc7ebb53ace00cf1"
+  },
+  {
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 1,
+    "source": 55,
+    "resume_rng_sha256": "15a378aa5354c530c0aa3173c818d143f2d5eb8ca0a466530442cdd3e8e03eeb",
+    "content_sha256": "6ab83ebad76f4f5f37f7525191c873e98d323edde9b4d79f783607e29021c5d9"
+  },
+  {
+    "dataset": "RoboMIND2.0-eef:36",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 2,
+    "source": 36,
+    "resume_rng_sha256": "f90d18ad3954a78dbda78eb5d78bd5cef1aca728a117dcea56b3794c0e7c2dac",
+    "content_sha256": "cb807cb238a4201fd870a9a8aec6304e43f1f6bb8fb6145f538eb0cd373fbed3"
+  },
+  {
+    "dataset": "InternData-M1-eef:33",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 3,
+    "source": 33,
+    "resume_rng_sha256": "82615f033a5ed7c037776685c118df19efb2a69c873d069bda313d273caa1969",
+    "content_sha256": "30f38437ddeccce0545347e05eaa0e8f043681c31cdef9a92f5090f0e0739d17"
+  },
+  {
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 4,
+    "source": 12,
+    "resume_rng_sha256": "ffe015cb2f77f4d9408105110a013448c8fcce3ff77866b8f8a2eec32a4b13f5",
+    "content_sha256": "308af6710f579b184d057e6d81a3afd777bf9006d4584395a3a6df75c0cce79b"
+  },
+  {
+    "dataset": "legacy:44",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 5,
+    "source": 44,
+    "resume_rng_sha256": "6ec9e9777e422e848da8a2c1d3c8bd36c0e4b17bd4499be0dcf921c5a0bf67b3",
+    "content_sha256": "324e4b64a4dd8845275c38045e15f50d666316c0878eb57d5898410966a813e0"
+  },
+  {
+    "dataset": "Galbot-joint:31",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 6,
+    "source": 31,
+    "resume_rng_sha256": "2f9d3af79f389d5756527196dd36e2f65058ac08d172026cbcc85aec2495f08f",
+    "content_sha256": "e9dafe6b68427f7b190b7725a9cf9e6645ee80ad49769c28971293fab693e08c"
+  },
+  {
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 7,
+    "source": 55,
+    "resume_rng_sha256": "15a378aa5354c530c0aa3173c818d143f2d5eb8ca0a466530442cdd3e8e03eeb",
+    "content_sha256": "2d1c73772a7bb1d9fbb219b7de65ebdc09fb6f98b0ab8ef6d0123824110029d6"
+  },
+  {
+    "dataset": "egolive:53",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 8,
+    "source": 53,
+    "resume_rng_sha256": "32519171c51de64aa203b245996ebbe61f436a7e7f30067150cb297c7cb8fb99",
+    "content_sha256": "a9615e30c182be7c9fd4fe73b33c1471c36f0496d4cb9ef28b519fa15bc3ef7b"
+  }
+]

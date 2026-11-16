@@ -61,6 +61,11 @@ def build_public_model_config(model_config: dict[str, Any]) -> dict[str, Any]:
     # Training GEMM policy is not an inference quantization format. Export the
     # ordinary stored weights without adding a private type to the public schema.
     model_config.get("config", {}).pop("fp8_training", None)
+    # Optimizer sharding belongs to the trainer, not the exported inference
+    # model. Let inference select its own parallelism backend and CP preset.
+    parallelism = model_config.get("config", {}).get("parallelism", {})
+    for field in ("backend", "megatron_fuse_projections", "megatron_sharding_strategy"):
+        parallelism.pop(field, None)
     return _to_public_model_config(model_config)
 
 

@@ -15,7 +15,9 @@ families have not yet been migrated or qualified.
 
 `model.parallelism.backend = "megatron"` in TOML selects the new backend; the
 equivalent Hydra override is `model.config.parallelism.backend=megatron`.
-The 58-source launcher supplies that override. `pytorch` remains available for
+The 58-source launcher supplies that override and selects `optim_grads` (ZeRO-2).
+Set `MEGATRON_SHARDING_STRATEGY=optim_grads_params` for the lower-memory
+ZeRO-3 option. Explicit Hydra overrides remain last and take precedence. `pytorch` remains available for
 controlled comparisons and existing recipes.
 
 Megatron-Core **0.20.0** manages parameter/gradient/optimizer-state sharding,
@@ -56,7 +58,7 @@ hooks after the process queue transfer.
 | --- | --- |
 | 58 sources, ratios sum to 100000 | Original catalog recipe retained |
 | Three towers; 36-layer Nano + width-only 1B action | Original model math retained; full pretrained 36-layer real-batch replay and checkpoint restart pass |
-| Action128 state, routed projections, spatial seams | Full 36-layer real-batch replay + original VAE/processor update and async save pass; live-data coverage pending |
+| Action128 state, routed projections, spatial seams | Full 36-layer replay and live-loader training/resume pass; original VAE/processor and async save retained |
 | FlashAttention 3 video + sparse attention for other streams | Original dispatcher retained; production-capacity two-layer math and full-depth reduced-token replay tested |
 | Fixed UND 11776 / GEN 62592 / ACTION 2944; short UND 5120 | Original packing retained; fixed-padding numerical unit tests pass |
 | BF16 computation, FusedAdam FP32 master weights | BF16 FusedAdam checkpoint continuation tested |
@@ -64,8 +66,8 @@ hooks after the process queue transfer.
 | GA=3; shard16 × replica12 on 192 GPUs | GA=3 and shard2 × replica2 tested; 192-GPU run pending |
 | Shared prefetch, metadata cache, local code staging | Existing implementation retained |
 | NumPy/mimalloc large-page advice settings | Launch environment retained |
-| Tokenizer compile warmup and resolution coverage | Existing callbacks retained; end-to-end pending |
-| Full model/optimizer/scheduler/trainer/RNG/loader resume | Full stock-trainer save/restart tested; exact live production-loader continuation pending |
+| Tokenizer compile warmup and resolution coverage | All 32 VAE AOT variants validated on four ranks; subsequent full-capacity compute cycle passed |
+| Full model/optimizer/scheduler/trainer/RNG/loader resume | Full stock-trainer save/restart; live batches, stream revisit, worker RNG and content hashes match uninterrupted loading |
 | Async checkpoint staging and background writer | Full 36-layer ~128 GB checkpoint save/load tested; uneven metadata coverage audited |
 
 EMA and CP>1 are explicitly rejected by the initial Megatron VFM backend.
@@ -266,23 +268,52 @@ short-UND5120 policy selected for this sample. Peak allocated memory was
 gives 78.534 GB, versus 84.943 GB device memory. This is a compute-memory
 measurement plus an analytic state budget, not a measured 192-GPU peak; it
 excludes optimizer workspace, replica/network workspace and tokenizer graphs.
-The VAE compile/coverage case and full-UND branch are being qualified separately.
+The VAE compile/coverage probe passed all 32 variants on every rank and completed
+a fourth full-capacity compute cycle after compilation. Its measured peak was
+the same 72.540 GB. A separate forced full-UND11776 probe completed two cycles
+with peak 72.548 GB (78.541 GB including the analytic shard16 Adam budget).
+Full-UND and compiled-VAE peaks were measured separately; 192-GPU optimizer
+and network workspace qualification remains pending.
 
 NormMonitor now computes FP32 reduction norms and extrema directly, avoiding
 full FP32 activation/square and absolute-value temporaries at production lengths.
 The FP16/BF16/FP32/FP64 strided-input, empty and non-finite CPU regression tests
 pass; the full-capacity follow-up includes the new implementation.
 
+The real 58-catalog loader has now also trained and resumed the full model:
+its first three microbatches and the three after checkpoint restart exactly
+match uninterrupted loading on all four ranks (24 batch identities), including
+raw video/action/text hashes, sample cursors and worker RNG hashes. This live
+smoke uses one physical worker and one sample per batch with reduced model
+capacities. The extended loader restart passed six resumed batches per rank against a
+nine-batch uninterrupted reference, including a revisit to `egostandard:55`.
+`live_loader_resume_qualification.json` records matching cursor, raw-content and
+worker-RNG hashes. The loader-only extension uses GEN16384 so its ninth sample
+fits; the full-model live smoke uses GEN8192. Both use max_samples_per_batch=1. The test calls the same loader-binding helper as
+the production training entry; omitting that helper does not save shared-loader
+execution state and is not a valid cursor/RNG qualification.
+
+Fresh-node preparation also handles the published EgoStandard `projset` media
+prefix when original MCAPs are stored under `project`, preserving existing data
+directories. The five path-layout tests pass. Public HF export omits Megatron
+optimizer-sharding fields so inference chooses its own backend/CP preset; both
+serialization regression tests pass.
+
 ## Remaining acceptance gates
 
-1. Full 58-source config construction, real-data smoke and full-state resume,
-   including scheduler, RNG, loader cursors and source-extension semantics.
-2. Validate actual production attention backends, tokenizer compilation, gradient
-   clipping and asynchronous checkpoints at representative shapes.
-3. Compare warmed steady-state step latency, sample/token throughput, memory,
-   checkpoint stalls and stragglers on identical hardware and data. Include
-   repeated paired runs; retain raw observations and rejected regressions.
-4. Validate distributed checkpoint resharding and inference/export consumption.
-5. Qualify 192-GPU scaling, then extend the backend to the remaining repository
-   training paths. Do not declare the overall migration complete before these
-   gates pass.
+The source entry, 58-source configuration, live training, asynchronous full-state
+restart, exact loader continuation, production attention, GA/clipping, VAE AOT
+coverage and controlled full-depth gradient comparison have passed the scoped
+checks above. The four-GPU reduced-token full-depth paired replay measured
+**5.98% higher throughput** (4.65231 s → 4.38990 s median) with higher ZeRO-2
+memory. Production-capacity compute probes and an analytic shard16 state budget
+are available, but do not replace a distributed production run.
+
+1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
+   stalls and stragglers with the original 16-shard × 12-replica layout.
+2. Validate complete HF export and inference consumption, beyond metadata and
+   parameter-materialization regression checks.
+3. Extend and qualify independent VLM and other model/optimizer/parallelism
+   paths; EMA and CP>1 remain explicitly unsupported in this backend.
+
+Do not declare the entire repository migration complete before these gates pass.

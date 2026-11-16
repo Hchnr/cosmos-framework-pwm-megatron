@@ -40,3 +40,27 @@ def test_wrong_existing_storage_alias_is_rejected(tmp_path):
     assert result.returncode != 0
     assert "does not resolve" in result.stderr
     assert (legacy / "project" / "eai_pwm").resolve() == wrong
+
+
+@pytest.mark.parametrize("existing_dataset", [False, True])
+def test_egostandard_published_mcap_prefix(tmp_path, existing_dataset):
+    target = tmp_path / "mixed"
+    for mount in ("project", "projset"):
+        (target / mount / "eai_pwm" / "datasets").mkdir(parents=True)
+    actual = target / "project/eai_pwm/datasets/EgoStandard"
+    sample = actual / "EgoStandard/mcap/task/sample.mcap"
+    sample.parent.mkdir(parents=True)
+    sample.write_bytes(b"sample")
+    published = target / "projset/eai_pwm/datasets/EgoStandard"
+    if existing_dataset:
+        published.mkdir()
+        (published / "existing-data").write_text("keep")
+    command = ["bash", str(Path(__file__).with_name("_pretrain_state_paths.sh")), str(tmp_path / "legacy"), str(target)]
+    subprocess.run(command, check=True)
+    subprocess.run(command, check=True)
+    if existing_dataset:
+        assert not published.is_symlink()
+        assert (published / "existing-data").read_text() == "keep"
+    else:
+        assert (published / "EgoStandard/mcap/task/sample.mcap").read_bytes() == b"sample"
+        assert published.resolve() == actual

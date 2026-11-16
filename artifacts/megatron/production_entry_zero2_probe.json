@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "entry": "examples/launch_pretrain_state_h1_58src_192gpu.sh",
+  "selected_backend": "megatron",
+  "selected_sharding_strategy": "optim_grads",
+  "captured_arguments": [
+    "-m",
+    "cosmos_framework.tools.launch_diagnostics",
+    "--output-dir=/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/entry_zero2_probe/logs/diagnostics",
+    "--",
+    "python",
+    "-m",
+    "torch.distributed.run",
+    "--nproc_per_node=1",
+    "--master_port=23456",
+    "--nnodes=1",
+    "--node_rank=0",
+    "--master_addr=job-f98f1801-a9b4-49a5-a3f6-b707fddc5b01-master-0",
+    "-m",
+    "cosmos_framework.scripts.train",
+    "--sft-toml=/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml",
+    "--",
+    "model.config.parallelism.data_parallel_shard_degree=1",
+    "model.config.parallelism.data_parallel_replicate_degree=-1",
+    "trainer.seed=42",
+    "job.wandb_mode=disabled",
+    "trainer.callbacks.load_balance_trace.enabled=true",
+    "trainer.callbacks.load_balance_trace.flush_every_n_batches=10",
+    "trainer.callbacks.load_balance_trace.max_samples_per_record=92",
+    "model.config.parallelism.backend=megatron",
+    "model.config.parallelism.megatron_sharding_strategy=optim_grads"
+  ]
+}

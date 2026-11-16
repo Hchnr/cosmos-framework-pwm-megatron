@@ -1,0 +1,53 @@
+[
+  {
+    "iteration": 1,
+    "dataset": "InternData-M1-eef:33",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 3,
+    "source": 33,
+    "resume_rng_sha256": "7af23ffb0d979bc7c002af31be121db823b7967bd51f155d3a0bd44dd3087e9e",
+    "content_sha256": "86dc5e47b25126a6cfb6e97ab5891d70386e0932ce6bd96258a28e0a7b8b606c"
+  },
+  {
+    "iteration": 1,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 4,
+    "source": 12,
+    "resume_rng_sha256": "f8fa068745e9d7c836ea76846c6411719a3a71aaf74126ac1cd022ec1839eb37",
+    "content_sha256": "417295a308124d4920689b4cebbee6b808e1c145334827f8fd44e69951ba249a"
+  },
+  {
+    "iteration": 1,
+    "dataset": "legacy:44",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 5,
+    "source": 44,
+    "resume_rng_sha256": "5dfc3993727ded7f28aeae3276d234dedb9c59930d591a412d18d732bab58503",
+    "content_sha256": "16bbb366c530a2cd59c38be118f869bd9fbd4697414a1879b04ba3d4839f1863"
+  }
+]

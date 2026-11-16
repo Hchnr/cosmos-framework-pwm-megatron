@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "ranks": 4,
+  "counts": [
+    {
+      "rank": 0,
+      "initial": 3,
+      "full_model_restart": 3,
+      "dataflow_restart": 6,
+      "reference": 9
+    },
+    {
+      "rank": 1,
+      "initial": 3,
+      "full_model_restart": 3,
+      "dataflow_restart": 6,
+      "reference": 9
+    },
+    {
+      "rank": 2,
+      "initial": 3,
+      "full_model_restart": 3,
+      "dataflow_restart": 6,
+      "reference": 9
+    },
+    {
+      "rank": 3,
+      "initial": 3,
+      "full_model_restart": 3,
+      "dataflow_restart": 6,
+      "reference": 9
+    }
+  ],
+  "revisited_streams": [
+    "egostandard:55"
+  ],
+  "compared_fields": [
+    "dataset",
+    "worker",
+    "epoch",
+    "index",
+    "global_id",
+    "source",
+    "resume_rng_sha256",
+    "content_sha256"
+  ],
+  "differences": [],
+  "dataflow_generation_capacity": 16384,
+  "one_sample_per_batch": true,
+  "full_model_generation_capacity": 8192
+}
