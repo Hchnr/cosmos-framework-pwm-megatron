@@ -1040,6 +1040,22 @@ def detect_vlm_checkpoint_format(all_tensor_names: set[str]) -> str:
     return "qwen3"
 
 
+def _local_weight_for_target(weight: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """Slice by actual target placement, including Megatron's uneven chunks."""
+    if not isinstance(target, DTensor):
+        return weight
+    chunks = getattr(target._local_tensor, "__create_chunk_list__", None)
+    if chunks is not None:
+        chunk = chunks()[0]
+        sizes, offsets = tuple(chunk.sizes), tuple(chunk.offsets)
+    else:
+        from torch.distributed.tensor._utils import compute_local_shape_and_global_offset
+
+        sizes, offsets = compute_local_shape_and_global_offset(target.shape, target.device_mesh, target.placements)
+    slices = tuple(slice(o, o + n) for o, n in zip(offsets, sizes, strict=True))
+    return weight[slices]
+
+
 def load_language_model(
     model: torch.nn.Module,
     checkpoint_path: str,
@@ -1110,19 +1126,19 @@ def load_language_model(
             dest_name, dest_weight = convert_weight_from_nemotron_vl_hf(
                 tensor=tensor,
                 name=name,
-                parallel_dims=parallel_dims,
+                parallel_dims=None,
             )
         elif resolved_format == "nemotron_3_llm":
             dest_name, dest_weight = convert_weight_from_nemotron_llm_hf(
                 tensor=tensor,
                 name=name,
-                parallel_dims=parallel_dims,
+                parallel_dims=None,
             )
         elif resolved_format == "qwen3":
             dest_name, dest_weight = convert_weight_from_qwen3_hf(
                 tensor=tensor,
                 name=name,
-                parallel_dims=parallel_dims,
+                parallel_dims=None,
             )
         else:
             raise ValueError(f"Unexpected checkpoint format: {resolved_format}")
@@ -1147,6 +1163,7 @@ def load_language_model(
         target_tensor = lm_state_dict[dest_name]
         is_dist_tensor = isinstance(target_tensor, DTensor)
         local_view = target_tensor.to_local() if is_dist_tensor else target_tensor
+        dest_weight = _local_weight_for_target(dest_weight, target_tensor)
 
         if dest_weight.device != local_view.device:
             dest_weight = dest_weight.to(local_view.device)
@@ -1207,7 +1224,14 @@ def load_language_model(
                 "will be garbage."
             )
         with torch.no_grad():
-            head.weight.data.copy_(embed.weight.data)
+            if getattr(embed.weight, "_megatron_fsdp_model", None) is not None:
+                from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
+
+                full_embed = materialize_tensor(embed.weight)
+                head_state = lm_state_dict["lm_head.weight"]
+                head_state.to_local().copy_(_local_weight_for_target(full_embed, head_state))
+            else:
+                head.weight.data.copy_(embed.weight.data)
         log.info(
             "Copied embed_tokens.weight -> lm_head.weight "
             "(tie_word_embeddings=True; lm_head.weight missing from checkpoint)."
@@ -1233,6 +1257,11 @@ def load_language_model(
             f"parameter(s) not found in checkpoint '{checkpoint_path}'. "
             f"First up to 10: {sorted(real_keys_missing)[:10]}"
         )
+
+    from cosmos_framework.training_backends.megatron import get_runtime
+
+    if get_runtime(model) is not None:
+        model.load_state_dict(lm_state_dict)
 
     log.info(
         f"load_language_model: successfully loaded {len(keys_loaded)} tensors "

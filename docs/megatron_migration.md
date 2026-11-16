@@ -299,6 +299,19 @@ directories. The five path-layout tests pass. Public HF export omits Megatron
 optimizer-sharding fields so inference chooses its own backend/CP preset; both
 serialization regression tests pass.
 
+## Fresh HF initialization
+
+Language-model HF loading now slices by the destination tensor's actual layout,
+independently of the mesh used to distribute file reads. The old converter
+unconditionally sliced whenever DP was configured, but Megatron wrapping happens
+after loading; fresh unsharded targets therefore received the wrong shape.
+Replicated targets receive full values, native DTensors use their placement,
+and Megatron targets use uneven chunk metadata. Tied embedding head recovery
+handles different local ownership of embeddings and lm_head. Four-GPU 2×2 HSDP
+checks pass for all three layouts, an odd-sized vocabulary/norm, and both tied
+and untied checkpoints, with bitwise equal weights. Original loader regressions:
+49 passed / 2 skipped.
+
 ## Standalone VLM and HF consumption
 
 `parallelize_vlm` now supports `backend="megatron"`, retaining the existing HF

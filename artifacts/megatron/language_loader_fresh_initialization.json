@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "backends": [
+    "raw",
+    "pytorch",
+    "megatron"
+  ],
+  "replicas": 2,
+  "shards": 2,
+  "weight_tensors": 3,
+  "tied_embedding_cases": 2,
+  "bitwise_equal": true
+}
