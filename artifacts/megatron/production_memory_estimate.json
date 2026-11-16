@@ -1,0 +1,17 @@
+{
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "model_tensor_elements_including_buffers": 16182097872,
+  "model_storage_bytes": 32364236432,
+  "trainable_name_selected_float_elements_estimate": 7991321792,
+  "dp_shard_degree": 16,
+  "fp32_master_plus_moments_bytes_estimate": 5993491344.0,
+  "bf16_sharded_gradient_bytes_estimate": 998915224.0,
+  "checkpoint_input_activation_bytes_estimate_short_und": 19372179456,
+  "checkpoint_input_activation_bytes_estimate_full_und": 21335113728,
+  "exclusions": [
+    "VAE/encoding workspaces",
+    "attention/MLP temporaries",
+    "allocator/NCCL buffers"
+  ],
+  "status": "analytical estimate, not full-depth measured peak"
+}

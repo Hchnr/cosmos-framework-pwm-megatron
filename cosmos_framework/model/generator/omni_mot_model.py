@@ -297,6 +297,8 @@ class OmniMoTModel(ImaginaireModel):
             self.tokenizer_sound_gen = None
 
     def build_net(self, dtype: torch.dtype, *, lora_enabled: bool | None = None) -> torch.nn.Module:
+        if self.config.parallelism.backend == "megatron" and (self.config.ema.enabled or self.parallel_dims.cp_enabled):
+            raise ValueError("Megatron backend currently requires EMA disabled and CP=1")
         if self.config.tower_structure == "three_tower":
             if self.config.parallelism.context_parallel_shard_degree != 1:
                 raise ValueError("three_tower currently requires context_parallel_shard_degree=1")
@@ -435,12 +437,18 @@ class OmniMoTModel(ImaginaireModel):
 
         self.install_attention_dispatch(net)
 
+        if self.config.parallelism.backend == "megatron" and self.config.parallelism.megatron_fuse_projections:
+            from cosmos_framework.training_backends.projection_fusion import fuse_decoder_projections
+
+            fuse_decoder_projections(net.language_model.model.layers)
+
         net = parallelize_vfm_network(
             net,
             parallel_dims=self.parallel_dims,
             compile_config=self.config.compile,
             ac_config=self.config.activation_checkpointing,
             attention_io_layout=getattr(self.config, "attention_io_layout", "sequence_sharded"),
+            backend=self.config.parallelism.backend,
         )
 
         with misc.timer("meta to cuda and broadcast model states"):
@@ -454,6 +462,12 @@ class OmniMoTModel(ImaginaireModel):
                 if lora_enabled:
                     self._init_lora_weights_post_materialization(net)
 
+        if self.config.parallelism.backend == "megatron":
+            net._cosmos_megatron_options = {
+                "shard_degree": self.parallel_dims.dp_shard,
+                "replicate_degree": self.parallel_dims.dp_replicate,
+                "sharding_strategy": self.config.parallelism.megatron_sharding_strategy,
+            }
         return net
 
     def load_pretrained_model_if_needed(

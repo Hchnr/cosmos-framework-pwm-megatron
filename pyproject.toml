@@ -48,6 +48,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+megatron = ["megatron-core==0.20.0"]
 guardrail = [
   "better-profanity",
   "nltk",
@@ -99,7 +100,7 @@ train = [
   "google-crc32c",
   "zstandard",
   "mediapy",
-  "megatron-core",
+  "megatron-core==0.20.0",
   "more-itertools",
   "moviepy",
   "multi-storage-client[boto3,google-cloud-storage,fsspec,observability-otel,vault]==0.44.0",
@@ -356,7 +357,6 @@ required-environments = [
 flash-attn = { index = "cosmos"}
 flash-attn-3-nv = { index = "cosmos" }
 lerobot = { git = "https://github.com/mli0603/lerobot.git" }
-megatron-core = { git = "https://github.com/NVIDIA/Megatron-LM.git", rev = "de56227" }
 natten = { index = "cosmos"}
 torch = { index = "pytorch"}
 torchao = { index = "pytorch"}

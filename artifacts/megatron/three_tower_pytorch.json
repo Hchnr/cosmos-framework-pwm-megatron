@@ -1,0 +1,29 @@
+{
+  "backend": "pytorch",
+  "layers": 2,
+  "steps": 5,
+  "warmup": 2,
+  "compile": true,
+  "output": "artifacts/megatron/three_tower_pytorch.json",
+  "world_size": 4,
+  "torch": "2.10.0+cu130",
+  "scope": "actual MoT decoder; production widths and short-UND token capacities; synthetic inputs",
+  "seed": 42,
+  "dtype": "bfloat16",
+  "optimizer": "FusedAdam FP32 masters",
+  "gradient_accumulation": 3,
+  "median_step_seconds": 1.0494279861450195,
+  "step_seconds": [
+    1.046455979347229,
+    1.0423212051391602,
+    1.050370454788208,
+    1.0494279861450195,
+    1.0505412817001343
+  ],
+  "peak_allocated_bytes": 17731441664,
+  "token_capacities": [
+    5120,
+    59648,
+    2944
+  ]
+}

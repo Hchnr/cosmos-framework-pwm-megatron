@@ -10,16 +10,31 @@ import wandb
 from torch import nn
 from torch.distributed.tensor import DTensor
 
+from cosmos_framework.data.generator.sequence_packing.runtime import get_gen_seq
 from cosmos_framework.model._base import ImaginaireModel
 from cosmos_framework.utils import distributed, log, misc
 from cosmos_framework.utils.callback import Callback
 from cosmos_framework.utils.easy_io import easy_io
-from cosmos_framework.data.generator.sequence_packing.runtime import get_gen_seq
 
 try:
     from apex.contrib.layer_norm import FastLayerNorm
 except ImportError:
     FastLayerNorm = None
+
+
+def _reduce_norm_stats(stats, group=None):
+    peers = [None] * dist.get_world_size(group)
+    dist.all_gather_object(peers, tuple(stats), group=group)
+    names = sorted({name for peer in peers for name in peer})
+    if not names:
+        return
+    zero = torch.zeros((), device="cuda", dtype=torch.float32)
+    sums = torch.stack([stats[name]["sq_sum"].float() if name in stats else zero for name in names])
+    maxima = torch.stack([stats[name]["max"].float() if name in stats else zero for name in names])
+    dist.all_reduce(sums, op=dist.ReduceOp.SUM, group=group)
+    dist.all_reduce(maxima, op=dist.ReduceOp.MAX, group=group)
+    stats.clear()
+    stats.update({name: {"sq_sum": sums[i], "max": maxima[i]} for i, name in enumerate(names)})
 
 
 class NormMonitor(Callback):
@@ -270,27 +285,19 @@ class NormMonitor(Callback):
                 per_grad_stats[param_name] = self._compute_l2_stats(param.grad, detach=False)
                 local_grad_sq_sum += per_grad_stats[param_name]["sq_sum"]
 
-        # All-reduce to aggregate statistics across all FSDP ranks
-        dist.all_reduce(local_param_sq_sum, op=dist.ReduceOp.SUM)
-        dist.all_reduce(local_grad_sq_sum, op=dist.ReduceOp.SUM)
+        from cosmos_framework.training_backends.megatron import get_runtime
 
-        # All-reduce per-parameter stats
-        for param_name, stats_dict in per_param_stats.items():
-            dist.all_reduce(stats_dict["sq_sum"], op=dist.ReduceOp.SUM)
-            dist.all_reduce(stats_dict["max"], op=dist.ReduceOp.MAX)
+        runtime = get_runtime(model)
+        param_group = runtime.fsdp.dist_index.get_fsdp_group() if runtime is not None else None
+        dist.all_reduce(local_param_sq_sum, op=dist.ReduceOp.SUM, group=param_group)
+        dist.all_reduce(local_grad_sq_sum, op=dist.ReduceOp.SUM, group=param_group)
 
-        for param_name, stats_dict in per_grad_stats.items():
-            dist.all_reduce(stats_dict["sq_sum"], op=dist.ReduceOp.SUM)
-            dist.all_reduce(stats_dict["max"], op=dist.ReduceOp.MAX)
-
-        # All-reduce activation stats (activations are replicated, so reduce across all ranks for consistency)
-        for module_name, stats_dict in self._activation_stats.items():
-            dist.all_reduce(stats_dict["sq_sum"], op=dist.ReduceOp.SUM)
-            dist.all_reduce(stats_dict["max"], op=dist.ReduceOp.MAX)
-
-        for module_name, stats_dict in self._activation_grad_stats.items():
-            dist.all_reduce(stats_dict["sq_sum"], op=dist.ReduceOp.SUM)
-            dist.all_reduce(stats_dict["max"], op=dist.ReduceOp.MAX)
+        # Empty optimizer shards have no .grad. Align names before reducing so
+        # all ranks issue the same collectives, including for unused branches.
+        _reduce_norm_stats(per_param_stats, group=param_group)
+        _reduce_norm_stats(per_grad_stats, group=param_group)
+        _reduce_norm_stats(self._activation_stats)
+        _reduce_norm_stats(self._activation_grad_stats)
 
         # Only rank 0 logs the results
         if distributed.is_rank0():

@@ -1,3 +1,5 @@
+> This fork adds a Megatron-Core training backend for the 58-source State128 recipe. See [implementation, validation, and measured scope](docs/megatron_migration.md). Full migration acceptance is in progress.
+
 <p align="center">
     <img src="https://github.com/user-attachments/assets/28f2d612-bbd6-44a3-8795-833d05e9f05f" width="274" alt="NVIDIA Cosmos"/>
 </p>

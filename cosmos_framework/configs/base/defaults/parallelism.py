@@ -21,6 +21,10 @@ PRECISION_TO_TORCH_DTYPE: dict[str, torch.dtype] = {
 
 @attrs.define(slots=False)
 class ParallelismConfig:
+    backend: str = "pytorch"
+    megatron_fuse_projections: bool = False
+    megatron_sharding_strategy: str = "optim_grads_params"
+
     # Number of ranks for sharding the model weights (FSDP). The default -1
     # auto-infers to world_size at runtime via ParallelDims.
     data_parallel_shard_degree: int = -1

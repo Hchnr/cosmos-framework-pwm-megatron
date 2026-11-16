@@ -41,6 +41,7 @@ A `justfile` is provided at the root with longer recipes (`just install`, `just 
 | ---------------------------------------------------- | ----------------------------------------------- |
 | Algorithms (losses, RL, reward)                      | `cosmos_framework/algorithm/{loss,reward,rl}`   |
 | Training loop                                        | `cosmos_framework/trainer/`                     |
+| Megatron backend and migration results | `cosmos_framework/training_backends/`, `docs/megatron_migration.md` |
 | Models + parallelism                                 | `cosmos_framework/model/`                       |
 | Datasets / data loading                              | `cosmos_framework/data/`                        |
 | Checkpoint I/O                                       | `cosmos_framework/checkpoint/`                  |

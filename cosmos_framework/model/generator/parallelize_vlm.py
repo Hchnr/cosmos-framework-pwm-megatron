@@ -501,6 +501,8 @@ def parallelize(
         compile_config:           Optional ``CompileConfig``; ``None``/``enabled=False``
                                   skips compile.
     """
+    if parallelism_config.backend != "pytorch":
+        raise NotImplementedError("Megatron backend is currently implemented for VFM/MoT; standalone VLM is pending")
     slots = apply_ac(model, activation_checkpointing)
     slots = apply_compile(slots, compile_config)
     apply_fsdp(model, slots, parallel_dims, parallelism_config, precision)

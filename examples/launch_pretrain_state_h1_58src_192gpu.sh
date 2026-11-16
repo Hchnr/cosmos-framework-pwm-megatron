@@ -2,8 +2,13 @@
 # 58-source continuation using the existing 24-node production launch chain.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+if [[ -f "${COSMOS_MEGATRON_ENV:-$PWD/.venv}/bin/activate" ]]; then
+    source "${COSMOS_MEGATRON_ENV:-$PWD/.venv}/bin/activate"
+fi
+export LD_LIBRARY_PATH=''
+python -c 'import importlib.metadata; assert importlib.metadata.version("megatron-core") == "0.20.0", "Run tools/setup_megatron_env.sh"'
 export SFT_TOML_FILE="${SFT_TOML_FILE:-$PWD/examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml}"
-export OUTPUT_ROOT="${OUTPUT_ROOT:-$PWD/outputs/pretrain58src_state_h1_nano_192gpu_ga3_run01}"
+export OUTPUT_ROOT="${OUTPUT_ROOT:-$PWD/outputs/megatron_pretrain58src_state_h1_nano_192gpu_ga3_run01}"
 # Large NumPy video buffers can synchronously compact fragmented NUMA memory.
 # Change allocation advice for this process tree, leaving kernel THP policy alone.
 export NUMPY_MADVISE_HUGEPAGE="${NUMPY_MADVISE_HUGEPAGE:-0}"
@@ -14,7 +19,7 @@ export MIMALLOC_ALLOW_LARGE_OS_PAGES="${MIMALLOC_ALLOW_LARGE_OS_PAGES:-0}"
 # Shared across nodes, restarts and job/output names. Empty explicitly disables caching.
 export ACTION128_EPISODE_CACHE_DIR="${ACTION128_EPISODE_CACHE_DIR-/share-mixed/project/eai_pwm/cache/action128_episode_metadata_v1}"
 
-SOURCE_RUN="${ACTION128_SOURCE_RUN:-$PWD/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1}"
+SOURCE_RUN="${ACTION128_SOURCE_RUN:-/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1}"
 if [[ -z "${BASE_CHECKPOINT_PATH:-}" ]]; then
     LATEST_FILE="$SOURCE_RUN/checkpoints/latest_checkpoint.txt"
     [[ -r "$LATEST_FILE" ]] || { echo "ERROR: source checkpoint pointer missing: $LATEST_FILE" >&2; exit 1; }
@@ -50,4 +55,4 @@ if [[ "${SWANLAB_SIDECAR_ENABLE:-1}" == "1" ]]; then
     fi
 fi
 # Use the production recipe with local staging, rendezvous and batch traces.
-exec bash examples/launch_pretrain_state_h1_52src_192gpu.sh "$@"
+exec bash examples/launch_pretrain_state_h1_52src_192gpu.sh model.config.parallelism.backend=megatron "$@"

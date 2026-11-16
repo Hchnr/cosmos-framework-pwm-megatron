@@ -384,6 +384,8 @@ class GradClip(Callback):
         iteration: int = 0,
     ) -> None:
         del optimizer, scheduler, grad_scaler
+        net = getattr(model, "net", model) if not isinstance(model, list) else None
+        megatron_runtime = getattr(net, "__dict__", {}).get("_cosmos_megatron_runtime")
 
         # 1. Resolve which parameters to clip.
         if self.track_per_modality:
@@ -399,10 +401,15 @@ class GradClip(Callback):
         # 2. Collect params with grads, per mesh group. The grouping itself is
         #    cached; only the grad-presence filter is redone each step.
         grouped_params: dict[str, list[torch.Tensor]] = {}
-        for mesh, params in self._mesh_groups(model_parts).items():
-            with_grad = [p for p in params if p.grad is not None]
-            if with_grad:
-                grouped_params[mesh] = with_grad
+        if megatron_runtime is not None:
+            # Keep one group even on an empty local rank so every rank enters
+            # the single shard-group norm reduction in the same order.
+            grouped_params["megatron"] = [p for part in model_parts for p in part.parameters() if p.grad is not None]
+        else:
+            for mesh, params in self._mesh_groups(model_parts).items():
+                with_grad = [p for p in params if p.grad is not None]
+                if with_grad:
+                    grouped_params[mesh] = with_grad
 
         # 3. No-grad / all-frozen step → skip. There is nothing to clip, and
         #    ``_total_norm_by_mesh`` rejects an empty grouping rather than
@@ -414,11 +421,15 @@ class GradClip(Callback):
         # 4. Compute per-mesh L2 norms (reducing DTensor results to local
         #    scalars) and combine them into the single global norm that will
         #    rescale every mesh group.
-        global_norm, per_mesh_norms = _total_norm_by_mesh(
-            grouped_params,
-            error_if_nonfinite=self.error_if_nonfinite,
-            foreach=True,
-        )
+        if megatron_runtime is not None:
+            global_norm = megatron_runtime.total_grad_norm(self.error_if_nonfinite)
+            per_mesh_norms = {"megatron": global_norm}
+        else:
+            global_norm, per_mesh_norms = _total_norm_by_mesh(
+                grouped_params,
+                error_if_nonfinite=self.error_if_nonfinite,
+                foreach=True,
+            )
 
         # 5. Optionally zero NaN/Inf in grads, but only when the norm says
         #    the norm is non-finite: a bad grad entry makes the norm non-finite,
@@ -454,15 +465,22 @@ class GradClip(Callback):
             _fused_nan_to_num([p.grad for params in grouped_params.values() for p in params])
             # Re-measure so both the rescale and the logged diagnostics reflect
             # the sanitized grads, matching the pre-sanitize-always behavior.
-            global_norm, per_mesh_norms = _total_norm_by_mesh(
-                grouped_params,
-                error_if_nonfinite=False,
-                foreach=True,
-            )
+            if megatron_runtime is not None:
+                global_norm = megatron_runtime.total_grad_norm()
+                per_mesh_norms = {"megatron": global_norm}
+            else:
+                global_norm, per_mesh_norms = _total_norm_by_mesh(
+                    grouped_params,
+                    error_if_nonfinite=False,
+                    foreach=True,
+                )
 
         # 6. Clip: scale every grad by min(1, clip_norm / global_norm), one factor
         #    for the whole model.
-        _clip_grads_with_global_norm(grouped_params, self.clip_norm, global_norm, foreach=True)
+        if megatron_runtime is not None:
+            megatron_runtime.clip_gradients(self.clip_norm, global_norm)
+        else:
+            _clip_grads_with_global_norm(grouped_params, self.clip_norm, global_norm, foreach=True)
 
         if not isinstance(model, list):
             raw_model = getattr(getattr(model, "model", None), "model", model)

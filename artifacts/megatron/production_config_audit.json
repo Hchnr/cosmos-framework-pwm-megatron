@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "config_sha256": "a8a6859c137a15a0a9ccf2976438b65714776f527ccd4e45310d64d62a04c478",
+  "sources": 58,
+  "ratio_sum": 100000,
+  "backend": "megatron",
+  "model": {
+    "tower_structure": "three_tower",
+    "action_tower_preset": "width_only_1b",
+    "action_tower_attention_backend": "flash3_video",
+    "fixed_sequence_length": {
+      "enabled": true,
+      "understanding_tokens": 0,
+      "und_tokens": 11776,
+      "gen_tokens": 62592,
+      "action_tokens": 2944,
+      "_target_": "cosmos_framework.configs.base.defaults.fixed_sequence_length.FixedSequenceLengthConfig"
+    },
+    "parallelism": {
+      "backend": "megatron",
+      "data_parallel_shard_degree": 16,
+      "data_parallel_replicate_degree": -1,
+      "context_parallel_shard_degree": 1,
+      "cfg_parallel_shard_degree": 1,
+      "enable_inference_mode": false,
+      "fsdp_master_dtype": "float32",
+      "fsdp_reduce_dtype": null,
+      "_target_": "cosmos_framework.configs.base.defaults.parallelism.ParallelismConfig"
+    },
+    "compile": {
+      "enabled": true,
+      "compiled_region": "language",
+      "compile_dynamic": false,
+      "use_cuda_graphs": false,
+      "ar_post_saturation_mode": "default",
+      "max_autotune_pointwise": false,
+      "coordinate_descent_tuning": false,
+      "mix_order_reduction_split_size": 32,
+      "_target_": "cosmos_framework.configs.base.defaults.compile.CompileConfig"
+    },
+    "activation_checkpointing": {
+      "mode": "full",
+      "save_ops_regex": [
+        "fmha"
+      ],
+      "preserve_rng_state": true,
+      "determinism_check": "default",
+      "_target_": "cosmos_framework.configs.base.defaults.activation_checkpointing.ActivationCheckpointingConfig"
+    }
+  },
+  "gradient_accumulation": 3
+}

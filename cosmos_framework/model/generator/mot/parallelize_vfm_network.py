@@ -46,6 +46,7 @@ def parallelize_vfm_network(
     compile_config: CompileConfig,
     ac_config: ActivationCheckpointingConfig,
     attention_io_layout: str = "sequence_sharded",
+    backend: str = "pytorch",
 ) -> torch.nn.Module:
     """Optimize the model using FSDP, CP, activation checkpointing, and torch.compile.
 
@@ -63,6 +64,8 @@ def parallelize_vfm_network(
             ``ActivationCheckpointingConfig`` defaults.
         attention_io_layout: Tensor layout at the attention boundary under CP.
     """
+    if backend not in ("pytorch", "megatron"):
+        raise ValueError(f"Unknown training backend: {backend}")
     model.attention_io_layout = attention_io_layout
     if parallel_dims is not None and parallel_dims.cp_enabled:
         model.parallel_dims = parallel_dims
@@ -73,12 +76,13 @@ def parallelize_vfm_network(
         compile_config=compile_config,
         ac_config=ac_config,
         attention_io_layout=attention_io_layout,
+        shard_with_pytorch=backend == "pytorch",
     )
 
     if compile_config.enabled and compile_config.compiled_region == "all":
         model = apply_compile(model, compile_config)
 
-    if parallel_dims is not None and parallel_dims.dp_enabled:
+    if backend == "pytorch" and parallel_dims is not None and parallel_dims.dp_enabled:
         # Collect parameters to ignore during FSDP wrapping
         ignored_params = set()
         if getattr(model.language_model, "_reasoner_visual_artifact", False) and not getattr(

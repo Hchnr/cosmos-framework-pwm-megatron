@@ -142,6 +142,9 @@ class ParallelismConfig(BaseModel):
     """
 
     model_config = _PYDANTIC_MODEL_CONFIG
+    backend: Literal["pytorch", "megatron"] = "pytorch"
+    megatron_fuse_projections: bool = False
+    megatron_sharding_strategy: Literal["optim_grads_params", "optim_grads", "optim", "no_shard"] = "optim_grads_params"
 
     data_parallel_shard_degree: int = Field(
         default=-1,

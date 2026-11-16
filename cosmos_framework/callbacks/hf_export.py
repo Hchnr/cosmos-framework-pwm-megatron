@@ -243,7 +243,9 @@ class HFExportCallback(Callback):
 
             # Gather across FSDP / TP / CP ranks (collective — all ranks must call).
             if isinstance(param, torch.distributed.tensor.DTensor):
-                param = param.full_tensor()
+                from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
+
+                param = materialize_tensor(param)
             param = param.detach()
             if self._export_dtype is not None:
                 param = param.to(dtype=self._export_dtype)

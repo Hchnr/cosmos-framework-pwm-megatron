@@ -1,0 +1,29 @@
+{
+  "scope": "actual MoT decoder; production widths and short-UND token capacities; synthetic inputs",
+  "torch": "2.10.0+cu130",
+  "pair_medians": {
+    "pytorch_r1": 1.049797534942627,
+    "pytorch_r2": 1.0504254698753357,
+    "megatron_r1": 1.0300630331039429,
+    "megatron_r2": 1.029096245765686
+  },
+  "pair_throughput_improvements": {
+    "1": 0.01915853807433221,
+    "2": 0.02072617036298663
+  },
+  "all_pytorch_median_seconds": 1.0501489043235779,
+  "all_megatron_median_seconds": 1.0298872590065002,
+  "steps_per_backend": 60,
+  "order": [
+    "pytorch_r1",
+    "megatron_r1",
+    "megatron_r2",
+    "pytorch_r2"
+  ],
+  "not_validated": [
+    "36-layer end-to-end training",
+    "192-GPU scaling",
+    "real data/VAE throughput"
+  ],
+  "aggregate_throughput_improvement": 0.019673653732374063
+}

@@ -86,6 +86,9 @@ class ActionBlock(nn.Module):
         return self.adapters[name](x) if name in self.adapters else x
 
     def mlp(self, x):
+        if getattr(self, "_training_fuse_gate_up", False):
+            gate, up = F.linear(x, torch.cat((self.gate_proj.weight, self.up_proj.weight))).chunk(2, dim=-1)
+            return self.down_proj(F.silu(gate) * up)
         return self.down_proj(F.silu(self.gate_proj(x)) * self.up_proj(x))
 
 
@@ -311,6 +314,10 @@ def attend(q, k, v, mask, backend="sdpa", *, frozen_und=False):
 
 
 def project_qkv(module, x, suffix=""):
+    if getattr(module, "_training_fuse_qkv", False):
+        projections = tuple(getattr(module, name + suffix) for name in ("q_proj", "k_proj", "v_proj"))
+        weight = torch.cat(tuple(projection.weight for projection in projections))
+        return F.linear(x, weight).split(tuple(projection.out_features for projection in projections), dim=-1)
     weight = getattr(module, "_inference_qkv_weight" + suffix, None)
     if weight is not None and not module.training and not torch.is_grad_enabled():
         widths = tuple(getattr(module, name + suffix).out_features for name in ("q_proj", "k_proj", "v_proj"))

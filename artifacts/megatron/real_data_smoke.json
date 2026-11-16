@@ -1,0 +1,404 @@
+{
+  "passed": true,
+  "seed": 42,
+  "sources": 58,
+  "scope": "one real catalog batch, original processing, one physical worker, max one sample",
+  "elapsed_seconds": 121.80727099254727,
+  "batch": {
+    "action_control_mask": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61,
+          128
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "conditioning_fps": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.float64",
+        "finite": true
+      }
+    },
+    "domain_id": {
+      "length": 1,
+      "first": {
+        "shape": [
+          61
+        ],
+        "dtype": "torch.int64"
+      }
+    },
+    "action128_contract_fingerprint": {
+      "length": 1,
+      "first": {
+        "type": "str"
+      }
+    },
+    "__url__": {
+      "length": 1,
+      "first": {
+        "type": "str"
+      }
+    },
+    "__key__": {
+      "length": 1,
+      "first": {
+        "type": "str"
+      }
+    },
+    "text_token_ids": {
+      "length": 1,
+      "first": {
+        "length": 1,
+        "first": {
+          "shape": [
+            136
+          ],
+          "dtype": "torch.int64"
+        }
+      }
+    },
+    "num_frames": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.int64"
+      }
+    },
+    "action_loss_mask": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61,
+          128
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "action_timestamps": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61
+        ],
+        "dtype": "torch.float64",
+        "finite": true
+      }
+    },
+    "video": {
+      "length": 1,
+      "first": {
+        "length": 1,
+        "first": {
+          "shape": [
+            3,
+            61,
+            480,
+            640
+          ],
+          "dtype": "torch.uint8"
+        }
+      }
+    },
+    "action_valid": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "image_size": {
+      "length": 1,
+      "first": {
+        "shape": [
+          2
+        ],
+        "dtype": "torch.int64"
+      }
+    },
+    "ai_caption": {
+      "length": 1,
+      "first": {
+        "type": "str"
+      }
+    },
+    "temporal_valid_mask": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "fps": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.float64",
+        "finite": true
+      }
+    },
+    "camera_valid": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61,
+          3
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "normalization_domain_id": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.int64"
+      }
+    },
+    "embodiment_id": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.int64"
+      }
+    },
+    "vision_loss_mask": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          16,
+          30,
+          40
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "sequence_plan": {
+      "length": 1,
+      "first": {
+        "type": "SequencePlan"
+      }
+    },
+    "raw_action_dim": {
+      "length": 1,
+      "first": {
+        "type": "int"
+      }
+    },
+    "decode_metadata": {
+      "length": 1,
+      "first": {
+        "views": {
+          "length": 1,
+          "first": {
+            "video_backend": {
+              "type": "str"
+            },
+            "requested_timestamps_sec": {
+              "length": 61,
+              "first": {
+                "type": "float"
+              }
+            },
+            "timestamps_sec": {
+              "length": 61,
+              "first": {
+                "type": "float"
+              }
+            },
+            "timestamp_error_seconds": {
+              "length": 61,
+              "first": {
+                "type": "float"
+              }
+            },
+            "decoded_frame_pts": {
+              "length": 61,
+              "first": {
+                "type": "int"
+              }
+            },
+            "decoded_frames_per_seek": {
+              "length": 61,
+              "first": {
+                "type": "int"
+              }
+            },
+            "width": {
+              "type": "int"
+            },
+            "height": {
+              "type": "int"
+            },
+            "fps": {
+              "type": "float"
+            },
+            "declared_frame_count": {
+              "type": "int"
+            },
+            "declared_duration": {
+              "type": "float"
+            },
+            "camera_output_size": {
+              "length": 2,
+              "first": {
+                "type": "int"
+              }
+            },
+            "time_mapping": {
+              "published_timestamps_sec": {
+                "length": 61,
+                "first": {
+                  "type": "float"
+                }
+              },
+              "mapping_rule": {
+                "type": "str"
+              },
+              "source_timestamps_sec": {
+                "length": 61,
+                "first": {
+                  "type": "float"
+                }
+              },
+              "decoder_timestamps_sec": {
+                "length": 61,
+                "first": {
+                  "type": "float"
+                }
+              },
+              "source_frame_indexes": {
+                "type": "NoneType"
+              },
+              "time_scale": {
+                "type": "float"
+              },
+              "role": {
+                "type": "str"
+              }
+            }
+          }
+        },
+        "selected_roles": {
+          "length": 1,
+          "first": {
+            "type": "str"
+          }
+        },
+        "primary_role": {
+          "type": "str"
+        },
+        "main_role_fallback": {
+          "type": "bool"
+        },
+        "camera_layout": {
+          "type": "NoneType"
+        }
+      }
+    },
+    "conditioning_fps_action": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1
+        ],
+        "dtype": "torch.float64",
+        "finite": true
+      }
+    },
+    "action": {
+      "length": 1,
+      "first": {
+        "length": 1,
+        "first": {
+          "shape": [
+            61,
+            128
+          ],
+          "dtype": "torch.float32",
+          "finite": true
+        }
+      }
+    },
+    "action_dim_mask": {
+      "length": 1,
+      "first": {
+        "shape": [
+          1,
+          61,
+          128
+        ],
+        "dtype": "torch.bool"
+      }
+    },
+    "_worker_id": {
+      "type": "int"
+    },
+    "packed_sequence": {
+      "type": "PackedSequence"
+    },
+    "sample_worker_id": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.int64"
+    },
+    "sample_epoch": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.int64"
+    },
+    "sample_index": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.int64"
+    },
+    "dataset_name": {
+      "type": "str"
+    },
+    "_cosmos_loader": {
+      "global_id": {
+        "type": "int"
+      },
+      "source": {
+        "type": "int"
+      },
+      "worker": {
+        "type": "int"
+      },
+      "next_worker": {
+        "type": "int"
+      },
+      "resume_rng": {
+        "type": "bytes"
+      }
+    }
+  },
+  "batch_output": "outputs/megatron_validation/real_batch.pt"
+}

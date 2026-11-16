@@ -19,8 +19,8 @@ import torch
 import torch.distributed as dist
 from torch.distributed import get_process_group_ranks
 
-from cosmos_framework.utils.flags import INTERNAL
 from cosmos_framework.utils.device import Device
+from cosmos_framework.utils.flags import INTERNAL
 
 if dist.is_available():
     from torch.distributed.distributed_c10d import _get_default_group
@@ -250,6 +250,12 @@ def ddp_sync_grad(model, enabled):
         else gradients will still be synchronized.
     """
     assert isinstance(model, torch.nn.Module)
+    net = getattr(model, "net", model)
+    megatron_runtime = net.__dict__.get("_cosmos_megatron_runtime")
+    if megatron_runtime is not None:
+        with megatron_runtime.accumulate(enabled):
+            yield
+        return
     ddp_mutated = False
     old_require_backward_grad_sync = None
     fsdp_prev: list = []  # (FSDPModule, previous all_reduce_grads) for exactly the modules we mutated

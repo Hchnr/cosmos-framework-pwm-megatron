@@ -1,0 +1,31 @@
+{
+  "backend": "megatron",
+  "layers": 2,
+  "steps": 5,
+  "warmup": 2,
+  "compile": true,
+  "fuse_projections": false,
+  "output": "artifacts/megatron/three_tower_megatron_zero2.json",
+  "sharding_strategy": "optim_grads",
+  "world_size": 4,
+  "torch": "2.10.0+cu130",
+  "scope": "actual MoT decoder; production widths and short-UND token capacities; synthetic inputs",
+  "seed": 42,
+  "dtype": "bfloat16",
+  "optimizer": "FusedAdam FP32 masters",
+  "gradient_accumulation": 3,
+  "median_step_seconds": 1.0231738090515137,
+  "step_seconds": [
+    1.0230287313461304,
+    1.0253324508666992,
+    1.020965576171875,
+    1.0241793394088745,
+    1.0231738090515137
+  ],
+  "peak_allocated_bytes": 17310732800,
+  "token_capacities": [
+    5120,
+    59648,
+    2944
+  ]
+}

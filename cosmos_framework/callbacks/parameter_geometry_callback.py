@@ -7,19 +7,17 @@ import math
 
 import torch
 import wandb
-from torch.distributed.tensor import DTensor
 
 from cosmos_framework.callbacks.every_n import EveryN
 from cosmos_framework.model._base import ImaginaireModel
 from cosmos_framework.trainer import ImaginaireTrainer
 from cosmos_framework.utils import distributed
+from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
 
 
 def _materialize_tensor(tensor: torch.Tensor) -> torch.Tensor:
     """Return a logical tensor, participating in DTensor collectives on every rank."""
-    if isinstance(tensor, DTensor):
-        return tensor.full_tensor()
-    return tensor
+    return materialize_tensor(tensor)
 
 
 def calculate_l2_norm(tensor: torch.Tensor) -> torch.Tensor:

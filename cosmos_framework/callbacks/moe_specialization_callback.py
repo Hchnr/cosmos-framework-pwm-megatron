@@ -37,9 +37,9 @@ from torch.distributed.tensor import DTensor, Partial
 
 from cosmos_framework.callbacks.every_n import EveryN
 from cosmos_framework.model._base import ImaginaireModel
+from cosmos_framework.model.generator.reasoner.qwen3_vl_moe.qwen3_vl_moe import Qwen3VLMoeTextSparseMoeBlock
 from cosmos_framework.trainer import ImaginaireTrainer
 from cosmos_framework.utils import distributed
-from cosmos_framework.model.generator.reasoner.qwen3_vl_moe.qwen3_vl_moe import Qwen3VLMoeTextSparseMoeBlock
 
 _RANK_EPSILON = 1e-12
 
@@ -91,9 +91,9 @@ def _calculate_router_ranks(
 
 def _materialize_parameter(parameter: torch.Tensor) -> torch.Tensor:
     """Materialize one logical parameter, participating in DTensor collectives on every rank."""
-    if isinstance(parameter, DTensor):
-        return parameter.full_tensor()
-    return parameter
+    from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
+
+    return materialize_tensor(parameter)
 
 
 def compute_moe_router_geometry_metrics(vfm: torch.nn.Module) -> dict[str, dict]:

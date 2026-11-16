@@ -290,6 +290,7 @@ def parallelize_unified_mot(
     compile_config: CompileConfig,
     ac_config: ActivationCheckpointingConfig,
     attention_io_layout: str = "sequence_sharded",
+    shard_with_pytorch: bool = True,
 ) -> nn.Module:
     """Optimize the model using CP, FSDP, activation checkpointing, and torch.compile.
 
@@ -321,6 +322,6 @@ def parallelize_unified_mot(
     apply_ac(model, ac_config)
     if compile_config.enabled:
         apply_compile(model, compile_config)
-    if parallel_dims is not None and parallel_dims.dp_enabled:
+    if shard_with_pytorch and parallel_dims is not None and parallel_dims.dp_enabled:
         apply_fsdp(model, parallel_dims)
     return model

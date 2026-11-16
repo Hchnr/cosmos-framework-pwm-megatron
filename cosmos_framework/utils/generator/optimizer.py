@@ -13,13 +13,13 @@ from torch.distributed.checkpoint.state_dict import StateDictOptions, get_optimi
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.optim.lr_scheduler import LambdaLR, LRScheduler
 
+from cosmos_framework.utils import log
 from cosmos_framework.utils.functional.lr_scheduler import (
     LambdaLinearScheduler,
     LambdaWarmUpCosineScheduler,
     WSDScheduler,
     WSFDScheduler,
 )
-from cosmos_framework.utils import log
 
 # Hybrid orthogonalizing optimizers (Muon / Dion2) that own their parameter
 # categorization and run their own collective communication. They must be built
@@ -390,6 +390,24 @@ class OptimizersContainer(Stateful):
             weight_decay_skip_patterns=weight_decay_skip_patterns,
         )
 
+        megatron_options = getattr(model.net, "_cosmos_megatron_options", None)
+        self._megatron_runtime = None
+        if megatron_options is not None:
+            if optimizer_type.lower() not in ("adam", "adamw", "fusedadam"):
+                raise ValueError("Megatron backend currently qualifies Adam/AdamW/FusedAdam optimizers only")
+            from cosmos_framework.training_backends.megatron import MegatronRuntime
+
+            # Freeze/selection above must run before Megatron allocates buffers.
+            # Retain the exact LR/WD metadata when replacing parameter objects.
+            names = {id(p): name for name, p in model.net.named_parameters()}
+            selected = [(names[id(p)], metadata) for p, metadata in params_with_metadata]
+            runtime_options = dict(megatron_options)
+            if "unit_types" not in runtime_options:
+                runtime_options["unit_types"] = tuple({type(block) for block in model.net.language_model.model.layers})
+            self._megatron_runtime = MegatronRuntime(model.net, **runtime_options)
+            distributed_params = dict(model.net.named_parameters())
+            params_with_metadata = [(distributed_params[name], metadata) for name, metadata in selected]
+
         if optimizer_type.lower() in _AUX_ADAMW_OPTIMIZERS:
             # Muon / Dion2 categorize parameters into an orthogonalized-matrix group
             # and an auxiliary AdamW group internally, and run their own collective
@@ -457,6 +475,8 @@ class OptimizersContainer(Stateful):
         # the Muon/Dion2 step paths, which is deliberately not supported.
         for optimizer in self.optimizers:
             optimizer.step()
+        if getattr(self, "_megatron_runtime", None) is not None:
+            self._megatron_runtime.after_step()
 
     def zero_grad(self, set_to_none: bool = True) -> None:
         # Default matches ``torch.optim.Optimizer.zero_grad`` (set_to_none=True
@@ -464,13 +484,18 @@ class OptimizersContainer(Stateful):
         # memory, so callers must opt-in explicitly.
         for optimizer in self.optimizers:
             optimizer.zero_grad(set_to_none=set_to_none)
+        if getattr(self, "_megatron_runtime", None) is not None:
+            self._megatron_runtime.zero_grad()
 
     def state_dict(self) -> dict[str, Any]:
-        return get_optimizer_state_dict(
+        state = get_optimizer_state_dict(
             model=self.model,
             optimizers=self.optimizers,
             options=StateDictOptions(flatten_optimizer_state_dict=True),
         )
+        if getattr(self, "_megatron_runtime", None) is not None:
+            self._megatron_runtime.prepare_state_dict(state)
+        return state
 
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         set_optimizer_state_dict(

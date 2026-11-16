@@ -240,8 +240,12 @@ def save_checkpoint_in_background(
             log.info(f"Checkpoint background process received termination signal, closing sender queue")
             break
 
-        assert isinstance(received_data, tuple), "Received data must be a tuple of (state_dict, checkpoint_path)"
-        state_dict, checkpoint_path = received_data
+        assert isinstance(received_data, tuple), "Received data must be a checkpoint payload tuple"
+        state_dict, checkpoint_path = received_data[:2]
+        if len(received_data) == 3:
+            from cosmos_framework.training_backends.checkpoint_metadata import restore_chunk_metadata
+
+            restore_chunk_metadata(state_dict, received_data[2])
 
         # Save checkpoint and measure time taken.
         start_time = time.monotonic()
@@ -1175,7 +1179,14 @@ class DistributedCheckpointer(AbstractCheckpointer):
         self.staging_stream.synchronize()
         log.info(f"Staging the state_dict in CPU memory completed")
 
-        self.mp_queue_send.put_nowait((self.cpu_offload_state_dict, self.staging_ckpt_file))
+        from cosmos_framework.training_backends.checkpoint_metadata import extract_chunk_metadata
+
+        chunk_metadata = extract_chunk_metadata(state_dict)
+        if chunk_metadata:
+            payload = (self.cpu_offload_state_dict, self.staging_ckpt_file, chunk_metadata)
+        else:
+            payload = (self.cpu_offload_state_dict, self.staging_ckpt_file)
+        self.mp_queue_send.put_nowait(payload)
         self.checkpoint_in_progress = True
         log.info(f"Submitted checkpoint to background process")
 
@@ -1360,9 +1371,14 @@ class DistributedCheckpointer(AbstractCheckpointer):
         # Use rank-specific key for RNG state to ensure each rank saves its own state
         rng_key = f"rng_state_{dist.get_rank()}"
 
+        log.info("Collecting checkpoint model state")
+        model_state = ModelWrapper(model).state_dict()
+        log.info("Collecting checkpoint optimizer state")
+        optimizer_state = optimizer.state_dict()
+        log.info("Collecting checkpoint scheduler/trainer state")
         to_save_dict = {
-            "model": ModelWrapper(model).state_dict(),
-            "optim": optimizer.state_dict(),
+            "model": model_state,
+            "optim": optimizer_state,
             "scheduler": scheduler.state_dict(),
             "trainer": {
                 "grad_scaler": grad_scaler.state_dict(),
