@@ -1,5 +1,6 @@
 """FP32 optimizer masters with BF16 compute, against native FSDP2."""
 
+import argparse
 import copy
 import os
 
@@ -14,13 +15,16 @@ from cosmos_framework.training_backends.megatron import MegatronRuntime
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cpu-init", action="store_true")
+    args = parser.parse_args()
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
     torch.manual_seed(42)
     source = nn.Sequential(nn.Linear(64, 64, bias=False), Block(), Block()).cuda()
     source[0].requires_grad_(False)
     full_master = {name: value.detach().clone() for name, value in source.state_dict().items()}
-    target = copy.deepcopy(source).to(torch.bfloat16)
+    target = copy.deepcopy(source).to(device="cpu" if args.cpu_init else "cuda", dtype=torch.bfloat16)
     mesh = init_device_mesh("cuda", (dist.get_world_size(),), mesh_dim_names=("shard",))
     policy = MixedPrecisionPolicy(param_dtype=torch.bfloat16, reduce_dtype=torch.float32)
     for block in source:

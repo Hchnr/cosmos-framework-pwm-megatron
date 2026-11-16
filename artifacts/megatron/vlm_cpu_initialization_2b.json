@@ -1,0 +1,29 @@
+{
+  "cpu_initialization": true,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-2B-Instruct",
+  "sharding_strategy": "optim_grads_params",
+  "replicas": 2,
+  "peak_allocated_bytes": 10235198464,
+  "ranks": [
+    {
+      "rank": 0,
+      "master_sha256": "f433cebfd5a89fefd5cd77ce1a54e6b77a2a50c16289282742a566b8546e3bb6",
+      "initialization_seconds": 20.34670538827777
+    },
+    {
+      "rank": 1,
+      "master_sha256": "e0372ad32b9e46cfdac329cc69a54075f6b6fd0162160823fe182e467951e32b",
+      "initialization_seconds": 20.942291606217623
+    },
+    {
+      "rank": 2,
+      "master_sha256": "f433cebfd5a89fefd5cd77ce1a54e6b77a2a50c16289282742a566b8546e3bb6",
+      "initialization_seconds": 22.318642493337393
+    },
+    {
+      "rank": 3,
+      "master_sha256": "e0372ad32b9e46cfdac329cc69a54075f6b6fd0162160823fe182e467951e32b",
+      "initialization_seconds": 22.118315540254116
+    }
+  ]
+}

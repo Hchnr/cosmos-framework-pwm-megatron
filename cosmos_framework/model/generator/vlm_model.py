@@ -580,9 +580,14 @@ class VLMModel(ImaginaireModel):
             # Optimizer construction consumes these references after sharding;
             # frozen FP32 values remain as local shards for checkpoint parity.
             hf_model.net.__dict__["_cosmos_megatron_initial_master_weights"] = hf_model.net.state_dict()
+            self._megatron_cpu_initialization = (
+                os.environ.get("COSMOS_MEGATRON_CPU_INITIALIZATION", "0") == "1"
+                and config.parallelism.megatron_sharding_strategy != "no_shard"
+            )
+            compute_device = "cpu" if self._megatron_cpu_initialization else "cuda"
             compute_dtype = PRECISION_TO_TORCH_DTYPE[config.precision]
             for parameter in hf_model.net.parameters():
-                parameter.data = parameter.data.to(device="cuda", dtype=compute_dtype)
+                parameter.data = parameter.data.to(device=compute_device, dtype=compute_dtype)
             # RoPE and other floating buffers retain their original dtype.
             for module in hf_model.net.modules():
                 for name, buffer in module._buffers.items():
@@ -594,8 +599,27 @@ class VLMModel(ImaginaireModel):
         self.model_name_or_path = local_path
         self.hf_config = hf_model.hf_config
 
+    def to(self, *args, **kwargs):
+        # The stock trainer calls .to("cuda") before constructing the optimizer.
+        # Keep pending CPU compute weights there until Megatron copies them one
+        # bucket at a time into CUDA shards. Buffers are already on CUDA.
+        pending = getattr(self, "_megatron_cpu_initialization", False) and (
+            "_cosmos_megatron_initial_master_weights" in self.model.net.__dict__
+        )
+        if pending:
+            device, dtype, _, memory_format = torch._C._nn._parse_to(*args, **kwargs)
+            if (
+                device is not None
+                and device.type == "cuda"
+                and dtype is None
+                and memory_format in (None, torch.contiguous_format, torch.preserve_format)
+            ):
+                if device.index is None or device.index == torch.cuda.current_device():
+                    return self
+        return super().to(*args, **kwargs)
+
     def on_train_start(self, memory_format) -> None:
-        """Called by trainer after model.to("cuda"). No device move needed here."""
+        """Megatron completes optional CPU parameter staging during optimizer construction."""
 
     def on_after_backward(self, iteration: int = 0) -> None:
         """Capture exact pre-clip gradients when deep parity probing is enabled."""

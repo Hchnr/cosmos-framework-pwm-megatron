@@ -318,6 +318,14 @@ parameter swapping. This initialization still requires unsharded BF16 compute
 weights to fit on one device and full CPU masters per rank; larger VLM families
 need a different initialization path before they can be accepted.
 
+`COSMOS_MEGATRON_CPU_INITIALIZATION=1` is an opt-in alternative that leaves
+BF16 compute parameters on CPU until Megatron allocates CUDA buckets, including
+through the trainer's pre-optimizer `.to("cuda")`. On Qwen3-VL-2B, every rank's
+master SHA256 matches the default path, and MoE updates/full-state restart pass.
+The measured peaks are 10,235,808,768 versus 10,235,198,464 bytes: **no meaningful
+2B memory gain**, so it remains disabled by default. It still needs full CPU
+masters per rank and does not qualify large-model initialization.
+
 On four H100s, the actual pretrained Qwen3-VL-2B completed three GA=3 AdamW
 updates with real visual-token input, full AC, compile and 2×2 HSDP/ZeRO-2.
 Maximum loss relative error over the run was 0.003223; final parameter relative

@@ -42,6 +42,7 @@ def build(backend, path, args):
     config.freeze.freeze_mm_projector = True
     checkpoint = SimpleNamespace(load_path="", load_from_object_store=SimpleNamespace(credentials="", bucket=""))
     model = VLMModel(config, checkpoint)
+    model.to("cuda")  # Exercise the stock trainer's pre-optimizer device move.
     optimizer = OptimizersContainer(model.model, "AdamW", fused=True, lr=1e-3, weight_decay=0.05)
     return model, optimizer
 

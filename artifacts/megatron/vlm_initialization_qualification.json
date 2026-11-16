@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "master_hashes_bitwise_equal": true,
+  "gpu_staging_peak_bytes": 10235808768,
+  "cpu_staging_peak_bytes": 10235198464,
+  "reduction_fraction": 5.962440426865445e-05,
+  "default_enabled": false,
+  "decision": "No meaningful peak reduction on 2B; keep CPU staging opt-in. Large-model CPU capacity remains unqualified."
+}
