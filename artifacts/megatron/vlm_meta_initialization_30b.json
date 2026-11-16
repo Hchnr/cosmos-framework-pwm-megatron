@@ -1,0 +1,38 @@
+{
+  "meta_initialization": true,
+  "cpu_initialization": false,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-30B-A3B-Instruct",
+  "sharding_strategy": "optim_grads_params",
+  "replicas": 1,
+  "peak_allocated_bytes": 78384509952,
+  "ranks": [
+    {
+      "rank": 0,
+      "independently_verified_hf_tensors": 882,
+      "master_sha256": "3f7c04056bc38e9594965c6566a1a4bdd71c0dde7cf740f986246db6d7c810cc",
+      "initialization_seconds": 94.49054132774472,
+      "process_peak_rss_bytes": 26633486336
+    },
+    {
+      "rank": 1,
+      "independently_verified_hf_tensors": 882,
+      "master_sha256": "9d1a0563de94593a5653031e6b166abd97e46d7bc605a29bf10b33a056efd5ce",
+      "initialization_seconds": 94.10054723545909,
+      "process_peak_rss_bytes": 21648310272
+    },
+    {
+      "rank": 2,
+      "independently_verified_hf_tensors": 882,
+      "master_sha256": "c4685da052df892823f7191fad8655c550a311c6c4a94463d9ed8c2149b1cb1a",
+      "initialization_seconds": 93.65060845017433,
+      "process_peak_rss_bytes": 19571060736
+    },
+    {
+      "rank": 3,
+      "independently_verified_hf_tensors": 882,
+      "master_sha256": "66916ab755198ccddfb8c863014648690322ad140c6f238d6fa4ffa75b323015",
+      "initialization_seconds": 93.93729380518198,
+      "process_peak_rss_bytes": 21062201344
+    }
+  ]
+}

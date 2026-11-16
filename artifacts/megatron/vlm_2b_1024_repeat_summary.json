@@ -1,0 +1,65 @@
+{
+  "scope": "Synthetic fixed visual-token batches; excludes live data loading, checkpoint I/O and VAE.",
+  "runs": [
+    "artifacts/megatron/vlm_2b_1024_1_pytorch.json",
+    "artifacts/megatron/vlm_2b_1024_2_megatron.json",
+    "artifacts/megatron/vlm_2b_1024_3_megatron.json",
+    "artifacts/megatron/vlm_2b_1024_4_pytorch.json"
+  ],
+  "settings": {
+    "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-2B-Instruct",
+    "compile": true,
+    "full_activation_checkpointing": true,
+    "gradient_accumulation": 3,
+    "optimizer": "torch.optim.AdamW(fused=True)",
+    "learning_rate": 1e-05,
+    "world_size": 4,
+    "replicas": 2,
+    "sequence_tokens": 1024,
+    "image_grid_thw": [
+      1,
+      16,
+      16
+    ],
+    "warmup_steps": 5,
+    "attention_implementation": "sdpa",
+    "compute_dtype": "bfloat16",
+    "master_dtype": "float32",
+    "gradient_dtype": "float32",
+    "gradient_communication_dtype": "float32",
+    "megatron_sharding_strategy": "optim_grads",
+    "frozen_vision_encoder": true,
+    "frozen_mm_projector": true
+  },
+  "inputs_bitwise_equal": true,
+  "includes_all_steady_observations": true,
+  "backends": {
+    "pytorch": {
+      "observations": 60,
+      "median_seconds": 0.6002668477594852,
+      "mean_seconds": 0.6266892069329818,
+      "p95_seconds": 0.6475592551752924,
+      "max_seconds": 1.1398541629314423,
+      "per_run_median_seconds": [
+        0.5963722076267004,
+        0.6033434569835663
+      ],
+      "peak_allocated_bytes": 19652319232
+    },
+    "megatron": {
+      "observations": 60,
+      "median_seconds": 0.43252927996218204,
+      "mean_seconds": 0.4676685322696964,
+      "p95_seconds": 0.8945411656051874,
+      "max_seconds": 1.0934035032987595,
+      "per_run_median_seconds": [
+        0.4275468923151493,
+        0.4363152254372835
+      ],
+      "peak_allocated_bytes": 26095465984
+    }
+  },
+  "median_throughput_gain_fraction": 0.38780627247239585,
+  "mean_throughput_gain_fraction": 0.34002859651797346,
+  "maximum_loss_trace_relative_difference": 0.0016576828208009786
+}

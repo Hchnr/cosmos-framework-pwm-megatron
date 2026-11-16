@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "failure": "CUDA out of memory during full-precision gradient communication buffer allocation",
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-30B-A3B-Instruct",
+  "world_size": 4,
+  "replicas": 1,
+  "sharding_strategy": "optim_grads_params",
+  "meta_initialization": true,
+  "compute_dtype": "bfloat16",
+  "master_dtype": "float32",
+  "gradient_dtype": "float32",
+  "gradient_communication_dtype": "float32",
+  "compile": true,
+  "full_activation_checkpointing": true,
+  "sequence_tokens": 17,
+  "forward_dp_average_loss": 11.31694,
+  "backward_completed": false,
+  "optimizer_update": false,
+  "requested_temporary_buffer_gib": 2.32,
+  "reported_device_free_gib": 1.64,
+  "scope": "Capacity failure on four H100 80GB devices. Successful initialization does not establish backward or optimizer-update capacity."
+}

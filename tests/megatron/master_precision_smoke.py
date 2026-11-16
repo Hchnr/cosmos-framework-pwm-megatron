@@ -17,6 +17,7 @@ from cosmos_framework.training_backends.megatron import MegatronRuntime
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpu-init", action="store_true")
+    parser.add_argument("--meta-init", action="store_true")
     args = parser.parse_args()
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
@@ -24,7 +25,9 @@ def main():
     source = nn.Sequential(nn.Linear(64, 64, bias=False), Block(), Block()).cuda()
     source[0].requires_grad_(False)
     full_master = {name: value.detach().clone() for name, value in source.state_dict().items()}
-    target = copy.deepcopy(source).to(device="cpu" if args.cpu_init else "cuda", dtype=torch.bfloat16)
+    target = copy.deepcopy(source).to(
+        device="meta" if args.meta_init else "cpu" if args.cpu_init else "cuda", dtype=torch.bfloat16
+    )
     mesh = init_device_mesh("cuda", (dist.get_world_size(),), mesh_dim_names=("shard",))
     policy = MixedPrecisionPolicy(param_dtype=torch.bfloat16, reduce_dtype=torch.float32)
     for block in source:
@@ -37,6 +40,7 @@ def main():
         main_params_dtype=torch.float32,
         main_grads_dtype=torch.float32,
         initial_master_weights=full_master,
+        init_model_with_meta_device=args.meta_init,
     )
     optimizers = [
         torch.optim.AdamW([p for p in net.parameters() if p.requires_grad], lr=1e-3) for net in (source, target)

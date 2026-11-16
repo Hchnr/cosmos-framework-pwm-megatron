@@ -56,6 +56,8 @@ class MegatronRuntime:
         grad_comm_dtype=None,
         initial_master_weights=None,
         compute_dtype=None,
+        init_model_with_meta_device=False,
+        frozen_master_dtype=None,
     ):
         from megatron.core.distributed.fsdp.src.megatron_fsdp import fully_shard_model
         from megatron.core.distributed.fsdp.src.megatron_fsdp.mixed_precision import MixedPrecisionPolicy
@@ -82,6 +84,7 @@ class MegatronRuntime:
             dp_shard_dim="shard",
             tp_dim="tp",
             fsdp_unit_modules=list(unit_types),
+            init_model_with_meta_device=init_model_with_meta_device,
             zero_dp_strategy=sharding_strategy,
             mixed_precision_policy=MixedPrecisionPolicy(
                 main_params_dtype=main_params_dtype,
@@ -123,6 +126,7 @@ class MegatronRuntime:
         module.__dict__["_cosmos_megatron_runtime"] = self
 
         self._frozen_masters = {}
+        self._frozen_compute_dtypes = {}
 
         def prepare_dcp(module, state_dict, prefix, local_metadata):
             for name, master in self._frozen_masters.items():
@@ -143,6 +147,17 @@ class MegatronRuntime:
                 state[key] = incoming.to(dtype=self._frozen_compute_dtypes[name])
 
         self._load_hook = module.register_load_state_dict_pre_hook(load_frozen)
+        if frozen_master_dtype is not None:
+            frozen_names = {
+                name.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
+                for name, p in module.named_parameters(remove_duplicate=False)
+                if not p.requires_grad
+            }
+            for name, value in module.state_dict().items():
+                canonical_name = name.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
+                if canonical_name in frozen_names and isinstance(value, DTensor) and value.dtype != frozen_master_dtype:
+                    self._frozen_masters[name] = value.to(dtype=frozen_master_dtype)
+                    self._frozen_compute_dtypes[name] = value.dtype
         if initial_master_weights is not None:
             self._restore_initial_masters(module, initial_master_weights)
 
@@ -167,6 +182,23 @@ class MegatronRuntime:
             master.to_local().copy_(original[slices])
             state[name] = master
         module.load_state_dict(state)
+
+    @torch.no_grad()
+    def finalize_loaded_state(self):
+        """Install HF values copied directly into local optimizer/checkpoint views."""
+
+        def canonical(name):
+            return name.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
+
+        parameters = {
+            canonical(name): value for name, value in self.fsdp.module.named_parameters(remove_duplicate=False)
+        }
+        for name, master in self._frozen_masters.items():
+            parameter = parameters[canonical(name)]
+            local = parameter.to_local() if isinstance(parameter, DTensor) else parameter
+            local.copy_(master.to_local().to(local.dtype))
+        self.after_step()
+        self.fsdp.all_gather_pipeline.reset()
 
     def _before_forward(self, module, args):
         self.fsdp._replace_param_with_raw_if_needed()

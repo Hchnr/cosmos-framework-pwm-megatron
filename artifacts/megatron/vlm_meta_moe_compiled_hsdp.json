@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "meta_initialization": true,
+  "steps": 3,
+  "gradient_accumulation": 3,
+  "compile": true,
+  "replicas": 2,
+  "sharding_strategy": "optim_grads",
+  "reduce_dtype": null,
+  "maximum_loss_relative_error": 0.0,
+  "weight_relative_l2": 0.0,
+  "native_checkpoint_continuation": true,
+  "megatron_checkpoint_restart": true,
+  "restart_weights_bitwise_equal": true,
+  "vision_input": true,
+  "moe": true,
+  "global_auxiliary_loss_coefficient": 0.01,
+  "model_path": "/tmp/cosmos_megatron_tiny_qwen3_vl_moe",
+  "frozen_vision_bitwise_equal": true,
+  "tied_embeddings_preserved": true
+}

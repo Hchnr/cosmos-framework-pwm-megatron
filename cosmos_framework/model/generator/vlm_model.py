@@ -484,15 +484,25 @@ class VLMModel(ImaginaireModel):
         # empty CUDA tensors here for load_weights() to copy into.
         # To enable FSDP-2 CPU offload later: add a CPU-materialize branch and
         # pair with ``offload_policy=CPUOffloadPolicy()`` in ``parallelize_vlm``.
-        materialization_device = "cpu" if config.parallelism.backend == "megatron" else "cuda"
-        hf_model.model._apply(
-            lambda t: (
-                torch.empty_like(t, device=materialization_device)
-                if t.device.type == "meta"
-                else t.to(materialization_device)
-            ),
-            recurse=True,
+        meta_initialization = (
+            config.parallelism.backend == "megatron"
+            and os.environ.get("COSMOS_MEGATRON_META_INITIALIZATION", "0") == "1"
+            and config.parallelism.megatron_sharding_strategy != "no_shard"
         )
+        if meta_initialization and hf_model.hf_config.model_type not in ("qwen3_vl", "qwen3_vl_moe"):
+            raise ValueError("Megatron meta initialization currently supports Qwen3-VL dense and MoE backbones")
+        if meta_initialization and config.sound_und:
+            raise ValueError("Megatron meta initialization of audio extensions has not been qualified")
+        materialization_device = "cpu" if config.parallelism.backend == "megatron" else "cuda"
+        if not meta_initialization:
+            hf_model.model._apply(
+                lambda t: (
+                    torch.empty_like(t, device=materialization_device)
+                    if t.device.type == "meta"
+                    else t.to(materialization_device)
+                ),
+                recurse=True,
+            )
         if config.sound_und:
             # ``to_empty`` deliberately discards meta initialization. Encoder
             # tensors are populated by the authoritative artifact below. Let
@@ -505,77 +515,93 @@ class VLMModel(ImaginaireModel):
         # ── f. Tie embeddings (replaces the legacy post_to_empty_hook) ──
         hf_model.tie_embeddings()
 
-        # ── g. Load pretrain weights ──
-        if load_pretrain_weights:
-            if policy.backbone.safetensors_path:
-                safetensors_local_path = maybe_download_hf_model_from_s3(
-                    policy.backbone.safetensors_path,
-                    checkpoint.load_from_object_store.credentials,
-                    checkpoint.load_from_object_store.bucket,
-                    include_model_weights=True,
-                )
-            else:
-                safetensors_local_path = local_path
-
-            hf_model.load_weights(
-                checkpoint_path=safetensors_local_path,
-                credential_path=None,  # local path after download
-                parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
-            )
-
-            # ── g.2. Optional LLM overlay (backbone.pretrained_weights) ──
-            # Overlay the language tower with a separate LLM checkpoint.
-            # Visual + projector params are preserved from the VLM load above
-            # (the overlay's visual/projector keys are folded into load_vlm_model's
-            # unified skip_patterns by HFModel.load_weights).  The existing name
-            # converter in load_vlm_model tail-matches raw LLM keys into
-            # model.language_model.*, so no temp-dir remap is needed.
-            # Mirrors legacy vlm/train.py:221-233 semantics.
-            llm_path = policy.backbone.pretrained_weights.backbone_path
-
-            if llm_path:
-                overlay_skip_patterns, is_lm_key = _get_overlay_config(hf_model.hf_config.model_type)
-                llm_local_path = maybe_download_hf_model_from_s3(
-                    llm_path,
-                    checkpoint.load_from_object_store.credentials,
-                    checkpoint.load_from_object_store.bucket,
-                    include_model_weights=True,
-                    require_s3_exists=True,
-                )
-                keys_loaded = hf_model.load_weights(
-                    checkpoint_path=llm_local_path,
-                    credential_path=None,
-                    parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
-                    extra_skip_patterns=overlay_skip_patterns,
-                )
-                lm_loaded = {k for k in keys_loaded if is_lm_key(k)}
-                if not lm_loaded:
-                    raise RuntimeError(
-                        f"VLMModel overlay: loaded 0 language-model parameters from "
-                        f"{llm_path!r} (local path: {llm_local_path!r}). The LLM "
-                        "checkpoint did not match any language_model.* key in the "
-                        "VLM; check model-family / layer-count compatibility."
+        def load_initial_weights():
+            # ── g. Load pretrain weights ──
+            if load_pretrain_weights:
+                if policy.backbone.safetensors_path:
+                    safetensors_local_path = maybe_download_hf_model_from_s3(
+                        policy.backbone.safetensors_path,
+                        checkpoint.load_from_object_store.credentials,
+                        checkpoint.load_from_object_store.bucket,
+                        include_model_weights=True,
                     )
-                log.info(f"VLMModel: overlaid {len(lm_loaded)} language-model params from {llm_path}")
+                else:
+                    safetensors_local_path = local_path
 
-        # ── h. Load the immutable standalone audio encoder artifact ──
-        # This runs for both fresh starts and DCP resumes. On resume, DCP may
-        # subsequently restore the same encoder when it was checkpointed; when
-        # exclusion is enabled, these artifact weights remain authoritative.
-        if config.sound_und:
-            audio_config = config.sound_und_config
-            loaded_audio_keys = load_vlm_model(
-                model=hf_model.model.sound_und_model.encoder,
-                checkpoint_path=audio_config.encoder_checkpoint_path,
-                credential_path=audio_config.encoder_checkpoint_credentials_path or None,
-                parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
-            )
-            log.info(
-                f"VLMModel: loaded {len(loaded_audio_keys)} audio encoder tensors from "
-                f"{audio_config.encoder_checkpoint_path}"
-            )
+                hf_model.load_weights(
+                    checkpoint_path=safetensors_local_path,
+                    credential_path=None,  # local path after download
+                    parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
+                )
 
-        if config.parallelism.backend == "megatron":
+                # ── g.2. Optional LLM overlay (backbone.pretrained_weights) ──
+                # Overlay the language tower with a separate LLM checkpoint.
+                # Visual + projector params are preserved from the VLM load above
+                # (the overlay's visual/projector keys are folded into load_vlm_model's
+                # unified skip_patterns by HFModel.load_weights).  The existing name
+                # converter in load_vlm_model tail-matches raw LLM keys into
+                # model.language_model.*, so no temp-dir remap is needed.
+                # Mirrors legacy vlm/train.py:221-233 semantics.
+                llm_path = policy.backbone.pretrained_weights.backbone_path
+
+                if llm_path:
+                    overlay_skip_patterns, is_lm_key = _get_overlay_config(hf_model.hf_config.model_type)
+                    llm_local_path = maybe_download_hf_model_from_s3(
+                        llm_path,
+                        checkpoint.load_from_object_store.credentials,
+                        checkpoint.load_from_object_store.bucket,
+                        include_model_weights=True,
+                        require_s3_exists=True,
+                    )
+                    keys_loaded = hf_model.load_weights(
+                        checkpoint_path=llm_local_path,
+                        credential_path=None,
+                        parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
+                        extra_skip_patterns=overlay_skip_patterns,
+                    )
+                    lm_loaded = {k for k in keys_loaded if is_lm_key(k)}
+                    if not lm_loaded:
+                        raise RuntimeError(
+                            f"VLMModel overlay: loaded 0 language-model parameters from "
+                            f"{llm_path!r} (local path: {llm_local_path!r}). The LLM "
+                            "checkpoint did not match any language_model.* key in the "
+                            "VLM; check model-family / layer-count compatibility."
+                        )
+                    log.info(f"VLMModel: overlaid {len(lm_loaded)} language-model params from {llm_path}")
+
+            # ── h. Load the immutable standalone audio encoder artifact ──
+            # This runs for both fresh starts and DCP resumes. On resume, DCP may
+            # subsequently restore the same encoder when it was checkpointed; when
+            # exclusion is enabled, these artifact weights remain authoritative.
+            if config.sound_und:
+                audio_config = config.sound_und_config
+                loaded_audio_keys = load_vlm_model(
+                    model=hf_model.model.sound_und_model.encoder,
+                    checkpoint_path=audio_config.encoder_checkpoint_path,
+                    credential_path=audio_config.encoder_checkpoint_credentials_path or None,
+                    parallel_dims=parallel_dims if torch.distributed.is_initialized() else None,
+                )
+                log.info(
+                    f"VLMModel: loaded {len(loaded_audio_keys)} audio encoder tensors from "
+                    f"{audio_config.encoder_checkpoint_path}"
+                )
+
+        if meta_initialization:
+            from cosmos_framework.training_backends.meta_init import prepare_hf_meta_initialization
+
+            hf_model.net.__dict__["_cosmos_megatron_meta_reset_cleanup"] = prepare_hf_meta_initialization(
+                hf_model.net, config.precision
+            )
+            hf_model.net.__dict__["_cosmos_megatron_deferred_load"] = load_initial_weights
+            hf_model.net.__dict__["_cosmos_megatron_options"].update(
+                init_model_with_meta_device=True,
+                frozen_master_dtype=PRECISION_TO_TORCH_DTYPE[config.parallelism.fsdp_master_dtype],
+            )
+            self._megatron_meta_initialization = True
+        else:
+            load_initial_weights()
+
+        if config.parallelism.backend == "megatron" and not meta_initialization:
             # Preserve exact CPU master values before casting compute parameters.
             # Optimizer construction consumes these references after sharding;
             # frozen FP32 values remain as local shards for checkpoint parity.
@@ -605,6 +631,10 @@ class VLMModel(ImaginaireModel):
         # bucket at a time into CUDA shards. Buffers are already on CUDA.
         pending = getattr(self, "_megatron_cpu_initialization", False) and (
             "_cosmos_megatron_initial_master_weights" in self.model.net.__dict__
+        )
+        pending = pending or (
+            getattr(self, "_megatron_meta_initialization", False)
+            and "_cosmos_megatron_deferred_load" in self.model.net.__dict__
         )
         if pending:
             device, dtype, _, memory_format = torch._C._nn._parse_to(*args, **kwargs)

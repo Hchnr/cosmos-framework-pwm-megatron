@@ -392,6 +392,47 @@ The measured peaks are 10,235,808,768 versus 10,235,198,464 bytes: **no meaningf
 2B memory gain**, so it remains disabled by default. It still needs full CPU
 masters per rank and does not qualify large-model initialization.
 
+`COSMOS_MEGATRON_META_INITIALIZATION=1` is a separate opt-in for Qwen3-VL
+(dense/MoE, without audio extensions). Parameters stay on meta until Megatron
+materializes one direct owner at a time. HF files are assigned across shard
+ranks and loaded after wrapping, directly into FP32 optimizer/frozen-master
+views. This avoids full CPU masters per rank and a full CUDA model before
+sharding. Required HF keys are validated before training. Tied owners retain
+shared Parameter identity, and the embedding tensor already in flight also
+populates the head's potentially different uneven slice. Buffers keep their
+original precision. DCP resume defers weight restoration to the normal trainer.
+
+The 2B initialization check independently compared all **626 state tensors per
+rank** against HF file slices; every value is bitwise equal, and all four master
+SHA256 hashes match the established initialization path. Peak allocation is
+10,449,541,632 bytes versus 10,235,808,768 for the default: no GPU memory saving
+at this size, so the option remains disabled by default. Initialization times
+were about 11.5–12.0 seconds versus earlier 19.5–22.9-second observations;
+these are unpaired startup observations, not a training-throughput claim.
+Compiled dense and MoE 2-layer HSDP tests pass three GA=3 updates plus native
+checkpoint continuation and self-restart. Frozen vision and restart weights
+are bitwise equal; the MoE losses and updated weights are also bitwise equal
+across backends. The complete pretrained 2B model also passed the same compiled
+GA=3 update and checkpoint suite via meta initialization, with maximum loss
+relative error 0.003223 and final weight relative L2 0.0001976, matching the
+established initialization path. See `vlm_meta_*` artifacts and
+`vlm_initialization_probe.py`.
+
+The real Qwen3-VL-30B-A3B checkpoint also initialized successfully on four H100
+80GB devices with ZeRO-3 and FP32 masters/gradients. Every rank independently
+verified all **882 state tensors** bitwise against HF slices; peak allocation
+was **78,384,509,952 bytes per GPU**. Initialization took 93.7–94.5 seconds in
+this observation. The full model's forward produced finite DP-average loss
+11.31694, but backward failed when a 2.32GiB FP32 communication bucket was
+requested with only 1.64GiB device memory free. The failure is retained in
+`vlm_meta_forward_backward_30b_capacity.json`. This qualifies 30B initialization,
+not backward or full optimizer updates; Adam moments require additional memory.
+The 235B family remains untested. A compiled dense test with frozen tied
+embedding/head also passed direct DCP resume without HF preloading: all losses,
+updated weights and restart weights are bitwise equal. The corresponding MoE
+ZeRO-3/BF16-communication direct-resume test passes with maximum loss relative
+error 0.000110 and final parameter relative L2 0.000229.
+
 On four H100s, the actual pretrained Qwen3-VL-2B completed three GA=3 AdamW
 updates with real visual-token input, full AC, compile and 2×2 HSDP/ZeRO-2.
 Maximum loss relative error over the run was 0.003223; final parameter relative
@@ -409,7 +450,7 @@ during eager AC recomputation, causing 68 saved tensors versus 66; it now runs
 the same math and suppresses only the repeated stash. Recomputed graphs are not
 retained by the module. ZeRO-3 with BF16 gradient communication also passed the same continuation
 checks (maximum loss relative error 0.000110, final weight relative L2 0.000229).
-This does not qualify the full 30B/235B MoE models.
+This does not qualify full 30B/235B MoE optimizer updates.
 
 The full live-trained 16.182B checkpoint was exported through the original
 `cosmos_framework.scripts.export_model` command into 32,364,243,344 bytes of HF
@@ -432,6 +473,42 @@ python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/v
   --moe --vision --compile --replicas 2 --sharding-strategy optim_grads
 ```
 
+## Standalone VLM compute performance
+
+The pretrained Qwen3-VL-2B visual/text path was measured in four independent
+process launches ordered **PyTorch, Megatron, Megatron, PyTorch**. Both use
+BF16 compute, FP32 masters/gradients/communication, full AC, static block compile,
+frozen vision/projector, fused AdamW, GA=3 and 2×2 HSDP on four H100s. Native
+FSDP2 uses its existing reshard behavior; Megatron explicitly uses ZeRO-2.
+Inputs are fixed synthetic 1024-token sequences with one 16×16 patch image;
+every rank's input hash matches across all runs. Five warmup updates are
+excluded and all remaining 60 observations per backend are retained.
+
+| Metric | PyTorch FSDP2 | Megatron ZeRO-2 |
+| --- | ---: | ---: |
+| Mean update seconds | 0.626689 | 0.467669 |
+| Median update seconds | 0.600267 | 0.432529 |
+| P95 update seconds | 0.647559 | 0.894541 |
+| Peak allocated bytes | 19,652,319,232 | 26,095,465,984 |
+
+Mean-based throughput improves **34.00%**; the median ratio implies **38.78%**.
+Memory is higher and P95 latency is worse. Maximum relative loss-trace difference
+is 0.001658. This measures forward/backward and optimizer compute, including
+warmup in memory peaks. It excludes live data loading, callback execution,
+gradient clipping, checkpoint I/O and VAE; it is not production VLM throughput.
+Python automatic GC remains enabled in this direct-loop driver. The source
+trainer's configurable manual-GC callback is unchanged and is not exercised by
+this benchmark. Both raw per-rank observations and aggregation are retained in
+`vlm_2b_1024_*` artifacts. Reproduce with:
+
+```bash
+VLM_MODEL_PATH=/path/to/Qwen3-VL-2B-Instruct bash tools/benchmark_megatron_vlm.sh
+```
+
+The full-depth three-tower replay was also reaggregated including every
+steady-state observation: mean updates are 4.655577 versus 4.390820 seconds,
+**6.03% mean-based throughput gain**, consistent with its 5.98% median ratio.
+
 ## Remaining acceptance gates
 
 The source entry, 58-source configuration, live training, asynchronous full-state
@@ -446,7 +523,8 @@ are available, but do not replace a distributed production run.
    stalls and stragglers with the original 16-shard × 12-replica layout.
 2. Extend qualification to remaining model families, large-model initialization,
    optimizers, higher CP degrees and other parallelism paths.
-3. Measure representative steady-state performance for standalone VLM recipes;
-   their correctness tests do not establish a VLM throughput gain.
+3. Measure live, representative standalone VLM recipes including data loading,
+   callbacks, clipping and checkpoint I/O. The 2B synthetic compute benchmark
+   above establishes a scoped gain, not end-to-end production throughput.
 
 Do not declare the entire repository migration complete before these gates pass.

@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "baseline": "vlm_gpu_initialization_2b.json",
+  "candidate": "vlm_meta_initialization_2b.json",
+  "master_hashes_bitwise_equal": true,
+  "independently_verified_hf_tensors_per_rank": 626,
+  "baseline_peak_allocated_bytes": 10235808768,
+  "meta_peak_allocated_bytes": 10449541632,
+  "peak_memory_reduction": false,
+  "default_enabled": false,
+  "scope": "Full Qwen3-VL-2B initialization only; startup timings are unpaired observations, not a throughput qualification."
+}

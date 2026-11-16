@@ -1261,7 +1261,7 @@ def load_language_model(
     from cosmos_framework.training_backends.megatron import get_runtime
 
     if get_runtime(model) is not None:
-        model.load_state_dict(lm_state_dict)
+        get_runtime(model).finalize_loaded_state()
 
     log.info(
         f"load_language_model: successfully loaded {len(keys_loaded)} tensors "
@@ -1415,6 +1415,18 @@ def load_vlm_model(
         shard_rank = 0
         shard_size = 1
 
+    from cosmos_framework.training_backends.megatron import get_runtime
+
+    runtime = get_runtime(model)
+    tied_embedding_name = None
+    if runtime is not None and getattr(model.config, "tie_word_embeddings", False):
+        embedding = model.get_input_embeddings().weight
+        tied_embedding_name = (
+            next(name for name, value in model.named_parameters(remove_duplicate=False) if value is embedding)
+            .replace("_orig_mod.", "")
+            .replace("_checkpoint_wrapped_module.", "")
+        )
+
     for ckpt_name, tensor in loader.iterate_tensors(
         all_tensor_names,
         tensor_to_rank,
@@ -1446,7 +1458,10 @@ def load_vlm_model(
         # outside FSDP (for example a frozen modality encoder) remain regular,
         # replicated tensors and must receive the complete checkpoint tensor on
         # every rank.
-        shard = _shard_first_dim(tensor, shard_size, shard_rank) if is_dtensor else tensor
+        if is_dtensor and hasattr(getattr(target, "_local_tensor", None), "__create_chunk_list__"):
+            shard = _local_weight_for_target(tensor, target)
+        else:
+            shard = _shard_first_dim(tensor, shard_size, shard_rank) if is_dtensor else tensor
         if shard.device != local_view.device:
             shard = shard.to(local_view.device)
 
@@ -1456,6 +1471,14 @@ def load_vlm_model(
             )
         with torch.no_grad():
             local_view.data.copy_(shard)
+        if dest_name == tied_embedding_name:
+            # The two public aliases may have different uneven optimizer views.
+            # Reuse the HF tensor already in flight instead of gathering FP32
+            # master embeddings into a second full CUDA allocation.
+            with torch.no_grad():
+                for head_name, head in vlm_state_dict.items():
+                    if head_name.endswith("lm_head.weight"):
+                        head.to_local().copy_(_local_weight_for_target(tensor, head))
         keys_loaded.add(dest_name)
 
     # Indexed snapshots: every root-index key must have been consumed — loaded
@@ -1497,6 +1520,8 @@ def load_vlm_model(
             f"not found in checkpoint '{checkpoint_path}'. First up to 10: "
             f"{sorted(real_missing)[:10]}"
         )
+    if runtime is not None:
+        runtime.finalize_loaded_state()
     log.info(
         f"load_vlm_model: loaded {len(keys_loaded)} tensors from {checkpoint_path} in {time.time() - start_time:.1f}s"
     )

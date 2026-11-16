@@ -409,6 +409,12 @@ class OptimizersContainer(Stateful):
                 model.net, initial_master_weights=initial_masters, **runtime_options
             )
             del initial_masters
+            reset_cleanup = model.net.__dict__.pop("_cosmos_megatron_meta_reset_cleanup", None)
+            if reset_cleanup is not None:
+                reset_cleanup()
+            deferred_load = model.net.__dict__.pop("_cosmos_megatron_deferred_load", None)
+            if deferred_load is not None:
+                deferred_load()
             ema = model.net.__dict__.get("_cosmos_megatron_ema")
             if ema is not None:
                 from cosmos_framework.training_backends.ema import MegatronEmaModelUpdater, shard_ema_model

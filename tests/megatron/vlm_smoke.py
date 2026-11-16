@@ -40,10 +40,17 @@ def build(backend, path, args):
     config.compile.compile_dynamic = False
     config.freeze.freeze_vision_encoder = True
     config.freeze.freeze_mm_projector = True
-    checkpoint = SimpleNamespace(load_path="", load_from_object_store=SimpleNamespace(credentials="", bucket=""))
+    if getattr(args, "freeze_embeddings", False):
+        config.freeze.frozen_params = [r"embed_tokens", r"lm_head"]
+    checkpoint = SimpleNamespace(
+        load_path=getattr(args, "resume_load_path", ""),
+        load_from_object_store=SimpleNamespace(credentials="", bucket=""),
+    )
     model = VLMModel(config, checkpoint)
     model.to("cuda")  # Exercise the stock trainer's pre-optimizer device move.
-    optimizer = OptimizersContainer(model.model, "AdamW", fused=True, lr=1e-3, weight_decay=0.05)
+    optimizer = OptimizersContainer(
+        model.model, "AdamW", fused=True, lr=getattr(args, "learning_rate", 1e-3), weight_decay=0.05
+    )
     return model, optimizer
 
 
@@ -52,6 +59,7 @@ def main():
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--vision", action="store_true")
     parser.add_argument("--moe", action="store_true")
+    parser.add_argument("--freeze-embeddings", action="store_true")
     parser.add_argument("--model-path", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--replicas", type=int, default=1)
@@ -153,8 +161,10 @@ def main():
             actual_full = (
                 uneven_dtensor_to_full_tensor(target_value) if hasattr(target_value, "to_local") else target_value
             )
-            if ".visual." in name:
-                torch.testing.assert_close(actual_full, expected_full, rtol=0, atol=0)
+            if ".visual." in name or (args.freeze_embeddings and ("embed_tokens" in name or "lm_head" in name)):
+                torch.testing.assert_close(
+                    actual_full, expected_full, rtol=0, atol=0, msg=lambda message: f"{name}: {message}"
+                )
             squared_error += (actual_full.double() - expected_full.double()).square().sum()
             squared_reference += expected_full.double().square().sum()
         weight_relative_l2 = (squared_error / squared_reference).sqrt().item()
@@ -174,6 +184,7 @@ def main():
                     name: (uneven_dtensor_to_full_tensor(value) if hasattr(value, "to_local") else value).cpu().clone()
                     for name, value in target.state_dict().items()
                 }
+                args.resume_load_path = str(checkpoint_path)
                 target, target_opt = build("megatron", path, args)
             restored = {"model": target.state_dict(), "optimizer": target_opt.state_dict()}
             dcp.load(restored, checkpoint_id=checkpoint_path)
@@ -186,6 +197,7 @@ def main():
     if dist.get_rank() == 0:
         result = dict(
             passed=True,
+            meta_initialization=os.environ.get("COSMOS_MEGATRON_META_INITIALIZATION", "0") == "1",
             steps=3,
             gradient_accumulation=3,
             compile=args.compile,
@@ -197,11 +209,13 @@ def main():
             native_checkpoint_continuation=True,
             megatron_checkpoint_restart=True,
             restart_weights_bitwise_equal=True,
+            restart_skipped_hf_loading=True,
             vision_input=args.vision,
             moe=args.moe,
             global_auxiliary_loss_coefficient=0.01 if args.moe else None,
             model_path=str(path),
             frozen_vision_bitwise_equal=True,
+            frozen_embeddings=args.freeze_embeddings,
             tied_embeddings_preserved=True,
         )
         print(json.dumps(result), flush=True)
