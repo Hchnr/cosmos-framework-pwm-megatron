@@ -298,8 +298,6 @@ class OmniMoTModel(ImaginaireModel):
 
     def build_net(self, dtype: torch.dtype, *, lora_enabled: bool | None = None) -> torch.nn.Module:
         backend = getattr(self.config.parallelism, "backend", "pytorch")
-        if backend == "megatron" and self.parallel_dims.cp_enabled:
-            raise ValueError("Megatron backend currently requires CP=1")
         if self.config.tower_structure == "three_tower":
             if self.config.parallelism.context_parallel_shard_degree != 1:
                 raise ValueError("three_tower currently requires context_parallel_shard_degree=1")

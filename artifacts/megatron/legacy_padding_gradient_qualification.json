@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "backend": "flash3",
+  "dtype": "bfloat16",
+  "poison_uninitialized_buffers": true,
+  "real_forward_bitwise_equal": true,
+  "original_source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/cosmos_framework/model/generator/mot/attention.py",
+  "original": {
+    "forward_real_tokens_finite": true,
+    "nonfinite_parameter_gradient_elements": 65536
+  },
+  "fixed": {
+    "forward_real_tokens_finite": true,
+    "nonfinite_parameter_gradient_elements": 0
+  }
+}

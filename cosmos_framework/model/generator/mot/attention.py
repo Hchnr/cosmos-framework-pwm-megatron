@@ -224,7 +224,8 @@ def two_way_attention(
     # padding as one extra trailing segment per stream, so the causal pass switches to those
     # offsets, as three_way_attention does for every pass. A fixed pack also materializes the
     # interleaved all-token KV to its fixed total, so its full pass uses paired pad-segment
-    # offsets too. Legacy bucket padding keeps its real-length all-token KV and plain full offsets.
+    # offsets too. Legacy/CP bucket padding uses the same paired segment: leaving its full
+    # query tail outside the varlen ranges gives uninitialized backward rows and NaN gradients.
     if "_causal_seq_offsets_pad_segment" in packed_query_states:
         # The offsets index the whole padded stream, so they only fit a pack that holds it whole.
         assert not packed_query_states["is_sharded"], (
@@ -272,11 +273,24 @@ def two_way_attention(
     if full_q.shape[0] == 0:
         return from_mode_splits(causal_out, causal_out.new_empty((0, causal_out.shape[-1])), packed_query_states)
 
-    if packed_query_states.get("_fixed_sequence_length", False):
+    fixed_padding = bool(packed_query_states.get("_fixed_sequence_length", False))
+    legacy_padding = (
+        not fixed_padding
+        and "_full_only_seq_offsets_pad_segment" in packed_query_states
+        and (torch.is_grad_enabled() or packed_query_states["sample_offsets"].shape[0] > 2)
+    )
+    if "_full_only_seq_offsets_pad_segment" in packed_query_states and (fixed_padding or legacy_padding):
         full_q_offsets = packed_query_states["_full_only_seq_offsets_pad_segment"]
-        sample_offsets = packed_query_states["_sample_offsets_pad_segment"]
         max_full_len = packed_query_states["max_full_len_pad_segment"]
-        max_sample_len = packed_query_states["max_sample_len_pad_segment"]
+        if fixed_padding:
+            sample_offsets = packed_query_states["_sample_offsets_pad_segment"]
+            max_sample_len = packed_query_states["max_sample_len_pad_segment"]
+        else:
+            # Padding queries attend to one isolated zero KV. This writes every
+            # backward row without computing a quadratic padding-only block.
+            real_offsets = packed_query_states["sample_offsets"]
+            sample_offsets = torch.cat((real_offsets, real_offsets[-1:] + 1))
+            max_sample_len = max(packed_query_states["max_sample_len"], 1)
     else:
         sample_offsets = packed_query_states["sample_offsets"]
         max_full_len = packed_query_states["max_full_len"]
@@ -316,14 +330,16 @@ def two_way_attention(
             max_seqlen_KV=max_sample_len,
         )
 
-        include_padding = bool(packed_query_states.get("_fixed_sequence_length", False))
+        full_k = get_all_seq(packed_key_normalized, include_padding=fixed_padding)
+        full_v = get_all_seq(packed_value_states, include_padding=fixed_padding)
+        if legacy_padding:
+            full_k = torch.cat((full_k, full_k.new_zeros((1, *full_k.shape[1:]))))
+            full_v = torch.cat((full_v, full_v.new_zeros((1, *full_v.shape[1:]))))
 
         full_res = attention(
             full_q.unsqueeze(0),  # [1,N_full,heads,head_dim]
-            get_all_seq(packed_key_normalized, include_padding=include_padding).unsqueeze(
-                0
-            ),  # [1,N_all,heads,head_dim]  normed und K for gen
-            get_all_seq(packed_value_states, include_padding=include_padding).unsqueeze(0),  # [1,N_all,heads,head_dim]
+            full_k.unsqueeze(0),  # [1,N_all,heads,head_dim] normed und K for gen
+            full_v.unsqueeze(0),  # [1,N_all,heads,head_dim]
             **full_varlen_kwargs,
         )  # [1,N_full,heads,head_dim]
 

@@ -80,6 +80,7 @@ def batch():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument("--cp", type=int, default=1)
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
@@ -88,6 +89,7 @@ def main():
     config = copy.deepcopy(OmniMoTModelConfig())
     config.parallelism.backend = "megatron"
     config.parallelism.data_parallel_shard_degree = 2
+    config.parallelism.context_parallel_shard_degree = args.cp
     config.parallelism.megatron_sharding_strategy = args.sharding_strategy
     config.compile.enabled = args.compile
     config.compile.compile_dynamic = False
@@ -121,6 +123,7 @@ def main():
     for step in range(2):
         optimizer.zero_grad()
         for micro in range(3):
+            torch.manual_seed(step * 100 + micro + dist.get_rank() // args.cp)
             with ddp_sync_grad(model, enabled=micro == 2):
                 output = model.net(batch())
                 loss = sum(t.float().square().mean() for t in output["preds_action"]) / 3
@@ -136,6 +139,7 @@ def main():
             if hasattr(value, "to_local"):
                 torch.testing.assert_close(materialize_tensor(value), expected[name], rtol=0, atol=0)
         original = {n: materialize_tensor(v).clone() for n, v in model.net.state_dict().items()}
+        torch.manual_seed(999 + dist.get_rank() // args.cp)
         with torch.no_grad(), model.ema_scope(is_cpu=True):
             evaluation = model.net(batch())
             assert all(torch.isfinite(t).all() for t in evaluation["preds_action"])
@@ -177,6 +181,7 @@ def main():
         model="OmniMoTModel with real Qwen MoT and Action128 heads",
         steps=2,
         compiled=args.compile,
+        cp=args.cp,
         sharding_strategy=args.sharding_strategy,
         cpu_ema_cache=True,
         gradient_accumulation=3,
@@ -189,11 +194,8 @@ def main():
         async_cpu_staging_spawn_queue=True,
     )
     if dist.get_rank() == 0:
-        Path(
-            "artifacts/megatron/omni_ema_integration_compiled.json"
-            if args.compile
-            else "artifacts/megatron/omni_ema_integration.json"
-        ).write_text(json.dumps(result, indent=2) + "\n")
+        suffix = "_cp2" if args.cp > 1 else "_compiled" if args.compile else ""
+        Path(f"artifacts/megatron/omni_ema_integration{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
         print(json.dumps(result), flush=True)
     dist.destroy_process_group()
 

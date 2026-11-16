@@ -24,8 +24,8 @@ Megatron-Core **0.20.0** manages parameter/gradient/optimizer-state sharding,
 communication overlap and HSDP. Existing Cosmos data processing, packed MoT
 math, parameter selection, LR groups, weight decay, FP32 Adam masters and
 schedulers remain in use. This is a Megatron-FSDP backend, not a replacement of
-the heterogeneous model by a generic GPT. TP, PP and CP are not enabled on this
-qualified path; the production recipe already uses CP=1.
+the heterogeneous model by a generic GPT. TP and PP are not enabled on this path. The production three-tower recipe
+retains CP=1; two-tower CP=2 qualification is described below.
 
 The backend lives in `cosmos_framework/training_backends/megatron.py`. Keeping
 the communication runtime outside the module tree preserves original parameter
@@ -70,8 +70,8 @@ hooks after the process queue transfer.
 | Full model/optimizer/scheduler/trainer/RNG/loader resume | Full stock-trainer save/restart; live batches, stream revisit, worker RNG and content hashes match uninterrupted loading |
 | Async checkpoint staging and background writer | Full 36-layer ~128 GB checkpoint save/load tested; uneven metadata coverage audited |
 
-CP>1 remains explicitly rejected by the Megatron VFM backend.
-The baseline entry has EMA disabled and CP=1; EMA support is described below. Initialization currently
+Two-tower CP=2 is qualified below; the original three-tower CP=1 constraint
+remains. The baseline entry has EMA disabled and CP=1; EMA support is described below. Initialization currently
 materializes the unsharded model before Megatron wrapping; peak initialization
 memory must be measured for each model size.
 
@@ -299,6 +299,35 @@ directories. The five path-layout tests pass. Public HF export omits Megatron
 optimizer-sharding fields so inference chooses its own backend/CP preset; both
 serialization regression tests pass.
 
+## Context parallelism and legacy varlen padding
+
+Two-tower MoT now retains the original CP dispatch with Megatron sharding.
+On four GPUs (CP2 / shard2 / replica2), two GA=3 AdamW updates pass against
+native FSDP2. Sequence-sharded and replicated attention-I/O layouts both pass
+with full AC and compilation. FP32 forward/gradients/updated parameters are
+bitwise equal in the final paired runs. The compiled BF16 sequence-sharded run
+also has bitwise-equal outputs, gradients and updated parameters. This does
+not change the source three-tower model's explicit CP=1 requirement or the
+standalone VLM's source CP=1 constraint.
+
+This exposed an original legacy-padding bug: causal varlen attention used its
+padding-segment offsets, but non-fixed full attention left padded query rows
+outside its cumulative ranges. The fused kernel could leave their backward
+rows uninitialized. With PyTorch's deterministic uninitialized-memory poisoning,
+the unchanged source has finite real-token forward outputs but **65,536
+non-finite parameter-gradient elements**. The corrected implementation has zero,
+with bitwise-equal real-token forward outputs. Non-fixed padding queries attend
+to one isolated zero KV token, avoiding a quadratic padding-only attention block.
+Fixed-bucket behavior and the single-sample inference dense path are retained.
+`legacy_padding_gradient_qualification.json` records the original source path
+and both observations; the original repository was not edited.
+
+An actual two-layer OmniMoT/Action128 run also passes CP2 + BF16 + compile +
+full AC + GA3 + ZeRO-2 + FP32 EMA, including CPU EMA-scope cache, exact weight
+restoration and asynchronous full-state checkpoint reload after zeroing online
+and EMA parameters. Original padding/static-compile regressions: 21 pass.
+Larger CP degrees, other models and production scaling remain unqualified.
+
 ## EMA integration
 
 VFM EMA now keeps FP32 shadows with exactly the online Megatron parameter's
@@ -416,7 +445,7 @@ are available, but do not replace a distributed production run.
 1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
    stalls and stragglers with the original 16-shard × 12-replica layout.
 2. Extend qualification to remaining model families, large-model initialization,
-   optimizers and parallelism paths; CP>1 remains explicitly unsupported.
+   optimizers, higher CP degrees and other parallelism paths.
 3. Measure representative steady-state performance for standalone VLM recipes;
    their correctness tests do not establish a VLM throughput gain.
 
