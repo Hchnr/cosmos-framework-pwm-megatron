@@ -1,0 +1,18 @@
+[11-17 02:47:05|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+[11-17 02:47:07|INFO] Building optimizer for mesh 'shard'
+[11-17 02:47:07|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 02:47:07|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 02:47:07|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 02:47:10|INFO] FusedAdam master_weights: True capturable: True
+[11-17 02:47:10|INFO] Created 1 optimizers
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[rank0]:W1117 02:47:12.261000 2791831 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank0]:W1117 02:47:12.262000 2791831 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank1]:W1117 02:47:12.261000 2791827 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank1]:W1117 02:47:12.262000 2791827 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank3]:W1117 02:47:12.261000 2791828 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank2]:W1117 02:47:12.261000 2791826 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank3]:W1117 02:47:12.262000 2791828 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+[rank2]:W1117 02:47:12.262000 2791826 torch/distributed/device_mesh.py:390] It seems like pickling/unpickling of the DeviceMesh occurred before the PGs were created. This will cause PG lookup to fail when torch.compile is enabled
+{"passed": true, "async_cpu_staging_spawn_queue_reload": true, "weights_bitwise_equal": true}

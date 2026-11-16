@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "scope": "full 36-layer model, one replayed real batch, reduced token capacities",
+  "sharding_strategy": "optim_grads",
+  "gradient_accumulation": 3,
+  "optimizer_steps": 2,
+  "checkpoint": "outputs/megatron_validation/full_depth_replay_zero2/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/checkpoints/iter_000000001",
+  "token_capacities": [
+    512,
+    8192,
+    128
+  ],
+  "fresh_optimizer_state": false,
+  "backend": "megatron",
+  "live_data": false,
+  "output_root": "outputs/megatron_validation/full_depth_resume_zero2"
+}

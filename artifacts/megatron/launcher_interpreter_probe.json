@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "launch_command": [
+    "python",
+    "-m",
+    "torch.distributed.run",
+    "--nproc_per_node=1",
+    "--master_port=23456",
+    "--nnodes=1",
+    "-m",
+    "cosmos_framework.scripts.train",
+    "--sft-toml=/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml"
+  ],
+  "reason": "active interpreter owns distributed runner even without a torchrun console script"
+}

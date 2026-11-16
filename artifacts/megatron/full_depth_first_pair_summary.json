@@ -1,0 +1,39 @@
+{
+  "scope": "full 36-layer stock trainer with real-batch replay; reduced token capacities",
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation",
+    "live shared-prefetch data loading"
+  ],
+  "token_capacities": [
+    512,
+    8192,
+    128
+  ],
+  "gradient_accumulation": 3,
+  "runs": [
+    "artifacts/megatron/full_depth_replay_1_pytorch.json",
+    "artifacts/megatron/full_depth_replay_2_megatron.json"
+  ],
+  "backends": {
+    "pytorch": {
+      "observations": 17,
+      "median_seconds": 4.6471758261322975,
+      "per_run_median_seconds": [
+        4.6471758261322975
+      ],
+      "peak_allocated_bytes": 46998216192
+    },
+    "megatron": {
+      "observations": 17,
+      "median_seconds": 4.393129874020815,
+      "per_run_median_seconds": [
+        4.393129874020815
+      ],
+      "peak_allocated_bytes": 68670491136
+    }
+  },
+  "throughput_gain_fraction": 0.05782800859446646,
+  "max_loss_trace_absolute_difference": 0.0017003640532493591,
+  "max_loss_trace_relative_difference": 0.02182292088004264
+}

@@ -1,0 +1,1 @@
+{"passed": true, "ranks": 4, "steps": 3, "gradient_accumulation": 3, "replicas": 2, "gradient_clipping": true, "max_output_error": 0.0}

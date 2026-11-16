@@ -1,0 +1,60 @@
+.............                                                            [100%]
+=============================== warnings summary ===============================
+cosmos_framework/callbacks/grad_clip_distillation_test.py:53
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:53: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:54
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:54: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:59
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:59: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:60
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:60: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:86
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:86: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:87
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:87: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:113
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:113: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:114
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:114: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:139
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:139: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:140
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:140: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:162
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:162: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:163
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:163: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:191
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:191: PytestUnknownMarkWarning: Unknown pytest.mark.L0 - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.L0
+
+cosmos_framework/callbacks/grad_clip_distillation_test.py:192
+  /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/callbacks/grad_clip_distillation_test.py:192: PytestUnknownMarkWarning: Unknown pytest.mark.CPU - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.CPU
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+13 passed, 24 deselected, 14 warnings in 13.75s

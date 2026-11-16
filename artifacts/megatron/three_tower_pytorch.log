@@ -1,0 +1,14 @@
+[11-17 02:58:42|INFO] FusedAdam master_weights: True capturable: True
+/share-mixed/project/eai_pwm/home/hcr/venv/cosmos-framework-pwm-cu130-train/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[rank0]:[W1117 02:58:42.634912624 ProcessGroupNCCL.cpp:5138] Guessing device ID based on global rank. This can cause a hang if rank to GPU mapping is heterogeneous. You can specify device_id in init_process_group()
+step=0 seconds=41.7062 loss=0.677489
+/share-mixed/project/eai_pwm/home/hcr/venv/cosmos-framework-pwm-cu130-train/lib/python3.13/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+step=1 seconds=1.0385 loss=0.669783
+step=2 seconds=1.0465 loss=0.663505
+step=3 seconds=1.0423 loss=0.656969
+step=4 seconds=1.0504 loss=0.650236
+step=5 seconds=1.0494 loss=0.643763
+step=6 seconds=1.0505 loss=0.636652
+{"backend": "pytorch", "layers": 2, "steps": 5, "warmup": 2, "compile": true, "output": "artifacts/megatron/three_tower_pytorch.json", "world_size": 4, "torch": "2.10.0+cu130", "scope": "actual MoT decoder; production widths and short-UND token capacities; synthetic inputs", "seed": 42, "dtype": "bfloat16", "optimizer": "FusedAdam FP32 masters", "gradient_accumulation": 3, "median_step_seconds": 1.0494279861450195, "step_seconds": [1.046455979347229, 1.0423212051391602, 1.050370454788208, 1.0494279861450195, 1.0505412817001343], "peak_allocated_bytes": 17731441664, "token_capacities": [5120, 59648, 2944]}

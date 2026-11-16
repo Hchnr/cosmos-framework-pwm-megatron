@@ -1,0 +1,65 @@
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+rank=1 micro=0 reference
+rank=3 micro=0 reference
+rank=2 micro=0 reference
+[11-17 03:16:05|INFO] FusedAdam master_weights: True capturable: True
+[11-17 03:16:05|INFO] FusedAdam master_weights: True capturable: True
+rank=0 micro=0 reference
+rank=2 micro=0 candidate
+rank=1 micro=0 candidate
+rank=3 micro=0 candidate
+rank=0 micro=0 candidate
+rank=1 micro=1 reference
+rank=3 micro=1 reference
+rank=2 micro=1 referencerank=0 micro=1 reference
+
+rank=1 micro=1 candidate
+rank=3 micro=1 candidate
+rank=0 micro=1 candidate
+rank=2 micro=1 candidate
+rank=1 micro=2 referencerank=2 micro=2 referencerank=3 micro=2 reference
+rank=0 micro=2 reference
+
+
+rank=1 micro=2 candidate
+rank=3 micro=2 candidate
+rank=2 micro=2 candidate
+rank=0 micro=2 candidate
+rank=3 gradients ready
+rank=1 gradients ready
+rank=0 gradients ready
+rank=2 gradients ready
+compare gradient: layers.0.self_attn.q_norm_moe_gen.weight
+compare gradient: layers.0.self_attn.k_norm_moe_gen.weight
+compare gradient: layers.0.self_attn.q_proj_moe_gen.weight
+compare gradient: layers.0.self_attn.k_proj_moe_gen.weight
+compare gradient: layers.0.self_attn.v_proj_moe_gen.weight
+compare gradient: layers.0.self_attn.o_proj_moe_gen.weight
+compare gradient: layers.0.mlp_moe_gen.gate_proj.weight
+compare gradient: layers.0.mlp_moe_gen.up_proj.weight
+compare gradient: layers.0.mlp_moe_gen.down_proj.weight
+compare gradient: layers.0.input_layernorm_moe_gen.weight
+compare gradient: layers.0.post_attention_layernorm_moe_gen.weight
+compare gradient: layers.0.action_block_moe_gen_action.input_layernorm.weight
+compare gradient: layers.0.action_block_moe_gen_action.post_attention_layernorm.weight
+compare gradient: layers.0.action_block_moe_gen_action.q_norm.weight
+compare gradient: layers.0.action_block_moe_gen_action.k_norm.weight
+compare gradient: layers.0.action_block_moe_gen_action.q_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.k_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.v_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.o_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.gate_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.up_proj.weight
+compare gradient: layers.0.action_block_moe_gen_action.down_proj.weight
+rank=2 gradient comparison completerank=1 gradient comparison completerank=3 gradient comparison complete
+
+rank=0 gradient comparison complete
+
+{"sharding_strategy": "optim_grads", "fuse_projections": false, "output": "artifacts/megatron/production_shape_parity_zero2.json", "passed": true, "torch": "2.10.0+cu130", "seed": 42, "scope": "production-width one-layer three-tower decoder", "losses": [[0.66951984167099, 0.66951984167099], [0.66951984167099, 0.66951984167099], [0.66951984167099, 0.66951984167099]], "relative_gradient_error": 9.659076851358428e-05, "max_gradient_error": 2.9802322387695312e-08, "relative_weight_error": 1.1127801301610604e-05, "gradient_error_limit": 0.02, "weight_error_limit": 0.002}

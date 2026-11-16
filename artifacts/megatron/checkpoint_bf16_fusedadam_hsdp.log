@@ -1,0 +1,17 @@
+[11-17 02:40:25|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+[11-17 02:40:25|INFO] Building optimizer for mesh 'shard'
+[11-17 02:40:25|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 02:40:25|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 02:40:25|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 02:40:30|INFO] FusedAdam master_weights: True capturable: True
+[11-17 02:40:30|INFO] Created 1 optimizers
+/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[11-17 02:40:33|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+[11-17 02:40:38|INFO] Building optimizer for mesh 'replicate-shard'
+[11-17 02:40:38|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 02:40:38|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 02:40:38|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 02:40:38|INFO] FusedAdam master_weights: True capturable: True
+[11-17 02:40:38|INFO] Created 1 optimizers
+{"passed": true, "checkpoint": "FSDP2 -> Megatron", "continued_steps": 2}

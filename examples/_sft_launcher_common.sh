@@ -117,13 +117,13 @@ if [[ -n "${EXTRA_DATASET_CHECK:-}" ]]; then eval "$EXTRA_DATASET_CHECK"; fi
 # WANDB_PERSIST_LOGIN=1 only when a persistent ~/.netrc entry is explicitly
 # desired.
 if [[ -n "${WANDB_API_KEY:-}" ]]; then
-    command -v wandb >/dev/null 2>&1 || {
-        echo "ERROR: WANDB_API_KEY is set, but the wandb CLI is not available in the active environment." >&2
+    python -c 'import wandb' >/dev/null 2>&1 || {
+        echo "ERROR: WANDB_API_KEY is set, but wandb is not available in the active interpreter." >&2
         exit 1
     }
     if [[ "${WANDB_PERSIST_LOGIN:-0}" == "1" ]]; then
         echo ">>> $(date '+%H:%M:%S') Persisting W&B credentials..."
-        wandb login --relogin "$WANDB_API_KEY" >/dev/null || {
+        python -m wandb login --relogin "$WANDB_API_KEY" >/dev/null || {
             echo "ERROR: wandb login failed." >&2
             exit 1
         }
@@ -170,7 +170,9 @@ else
     [[ -n "${MASTER_ADDR:-}" ]] && TORCHRUN_ARGS+=(--master_addr="$MASTER_ADDR")
 fi
 
-TRAIN_COMMAND=(torchrun "${TORCHRUN_ARGS[@]}" -m "${SFT_TRAINING_MODULE:-cosmos_framework.scripts.train}"
+# Use the active interpreter: dependency-sharing venvs may not own a torchrun
+# console script, and an inherited script can silently select another PyTorch.
+TRAIN_COMMAND=(python -m torch.distributed.run "${TORCHRUN_ARGS[@]}" -m "${SFT_TRAINING_MODULE:-cosmos_framework.scripts.train}"
     --sft-toml="$TOML_FILE" "${TRAILING_ARGS[@]}")
 if [[ -n "${SFT_DIAGNOSTICS_DIR:-}" ]]; then
     TRAIN_COMMAND=(python -m cosmos_framework.tools.launch_diagnostics

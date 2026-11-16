@@ -1,0 +1,21 @@
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+[11-17 03:01:15|INFO] FusedAdam master_weights: True capturable: True
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+step=0 seconds=14.9163 loss=0.677489
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+step=1 seconds=1.0421 loss=0.669782
+step=2 seconds=1.0458 loss=0.663505
+step=3 seconds=1.0485 loss=0.656968
+step=4 seconds=1.0499 loss=0.650236
+step=5 seconds=1.0520 loss=0.643761
+step=6 seconds=1.0470 loss=0.636651
+{"backend": "megatron", "layers": 2, "steps": 5, "warmup": 2, "compile": true, "output": "artifacts/megatron/three_tower_megatron.json", "world_size": 4, "torch": "2.10.0+cu130", "scope": "actual MoT decoder; production widths and short-UND token capacities; synthetic inputs", "seed": 42, "dtype": "bfloat16", "optimizer": "FusedAdam FP32 masters", "gradient_accumulation": 3, "median_step_seconds": 1.0484753847122192, "step_seconds": [1.0458112955093384, 1.0484753847122192, 1.0498844385147095, 1.052046537399292, 1.0469794273376465], "peak_allocated_bytes": 17726485504, "token_capacities": [5120, 59648, 2944]}

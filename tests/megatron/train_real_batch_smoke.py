@@ -8,6 +8,7 @@ This is an integration check, not a production throughput or loader-resume run.
 import argparse
 import copy
 import faulthandler
+import importlib.metadata
 import itertools
 import json
 import os
@@ -38,11 +39,15 @@ class StepMeasurement(Callback):
         self.seconds = []
         self.peak_bytes = 0
         self.losses = []
+        self.initialization_peak_bytes = 0
 
     def on_train_start(self, model, iteration=0):
         from cosmos_framework.utils.misc import set_random_seed
 
         set_random_seed(seed=42, by_rank=True)
+        peak = torch.tensor(torch.cuda.max_memory_allocated(), device="cuda", dtype=torch.int64)
+        torch.distributed.all_reduce(peak, op=torch.distributed.ReduceOp.MAX)
+        self.initialization_peak_bytes = peak.item()
         torch.cuda.reset_peak_memory_stats()
 
     def on_training_step_start(self, model, data_batch, iteration=0):
@@ -160,6 +165,11 @@ def main():
             "token_capacities": [512, 8192, 128],
             "fresh_optimizer_state": not args.resume_training,
             "backend": args.backend,
+            "torch_version": torch.__version__,
+            "cuda_version": torch.version.cuda,
+            "megatron_core_version": importlib.metadata.version("megatron-core"),
+            "gpu": torch.cuda.get_device_name(),
+            "world_size": int(os.environ["WORLD_SIZE"]),
             "live_data": args.live_data,
             "output_root": str(args.output_root),
         }
@@ -174,6 +184,7 @@ def main():
                 warmup_steps=args.warmup_steps,
                 median_seconds=statistics.median(measurement.seconds[args.warmup_steps :]),
                 peak_allocated_bytes=measurement.peak_bytes,
+                initialization_peak_allocated_bytes=measurement.initialization_peak_bytes,
                 excludes=["checkpoint save I/O", "tokenizer compilation"]
                 + ([] if args.live_data else ["live shared-prefetch data loading"]),
             )

@@ -55,9 +55,9 @@ hooks after the process queue transfer.
 | Production behavior | Implementation / verification |
 | --- | --- |
 | 58 sources, ratios sum to 100000 | Original catalog recipe retained |
-| Three towers; 36-layer Nano + width-only 1B action | Original model math retained; scaled actual decoder tested |
+| Three towers; 36-layer Nano + width-only 1B action | Original model math retained; full pretrained 36-layer real-batch replay and checkpoint restart pass |
 | Action128 state, routed projections, spatial seams | Full 36-layer real-batch replay + original VAE/processor update and async save pass; live-data coverage pending |
-| FlashAttention 3 video + sparse attention for other streams | Original attention dispatcher retained; production-shape qualification pending |
+| FlashAttention 3 video + sparse attention for other streams | Original dispatcher retained; production-capacity two-layer math and full-depth reduced-token replay tested |
 | Fixed UND 11776 / GEN 62592 / ACTION 2944; short UND 5120 | Original packing retained; fixed-padding numerical unit tests pass |
 | BF16 computation, FusedAdam FP32 master weights | BF16 FusedAdam checkpoint continuation tested |
 | Full activation checkpointing + language compilation | Actual decoder tested with compile + AC + HSDP |
@@ -65,8 +65,8 @@ hooks after the process queue transfer.
 | Shared prefetch, metadata cache, local code staging | Existing implementation retained |
 | NumPy/mimalloc large-page advice settings | Launch environment retained |
 | Tokenizer compile warmup and resolution coverage | Existing callbacks retained; end-to-end pending |
-| Full model/optimizer/scheduler/trainer/RNG/loader resume | Model/optimizer tested; full production loader/RNG resume pending |
-| Async checkpoint staging and background writer | Uneven metadata transport implemented; test status recorded in artifacts |
+| Full model/optimizer/scheduler/trainer/RNG/loader resume | Full stock-trainer save/restart tested; exact live production-loader continuation pending |
+| Async checkpoint staging and background writer | Full 36-layer ~128 GB checkpoint save/load tested; uneven metadata coverage audited |
 
 EMA and CP>1 are explicitly rejected by the initial Megatron VFM backend.
 The baseline entry has EMA disabled and CP=1. Initialization currently
@@ -86,6 +86,10 @@ source .venv/bin/activate
 ```
 
 The production launcher activates this independent environment when present.
+The common launcher invokes `python -m torch.distributed.run` and checks/runs
+W&B through that same interpreter: dependency-sharing environments do not
+necessarily contain console scripts, and inheriting a system `torchrun` would
+silently select a different PyTorch. A launch-command probe covers this case.
 
 Use the installed CUDA PyTorch/Transformer Engine/FlashAttention environment.
 The original `pyproject.toml` pinned Megatron to an older Git revision; this
@@ -201,16 +205,47 @@ batch replay and reduced physical token capacities `[512,8192,128]` on four GPUs
 All four ranks completed GA=3 with finite losses; global gradient norm was
 0.74295. The unmodified VAE encode path, original callbacks and full asynchronous
 model/optimizer/scheduler/trainer/RNG checkpoint save completed successfully.
+The DCP metadata audit verified all 1,214 model tensors and 4,866 optimizer
+state tensors: 32.364 GB model storage and 95.896 GB optimizer storage have
+complete, in-bounds, non-overlapping chunk coverage. The audit checks scheduler
+and trainer tensor chunks as well (`tools/audit_megatron_checkpoint.py`).
 CPU staging allocated about 120 GiB and the shared-filesystem save took minutes;
 this is correctness evidence, not production throughput evidence. The tokenizer
 compile callback was disabled for this smoke. See
-`full_depth_real_batch_smoke.json` and its filtered log. Full-state restart is
-being tested separately; replay does not validate advancing live loader cursors.
+`full_depth_real_batch_smoke.json` and its filtered log. Full-state restart also passed: model, optimizer, scheduler, trainer and RNG
+loaded at iteration 1, all four ranks completed iteration 2, then the stock
+async writer saved another complete checkpoint. See
+`full_depth_real_batch_resume.json`. Replay does not validate advancing live
+loader cursors.
 
 The source checkpoint metadata reports 32.36 GB of stored model tensors.
 `production_memory_estimate.json` records the analytic persistent storage
 estimate for shard16 plus 36-layer checkpoint inputs. It excludes VAE and
 attention/MLP workspaces and is not a measured full-model peak.
+
+Four full-depth replay runs are recorded in `full_depth_repeat_summary.json`:
+PyTorch medians were 4.6472 / 4.6612 seconds and Megatron medians were
+4.3931 / 4.3881 seconds. These observations show a throughput improvement at
+this reduced-token scope, with substantially higher memory for ZeRO-2. Loss
+trajectories vary within the same backend (maximum relative difference about
+1.9% for PyTorch and 1.1% for Megatron). Full-gradient snapshots are being
+audited separately; these timings do not close the correctness or production
+memory/scaling acceptance gates.
+
+The full-depth paired replay harness is:
+
+```bash
+export BASE_CHECKPOINT_PATH=/path/to/original/checkpoints/iter_000001200
+export REAL_BATCH_PATH=$PWD/outputs/megatron_validation/real_batch.pt
+bash tools/benchmark_megatron_full_depth.sh
+```
+
+It runs PyTorch, Megatron, Megatron, PyTorch for 20 steps each, excludes the
+first three steps, includes the stock trainer and VAE encoding, and excludes
+checkpoint save I/O, tokenizer compilation and live shared-prefetch loading.
+Both backends reset seed 42 after initialization; JSON files retain all timings,
+mean final-microbatch losses and peak memory. This reduced-token, four-GPU replay
+cannot establish production-token/192-GPU throughput or memory safety.
 
 ## Remaining acceptance gates
 

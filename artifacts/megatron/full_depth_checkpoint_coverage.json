@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "checkpoint": "outputs/megatron_validation/full_depth_replay_zero2/cosmos3_action/action128/megatron_full_depth_real_batch_smoke/checkpoints/iter_000000001",
+  "components": {
+    "model": {
+      "tensors": 1214,
+      "elements": 16182100176,
+      "bytes": 32364243344
+    },
+    "optim": {
+      "tensors": 4866,
+      "elements": 23973967809,
+      "bytes": 95895871236
+    },
+    "scheduler": {
+      "tensors": 4,
+      "elements": 4,
+      "bytes": 16
+    },
+    "trainer": {
+      "tensors": 24,
+      "elements": 53064,
+      "bytes": 53120
+    }
+  }
+}

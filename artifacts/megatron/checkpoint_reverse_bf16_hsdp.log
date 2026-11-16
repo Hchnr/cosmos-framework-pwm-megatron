@@ -1,0 +1,32 @@
+[11-17 03:45:11|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+[11-17 03:45:11|INFO] Building optimizer for mesh 'shard'
+[11-17 03:45:11|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 03:45:11|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 03:45:11|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 03:45:14|INFO] FusedAdam master_weights: True capturable: True
+[11-17 03:45:14|INFO] Created 1 optimizers
+/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[11-17 03:45:19|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/optimizer/clip_grads.py:32: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+  warnings.warn(
+[11-17 03:45:22|INFO] Building optimizer for mesh 'replicate-shard'
+[11-17 03:45:22|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 03:45:22|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 03:45:22|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 03:45:22|INFO] FusedAdam master_weights: True capturable: True
+[11-17 03:45:22|INFO] Created 1 optimizers
+[11-17 03:45:23|INFO] Total tensors: 6, trainable tensors: 6, selected tensors: 6
+[11-17 03:45:23|INFO] Building optimizer for mesh 'shard'
+[11-17 03:45:23|INFO] Param group (lr=0.001, WD=True): 4 tensors, 32,768 elements
+[11-17 03:45:23|INFO] Param group (lr=0.002, WD=True): 2 tensors, 16,384 elements
+[11-17 03:45:23|INFO] FusedAdam: master_weights=True (derived from parameter dtypes)
+[11-17 03:45:23|INFO] FusedAdam master_weights: True capturable: True
+[11-17 03:45:23|INFO] Created 1 optimizers
+{"passed": true, "checkpoint": "FSDP2 -> Megatron -> FSDP2", "continued_steps": 3}

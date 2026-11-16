@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "checks": [
+    "WandB import uses active Python",
+    "distributed runner uses active Python",
+    "default auth performs no persistent login"
+  ],
+  "commands": [
+    [
+      "-c",
+      "import wandb"
+    ],
+    [
+      "-m",
+      "torch.distributed.run",
+      "--nproc_per_node=1",
+      "--master_port=23456",
+      "--nnodes=1",
+      "-m",
+      "cosmos_framework.scripts.train",
+      "--sft-toml=/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml"
+    ]
+  ]
+}
