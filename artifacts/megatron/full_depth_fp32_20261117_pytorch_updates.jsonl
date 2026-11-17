@@ -1,0 +1,6 @@
+{"gradient_capture_message": "[11-17 12:46:32|WARNING] OmniMoTModel: precision torch.float32"}
+{"gradient_capture_message": "GRADIENT_AUDIT rank=2 fp32_global_norm=1.142315149307251"}
+{"gradient_capture_message": "GRADIENT_AUDIT rank=1 fp32_global_norm=1.142315149307251"}
+{"gradient_capture_message": "GRADIENT_AUDIT rank=3 fp32_global_norm=1.142315149307251"}
+{"gradient_capture_message": "GRADIENT_AUDIT rank=0 fp32_global_norm=1.142315149307251"}
+{"benchmark_update": 1, "seconds": 107.90374215692282, "including_first_dataload_seconds": 107.95823062956333, "data_wait_seconds": 0.1283370964229107, "loss": 0.1289336234331131, "peak_allocated_bytes": 60499506688}

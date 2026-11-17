@@ -6,10 +6,12 @@ The independent repository is based on the working-tree snapshot recorded in
 is `outputs/megatron_pretrain58src_state_h1_nano_192gpu_ga3_run01`; continuation
 reads the original repository's 52-source run unless explicitly overridden.
 
-**Status: implementation in progress. Production end-to-end correctness and
-192-GPU throughput have not yet been accepted.** A synthetic component speedup
-does not establish a production speedup. Standalone dense Qwen3-VL and a small Qwen3-VL-MoE configuration are also
-qualified below; other model families and production scales remain unqualified.
+**Status: the original 58-source continuation has passed the scoped four-H100
+qualification with Megatron ZeRO-3: original training state/production capacities,
+4.48% higher whole-update throughput, and an independent 36-layer FP32 gradient
+relative-L2 error of 4.27e-8.** This does not qualify 192-GPU throughput, checkpoint
+stalls, every data window or a uniform 2% BF16 gradient-error bound. Additional
+model-family results below have their own separate scopes.
 
 ## Backend integration
 
@@ -921,9 +923,10 @@ The archived-to-fresh native comparison itself has relative L2 error
 retained (`zero3_20261117_gradient_qualification.json` is the failed gate;
 `zero3_20261117_reference_repeat.json` records native reference variation).
 This is evidence of BF16 reference sensitivity, not a demonstrated uniform
-2% bound across captures. ZeRO-3 numerical qualification therefore remains
-provisional beyond the current paired comparison; the existing ZeRO-2
-production default stays unchanged. Capturing gradients performs CPU copies
+2% bound across captures. These BF16 captures therefore do not establish
+a uniform 2% bound. A subsequent full-depth FP32 reference, qualified below,
+independently checks backend gradient math without that BF16 sensitivity.
+The existing ZeRO-2 production default stays unchanged. Capturing gradients performs CPU copies
 and disk writes, and those driver timings are explicitly excluded from all
 throughput results above.
 
@@ -1052,21 +1055,40 @@ hashes. Source-state/production-loader modes reject replay before launching GPUs
 The shell argument plumbing and incompatible-mode rejection were checked with a
 fake Python executable; the numeric run must still complete to qualify throughput.
 
-### Independent full-depth FP32 reference (prepared, numeric run pending)
+### Independent full-depth FP32 reference (2026-11-17, passed)
 
 `tests/megatron/full_depth_gradient_audit.py` accepts
 `GRADIENT_AUDIT_PRECISION=float32` only together with
-`GRADIENT_AUDIT_DETERMINISTIC=1`. It forces the SDPA math backend (Flash3 requires half precision),
-disables TF32 and checks every trainable parameter/gradient dtype before capture.
-The TF32/dtype rejection guards have CPU regression coverage. The comparison
-keeps all 36 layers, GA=3, compilation and activation checkpointing with real-batch
-replay at reduced `[512,8192,128]` capacities and fresh optimizer state.
-`artifacts/megatron/full_depth_fp32_20261117_policy.json` records the planned
-`1e-4` global relative-L2 gradient bound and `0.999999` cosine floor, plus exact
-forward-input equality. This is an independent precision/backend reference;
-its SDPA/reduced-capacity timings are excluded from production BF16/Flash3
-throughput qualification. Numeric success has not been asserted before capture.
+`GRADIENT_AUDIT_DETERMINISTIC=1`. It forces the SDPA math backend (Flash3 requires
+half precision), disables TF32 and checks every trainable parameter/gradient
+dtype before capture. The TF32/dtype rejection guards have CPU regression
+coverage. The comparison retains all **36 layers**, GA=3, compilation and full
+activation checkpointing with real-batch replay at reduced **[512,8192,128]**
+capacities. It uses model-only initialization from the original source checkpoint,
+current catalog normalization and fresh optimizer state, separately from the
+original-state/full-capacity BF16 continuation test below.
 
+All **252 forward-input tensors** across 12 rank/microbatch captures are bitwise
+equal. Comparing all **811 parameter gradients** after logical shard reconstruction:
+
+| FP32 gradient metric | Observed | Precommitted gate |
+| --- | ---: | ---: |
+| Global relative L2 error | **4.2703274e-8** | <= 1e-4 |
+| Global cosine | **0.9999999999025** | >= 0.999999 |
+| Final microbatch loss, both backends | **0.1289336234331131** | finite |
+
+Both backends complete the real update with no nonfinite/skip-update events.
+PyTorch/Megatron peak allocated memory is 60,499,506,688 / 62,995,984,896 bytes.
+Actual capture metadata confirms FP32, forced SDPA math, disabled matmul/cuDNN
+TF32, four ranks, GA=3 and `throughput_qualification=false`. Capturing gradients
+and changing precision/attention are deliberately excluded from production timing.
+
+Artifacts `artifacts/megatron/full_depth_fp32_20261117_*` contain the policy,
+forward-input comparison, full per-parameter gradient comparison, training
+capture reports, filtered update JSONL and the passing qualification with log
+hashes. Raw tensors remain in ignored `outputs/megatron_validation/` folders.
+The earlier BF16 2% failure is retained: this FP32 result controls the backend
+math error, not an assertion that every BF16 capture falls within that old gate.
 
 ### Full production configuration, original-state ABBA (2026-11-17)
 

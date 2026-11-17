@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "scope": "full 36-layer stock trainer with real-batch replay; reduced token capacities; input/gradient capture; not a throughput benchmark",
+  "sharding_strategy": "optim_grads_params",
+  "gradient_accumulation": 3,
+  "optimizer_steps": 1,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "token_capacities": [
+    512,
+    8192,
+    128
+  ],
+  "short_und_capacity": 0,
+  "checkpoint_load_mode": "warm_start",
+  "preserve_source_normalization": false,
+  "state_normalization_paths": {},
+  "dataloader_max_samples_per_batch": 1,
+  "dataloader_packing_pool_size": 16,
+  "fresh_optimizer_state": true,
+  "backend": "megatron",
+  "torch_version": "2.10.0+cu130",
+  "cuda_version": "13.0",
+  "megatron_core_version": "0.20.0",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "world_size": 4,
+  "live_data": false,
+  "output_root": "outputs/megatron_validation/full_depth_fp32_20261117_megatron_training",
+  "step_seconds": [
+    84.32712597027421
+  ],
+  "update_including_first_dataload_seconds": [
+    84.37652969360352
+  ],
+  "update_data_wait_seconds": [
+    0.12170065939426422
+  ],
+  "content_trace_enabled": false,
+  "mean_final_microbatch_losses": [
+    0.1289336234331131
+  ],
+  "seed_reset_after_initialization": 42,
+  "initial_iteration": 0,
+  "requested_final_iteration": 1,
+  "warmup_steps": 0,
+  "median_seconds": 84.32712597027421,
+  "peak_allocated_bytes": 62995984896,
+  "initialization_peak_allocated_bytes": 25588203008,
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation",
+    "live shared-prefetch data loading"
+  ],
+  "throughput_qualification": false,
+  "gradient_capture_enabled": true,
+  "audit_precision": "float32",
+  "fp32_sdpa_reference": true,
+  "sdpa_math_forced": true,
+  "matmul_allow_tf32": false,
+  "cudnn_allow_tf32": false
+}

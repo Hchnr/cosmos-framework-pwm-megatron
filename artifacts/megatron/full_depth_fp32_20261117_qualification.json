@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "scope": "Independent full 36-layer FP32 backend gradient check, reduced [512,8192,128] capacities, real-batch replay, GA3, compiled full activation checkpointing; math SDPA supports FP32; not a throughput measurement",
+  "gates": {
+    "inputs_bitwise_equal": true,
+    "all_four_ranks_and_fp32_guards_complete": true,
+    "finite_gradients_and_updates": true,
+    "global_gradient_relative_l2_within_bound": true,
+    "global_gradient_cosine_within_bound": true
+  },
+  "policy": "artifacts/megatron/full_depth_fp32_20261117_policy.json",
+  "policy_sha256": "26455bf5481625b58f69ba3e90d6b8f29ca61e8c425a7856e5458171cab5430b",
+  "input_tensors": 252,
+  "parameters": 811,
+  "relative_l2_error": 4.270327387574381e-08,
+  "cosine": 0.9999999999025336,
+  "runs": [
+    {
+      "backend": "pytorch",
+      "precision_guards_passed": true,
+      "raw_log_sha256": "0d717ce080667591a5128dac676d221a0c0e8ebe572303474e23cce97f21cfba",
+      "nonfinite_or_skipped_update_events": 0,
+      "world_size": 4,
+      "peak_allocated_bytes": 60499506688,
+      "mean_final_microbatch_losses": [
+        0.1289336234331131
+      ]
+    },
+    {
+      "backend": "megatron",
+      "precision_guards_passed": true,
+      "raw_log_sha256": "07d026dd95dde59bc36827811bb38a6776edc6cd60ca8b5a5abdcaa821d31edc",
+      "nonfinite_or_skipped_update_events": 0,
+      "world_size": 4,
+      "peak_allocated_bytes": 62995984896,
+      "mean_final_microbatch_losses": [
+        0.1289336234331131
+      ]
+    }
+  ],
+  "throughput_qualification": false,
+  "note": "Temporary FP32 SDPA math and reduced-capacity full-model reference; no claim of uniform 2% BF16 gradient-error bound or original-capacity FP32 performance."
+}
