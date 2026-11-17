@@ -20,6 +20,7 @@ from cosmos_framework.model.generator.mot.parallelize_vfm_network import paralle
 from cosmos_framework.model.generator.mot.unified_mot import Nemotron3DenseVLTextForCausalLM
 from cosmos_framework.training_backends.megatron import MegatronRuntime
 from cosmos_framework.utils.distributed import ddp_sync_grad
+from cosmos_framework.utils.generator.lora import init_lora_weights_post_materialization, inject_lora_pre_fsdp
 from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
 from cosmos_framework.utils.generator.parallelism import ParallelDims
 
@@ -33,6 +34,7 @@ class Owner(nn.Module):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument("--lora", action="store_true")
     parser.add_argument("--cp", type=int, choices=(1, 2), default=2)
     parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--dtype", choices=("float32", "bfloat16"), default="float32")
@@ -57,12 +59,25 @@ def main():
         )
     else:
         base = tiny_net("two_tower", num_hidden_layers=2)
+    if args.lora:
+        base = inject_lora_pre_fsdp(
+            base,
+            lora_rank=4,
+            lora_alpha=8,
+            lora_target_modules="q_proj_moe_gen,k_proj_moe_gen,v_proj_moe_gen,o_proj_moe_gen",
+        ).to_empty(device="cuda")
     base = base.cuda().to(getattr(torch, args.dtype))
     base.init_weights(buffer_device=torch.device("cuda"))
+    if args.lora:
+        init_lora_weights_post_materialization(base)
     for name, p in base.named_parameters():
         p.requires_grad_(
-            "_moe_gen" in name
-            or any(k in name for k in ("action_modality_embed", "action_time", "action2llm", "llm2action"))
+            ("lora_" in name)
+            if args.lora
+            else (
+                "_moe_gen" in name
+                or any(k in name for k in ("action_modality_embed", "action_time", "action2llm", "llm2action"))
+            )
         )
     target = copy.deepcopy(base)
     dims = ParallelDims(
@@ -151,6 +166,7 @@ def main():
         eager_cast_guard_preserved=eager_guard_checked,
         cp=args.cp,
         family=args.family,
+        lora=args.lora,
         shards=2,
         replicas=2,
         compile=args.compile,

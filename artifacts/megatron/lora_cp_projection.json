@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "cp": 2,
+  "nonzero_lora_A_and_B": true,
+  "tf32": false,
+  "legacy_source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/cosmos_framework/model/generator/mot/unified_mot.py",
+  "legacy_maximum_output_error": 1.0885412693023682,
+  "independent_full_projection_reference": true,
+  "maximum_output_error": 4.76837158203125e-07,
+  "maximum_gradient_error": 1.862645149230957e-08
+}

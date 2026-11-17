@@ -372,6 +372,40 @@ explicitly zeroing both online and EMA parameters. Tests use a
 small packed batch, not the full 36-layer EMA production memory footprint.
 The original owner/gradient/NaN-step regressions also pass (67 tests).
 
+## LoRA and CP output projections
+
+The original in-place LoRA implementation is retained, including unchanged
+base `.weight` keys and sibling `lora_A.weight` / `lora_B.weight` keys. A real
+two-layer OmniMoT test with rank 4 / alpha 8, eight Q/K/V/O projection adapters,
+compile, full AC, HSDP/ZeRO-3 and GA=3 passes two optimizer updates, EMA scopes,
+CPU cache and asynchronous checkpoint save/zero/reload. The first update has
+nonzero B gradients; the second has nonzero A and B gradients. Frozen base
+weights stay bitwise unchanged and all restart weights restore bitwise.
+
+The FusedAdam warm-start comparison with native FSDP2 independently verifies
+64 online and 64 EMA language tensors and has bitwise equal initialization,
+outputs, gradients and updated model/EMA. These are small real model fixtures,
+not a pretrained Super LoRA performance qualification. Existing three-tower
+LoRA restrictions remain in force.
+
+CP's head-sharded output projection previously read only `.weight`, bypassing
+LoRA. An independent full-projection reference with nonzero A/B weights records
+maximum legacy output error **1.08854** using the unchanged original source
+function. The fix adds each local adapter contribution before the existing CP
+sum, retaining the low-rank computation rather than forming a dense B@A matrix.
+With TF32 disabled for this FP32 reference, maximum output error is
+**4.77e-7** and parameter-gradient error **1.86e-8**. The original collective's
+backward convention is retained; all projection/input gradients are checked
+against the independent full projection with the appropriate CP partial sums.
+
+Actual CP=2 + LoRA + compile + EMA training/checkpoint tests also pass. Output-
+projection LoRA B gradients are explicitly nonzero on both updates, A learns
+on the second update, and frozen bases remain unchanged. CP=2 native FSDP2 vs
+Megatron outputs, full gradients and updated parameters are bitwise equal.
+The plain non-LoRA CP=2 regression remains bitwise equal. See `lora_cp_projection`,
+`lora_mot_cp2_compiled_parity`, `omni_ema_integration_lora_*` and
+`omni_hf_warm_start_lora_fusedadam` artifacts.
+
 ## Fresh HF initialization
 
 Language-model HF loading now slices by the destination tensor's actual layout,

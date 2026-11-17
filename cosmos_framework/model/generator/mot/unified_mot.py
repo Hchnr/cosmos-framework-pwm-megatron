@@ -88,6 +88,7 @@ from cosmos_framework.model.generator.utils.load_balancing_stats import (
 )
 from cosmos_framework.model.generator.utils.memory import KVToStore, MemoryState, MemoryValue
 from cosmos_framework.utils import log
+from cosmos_framework.utils.generator.lora import LoraInjectedLinear
 from cosmos_framework.utils.generator.materialize_tensor import copy_model_parameter
 from cosmos_framework.utils.nvtx import NVTXGranularity, nvtx_range
 
@@ -478,6 +479,12 @@ def _apply_head_sharded_o_proj(
     """Apply one local input-column slice of ``projection`` and sum partial outputs."""
     local_weight = projection.weight[:, feature_slice]  # [hidden_size,H_local*D]
     out = torch.nn.functional.linear(local_attn_output, local_weight, bias=None)  # [N,hidden_size]
+    if isinstance(projection, LoraInjectedLinear):
+        # B(A(x)) is linear in the input-column contributions. Include each
+        # local adapter contribution in the same CP sum as the base projection;
+        # materializing B@A as a dense delta would waste LoRA's memory savings.
+        local_adapter = torch.nn.functional.linear(local_attn_output, projection.lora_A.weight[:, feature_slice])
+        out = out + projection._lora_scale * projection.lora_B(local_adapter)
     torch.distributed.all_reduce(out, op=torch.distributed.ReduceOp.SUM, group=cp_group)
     if projection.bias is not None:
         out = out + projection.bias  # [N,hidden_size]

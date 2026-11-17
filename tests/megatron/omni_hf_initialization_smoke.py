@@ -43,13 +43,15 @@ def checkpoint_key(name, family):
     return f"model.language_model.layers.{block}.mixer.{match[3]}"
 
 
-def construct(backend, family, path, optimizer_type, sharding_strategy, partial_freeze):
+def construct(backend, family, path, optimizer_type, sharding_strategy, partial_freeze, lora):
     config = copy.deepcopy(OmniMoTModelConfig())
     config.parallelism.backend = backend
     config.parallelism.data_parallel_shard_degree = 2
     config.parallelism.megatron_sharding_strategy = sharding_strategy
     config.compile.enabled, config.compile.compile_dynamic = True, False
     config.ema.enabled = True
+    config.lora_enabled = lora
+    config.lora_rank, config.lora_alpha = 4, 8
     config.vision_gen = config.action_gen = True
     config.action128_spec = tiny_action128_spec()
     config.tower_structure = "two_tower"
@@ -72,19 +74,23 @@ def construct(backend, family, path, optimizer_type, sharding_strategy, partial_
         fused=True,
         lr=1e-3,
         keys_to_select=(
-            [
-                "q_proj_moe_gen",
-                "k_proj_moe_gen",
-                "v_proj_moe_gen",
-                "mlp_moe_gen",
-                "norm_moe_gen",
-                "action_modality_embed",
-                "action_timestep",
-                "action2llm",
-                "llm2action",
-            ]
-            if partial_freeze
-            else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+            ["lora_"]
+            if lora
+            else (
+                [
+                    "q_proj_moe_gen",
+                    "k_proj_moe_gen",
+                    "v_proj_moe_gen",
+                    "mlp_moe_gen",
+                    "norm_moe_gen",
+                    "action_modality_embed",
+                    "action_timestep",
+                    "action2llm",
+                    "llm2action",
+                ]
+                if partial_freeze
+                else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+            )
         ),
     )
     return model, optimizer
@@ -123,6 +129,7 @@ def verify_hf_loaded(language, before, weights, family, copy_generation):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--lora", action="store_true")
     parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--partial-generation-freeze", action="store_true")
@@ -130,6 +137,7 @@ def main():
     parser.add_argument("--optimizer", choices=("AdamW", "FusedAdam"), default="AdamW")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
+    assert not args.lora or args.warm_start, "LoRA startup test uses a pretrained generation checkpoint"
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
     torch.manual_seed(42)
@@ -150,10 +158,10 @@ def main():
         save_file(weights, path / "model.safetensors")
     dist.barrier()
     source, source_opt = construct(
-        "pytorch", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze
+        "pytorch", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze, args.lora
     )
     target, target_opt = construct(
-        "megatron", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze
+        "megatron", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze, args.lora
     )
     checkpoint = path / "aligned_initial_state"
     dcp.save({"model": source.state_dict()}, checkpoint_id=checkpoint)
@@ -229,6 +237,7 @@ def main():
         actual_startup_hook=True,
         optimizer=args.optimizer,
         partial_generation_freeze=args.partial_generation_freeze,
+        lora=args.lora,
         different_und_gen_owner_cases_per_rank=owner_cases,
         sharding_strategy=args.sharding_strategy,
         fresh_und_to_gen_copy=not args.warm_start,

@@ -103,6 +103,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--cp", type=int, default=1)
+    parser.add_argument("--lora", action="store_true")
     parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
@@ -117,6 +118,8 @@ def main():
     config.compile.enabled = args.compile
     config.compile.compile_dynamic = False
     config.ema.enabled = True
+    config.lora_enabled = args.lora
+    config.lora_rank, config.lora_alpha = 4, 8
     config.vision_gen = True
     config.action_gen = True
     config.action128_spec = tiny_action128_spec()
@@ -140,7 +143,11 @@ def main():
         "AdamW",
         fused=True,
         lr=1e-3,
-        keys_to_select=["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"],
+        keys_to_select=(
+            ["lora_"]
+            if args.lora
+            else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+        ),
     )
     assert all(p.device.type == "cuda" for p in model.net_ema.parameters())
     runtime = get_runtime(model)
@@ -148,6 +155,17 @@ def main():
         n.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
         for n, _ in model.net_ema.named_parameters()
     }
+    initial_frozen = (
+        {
+            name: parameter.to_local().detach().cpu().clone()
+            for name, parameter in model.net.named_parameters()
+            if not parameter.requires_grad
+        }
+        if args.lora
+        else {}
+    )
+    adapter_gradients = []
+    output_projection_gradients = []
     for step in range(2):
         optimizer.zero_grad()
         for micro in range(3):
@@ -157,6 +175,25 @@ def main():
                 loss = sum(t.float().square().mean() for t in output["preds_action"]) / 3
                 assert torch.isfinite(loss)
                 loss.backward()
+        if args.lora:
+            maxima = torch.zeros(3, device="cuda")
+            for name, parameter in model.net.named_parameters():
+                if parameter.grad is None:
+                    continue
+                gradient = parameter.grad.to_local()
+                if gradient.numel() and "lora_" in name:
+                    index = 0 if "lora_A" in name else 1
+                    maximum = gradient.float().abs().max()
+                    maxima[index] = torch.maximum(maxima[index], maximum)
+                    if "o_proj_moe_gen.lora_B" in name:
+                        maxima[2] = torch.maximum(maxima[2], maximum)
+            dist.all_reduce(maxima, op=dist.ReduceOp.MAX)
+            assert maxima[1].item() > 0, "LoRA B must receive learning gradients"
+            if step > 0:
+                assert maxima[0].item() > 0, "LoRA A must learn after the first B update"
+            assert maxima[2].item() > 0, "Output-projection LoRA B must receive gradients"
+            adapter_gradients.append(maxima[:2].tolist())
+            output_projection_gradients.append(maxima[2].item())
         optimizer.step()
         beta = model.ema_beta(step)
         model.on_before_zero_grad(optimizer, None, step)
@@ -173,6 +210,10 @@ def main():
             assert all(torch.isfinite(t).all() for t in evaluation["preds_action"])
         for name, value in model.net.state_dict().items():
             torch.testing.assert_close(materialize_tensor(value), original[name], rtol=0, atol=0)
+    if args.lora:
+        for name, parameter in model.net.named_parameters():
+            if name in initial_frozen:
+                torch.testing.assert_close(parameter.to_local().cpu(), initial_frozen[name], rtol=0, atol=0)
     checkpoint = Path("/tmp") / f"cosmos_megatron_omni_ema_{os.environ['MASTER_PORT']}"
     saved = {"model": model.state_dict(), "optimizer": optimizer.state_dict()}
     metadata = extract_chunk_metadata(saved)
@@ -208,6 +249,10 @@ def main():
         passed=True,
         model=f"OmniMoTModel with real {args.family} MoT and Action128 heads",
         family=args.family,
+        lora=args.lora,
+        lora_gradient_maxima_A_B=adapter_gradients,
+        output_projection_lora_B_gradient_maxima=output_projection_gradients,
+        frozen_base_bitwise_unchanged=True if args.lora else None,
         steps=2,
         compiled=args.compile,
         cp=args.cp,
@@ -224,6 +269,8 @@ def main():
     )
     if dist.get_rank() == 0:
         suffix = "_cp2" if args.cp > 1 else "_compiled" if args.compile else ""
+        if args.lora:
+            suffix = "_lora" + suffix
         if args.family != "qwen":
             suffix = "_" + args.family + suffix
         Path(f"artifacts/megatron/omni_ema_integration{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
