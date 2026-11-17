@@ -1,0 +1,216 @@
+{
+  "measurements": {
+    "gc_observed_v2": {
+      "pytorch": {
+        "captured_step_seconds": [
+          40.43645595386624,
+          40.4879242926836
+        ],
+        "mean_seconds": 40.46219012327492,
+        "peak_allocated_bytes": 80584488448
+      },
+      "megatron": {
+        "captured_step_seconds": [
+          38.905103858560324,
+          38.86338706314564
+        ],
+        "mean_seconds": 38.88424546085298,
+        "peak_allocated_bytes": 80913564672
+      }
+    },
+    "gc_disabled": {
+      "pytorch": {
+        "captured_step_seconds": [
+          40.47518056631088,
+          40.210816599428654
+        ],
+        "mean_seconds": 40.34299858286977,
+        "peak_allocated_bytes": 80584488448
+      },
+      "megatron": {
+        "captured_step_seconds": [
+          38.944029960781336,
+          38.87235585972667
+        ],
+        "mean_seconds": 38.908192910254,
+        "peak_allocated_bytes": 80913564672
+      }
+    }
+  },
+  "backend_gap_seconds": {
+    "gc_observed_v2": 1.5779446624219418,
+    "gc_disabled": 1.4348056726157665
+  },
+  "gap_reduction_when_disabling_auto_gc": 0.14313898980617523,
+  "all_60_input_records_identical_to_reference": {
+    "gc_observed_v2": {
+      "pytorch": true,
+      "megatron": true
+    },
+    "gc_disabled": {
+      "pytorch": true,
+      "megatron": true
+    }
+  },
+  "gc": {
+    "gc_observed_v2": {
+      "pytorch": [
+        {
+          "rank": 0,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.027052656,
+          "long_collections": []
+        },
+        {
+          "rank": 1,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.701268468,
+          "long_collections": [
+            {
+              "iteration": 1203,
+              "generation": 2,
+              "start_monotonic_ns": 17895523418012593,
+              "end_monotonic_ns": 17895524095253205,
+              "duration_seconds": 0.677240612,
+              "collected": 72442,
+              "uncollectable": 0
+            }
+          ]
+        },
+        {
+          "rank": 2,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.020336248,
+          "long_collections": []
+        },
+        {
+          "rank": 3,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.023569686,
+          "long_collections": []
+        }
+      ],
+      "megatron": [
+        {
+          "rank": 0,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.024154138000000002,
+          "long_collections": []
+        },
+        {
+          "rank": 1,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.0251428,
+          "long_collections": []
+        },
+        {
+          "rank": 2,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.024846064,
+          "long_collections": []
+        },
+        {
+          "rank": 3,
+          "disabled_after_iteration": null,
+          "collection_seconds_during_captured_iterations": 0.022396365,
+          "long_collections": []
+        }
+      ]
+    },
+    "gc_disabled": {
+      "pytorch": [
+        {
+          "rank": 0,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.062358085,
+          "long_collections": [
+            {
+              "iteration": 1204,
+              "generation": 1,
+              "start_monotonic_ns": 17896362149376766,
+              "end_monotonic_ns": 17896362211734851,
+              "duration_seconds": 0.062358085,
+              "collected": 5514,
+              "uncollectable": 0
+            }
+          ]
+        },
+        {
+          "rank": 1,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.059382832,
+          "long_collections": [
+            {
+              "iteration": 1204,
+              "generation": 1,
+              "start_monotonic_ns": 17896362141869338,
+              "end_monotonic_ns": 17896362201252170,
+              "duration_seconds": 0.059382832,
+              "collected": 5514,
+              "uncollectable": 0
+            }
+          ]
+        },
+        {
+          "rank": 2,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.060655079,
+          "long_collections": [
+            {
+              "iteration": 1204,
+              "generation": 1,
+              "start_monotonic_ns": 17896362140508046,
+              "end_monotonic_ns": 17896362201163125,
+              "duration_seconds": 0.060655079,
+              "collected": 5514,
+              "uncollectable": 0
+            }
+          ]
+        },
+        {
+          "rank": 3,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.063051945,
+          "long_collections": [
+            {
+              "iteration": 1204,
+              "generation": 1,
+              "start_monotonic_ns": 17896362141899653,
+              "end_monotonic_ns": 17896362204951598,
+              "duration_seconds": 0.063051945,
+              "collected": 5517,
+              "uncollectable": 0
+            }
+          ]
+        }
+      ],
+      "megatron": [
+        {
+          "rank": 0,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.013031706,
+          "long_collections": []
+        },
+        {
+          "rank": 1,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.012177899,
+          "long_collections": []
+        },
+        {
+          "rank": 2,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.01349418,
+          "long_collections": []
+        },
+        {
+          "rank": 3,
+          "disabled_after_iteration": 1203,
+          "collection_seconds_during_captured_iterations": 0.010584555,
+          "long_collections": []
+        }
+      ]
+    }
+  },
+  "note": "Only automatic GC disabled after completed update1203. No forced collection; production manual GC remains. Both arms use Python sampling250Hz plus GC NVTX. Two captured updates per arm; gap reduction is a short paired diagnostic, not a precise independent causal percentage."
+}

@@ -32,6 +32,12 @@ for backend in ${PROFILE_BACKENDS:-pytorch megatron}; do
     if [[ "${PROFILE_PARAM_PREFETCH:-1}" == "0" ]]; then
         profile_args+=(--disable-param-prefetch)
     fi
+    if [[ "${PROFILE_PYTHON_GC:-0}" == "1" ]]; then
+        profile_args+=(--profile-python-gc)
+    fi
+    if [[ "${PROFILE_DISABLE_AUTO_GC:-0}" == "1" ]]; then
+        profile_args+=(--disable-auto-gc-after-warmup)
+    fi
     "$PYTHON_BIN" -m torch.distributed.run --standalone --nproc-per-node=4 \
         tools/profile_megatron_fsdp_rank.py \
         --backend "$backend" --sharding-strategy optim_grads_params \

@@ -1,0 +1,127 @@
+{
+  "observations": [
+    {
+      "backend": "megatron",
+      "rank": 0,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.05975408599999987,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 0,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.06681603899999988,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 1,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.06068717499999998,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 1,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.06454158499999973,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 2,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.06446806900000102,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 2,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.07261250600000135,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 3,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.060267031000000415,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 3,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.0655667099999997,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    },
+    {
+      "backend": "pytorch",
+      "rank": 0,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.3461400870000002,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.10288593699999998
+    },
+    {
+      "backend": "pytorch",
+      "rank": 0,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.36612292800000024,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.277577859
+    },
+    {
+      "backend": "pytorch",
+      "rank": 1,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.458033114,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.25613109599999995
+    },
+    {
+      "backend": "pytorch",
+      "rank": 1,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.4484602319999995,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.264309274
+    },
+    {
+      "backend": "pytorch",
+      "rank": 2,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.44381438799999984,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.282340869
+    },
+    {
+      "backend": "pytorch",
+      "rank": 2,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.3983816390000001,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.320488631
+    },
+    {
+      "backend": "pytorch",
+      "rank": 3,
+      "update": "attribution.update.001204",
+      "backward_gpu_idle_seconds": 0.3803062869999998,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.24688837399999986
+    },
+    {
+      "backend": "pytorch",
+      "rank": 3,
+      "update": "attribution.update.001205",
+      "backward_gpu_idle_seconds": 0.5984664990000006,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.273119337
+    }
+  ],
+  "summary": {
+    "pytorch": {
+      "backward_gpu_idle_seconds": 0.42996564675000004,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.252967672125
+    },
+    "megatron": {
+      "backward_gpu_idle_seconds": 0.06433915012500024,
+      "idle_overlapping_long_allocator_sample_spans_excluding_gc_seconds": 0.0
+    }
+  },
+  "note": "Overlap of exact GPU-idle intervals with approximate CPU allocator sample spans >=20ms. GC NVTX intervals excluded. Sample endpoints have sampling uncertainty; this is not an isolated causal effect."
+}

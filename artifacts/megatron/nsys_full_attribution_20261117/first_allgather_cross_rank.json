@@ -1,0 +1,26 @@
+[
+  {
+    "rank": 0,
+    "gpu_start_aligned_seconds": 5.15602526,
+    "gpu_end_aligned_seconds": 5.584143725,
+    "cpu_launch_aligned_seconds": 5.156009151
+  },
+  {
+    "rank": 1,
+    "gpu_start_aligned_seconds": 5.580824255,
+    "gpu_end_aligned_seconds": 5.584139233,
+    "cpu_launch_aligned_seconds": 5.580807573
+  },
+  {
+    "rank": 2,
+    "gpu_start_aligned_seconds": 5.581237341,
+    "gpu_end_aligned_seconds": 5.584135176,
+    "cpu_launch_aligned_seconds": 5.581222194
+  },
+  {
+    "rank": 3,
+    "gpu_start_aligned_seconds": 5.582145803,
+    "gpu_end_aligned_seconds": 5.584138612,
+    "cpu_launch_aligned_seconds": 5.582130001
+  }
+]

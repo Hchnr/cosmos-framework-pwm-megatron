@@ -1,0 +1,51 @@
+[
+  {
+    "file": "/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/fsdp/_fully_shard/_fsdp_collectives.py",
+    "sha256": "f8527a45d7d8ae029e8b2ce78b9fd6fc909b95e4b3cf1be7cfa9ba3da722be31",
+    "start_line": 50,
+    "end_line": 60,
+    "excerpt": "50: \n51: class DefaultAllocMixin:\n52:     def allocate(\n53:         self,\n54:         size: Sequence[Union[int, torch.SymInt]],\n55:         *,\n56:         dtype: torch.dtype,\n57:         device: torch.device,\n58:     ) -> torch.Tensor:\n59:         return torch.empty(*size, dtype=dtype, device=device)\n60: "
+  },
+  {
+    "file": "/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/fsdp/_fully_shard/_fsdp_collectives.py",
+    "sha256": "f8527a45d7d8ae029e8b2ce78b9fd6fc909b95e4b3cf1be7cfa9ba3da722be31",
+    "start_line": 175,
+    "end_line": 188,
+    "excerpt": "175: def all_gather_copy_in_cuda(\n176:     all_gather_inputs: list[torch.Tensor],\n177:     all_gather_output: torch.Tensor,\n178:     inp_split_sizes: list[int],\n179:     all_gather_input_numel: int,\n180:     rank: int,\n181: ) -> tuple[torch.Tensor, torch.Tensor]:\n182:     all_gather_input = all_gather_output.narrow(\n183:         0, all_gather_input_numel * rank, all_gather_input_numel\n184:     )\n185:     foreach_copy_dsts = torch.split(all_gather_input, inp_split_sizes)\n186:     with torch.no_grad():\n187:         torch._foreach_copy_(foreach_copy_dsts, all_gather_inputs)\n188:     return all_gather_input, all_gather_output"
+  },
+  {
+    "file": "/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/fsdp/_fully_shard/_fsdp_collectives.py",
+    "sha256": "f8527a45d7d8ae029e8b2ce78b9fd6fc909b95e4b3cf1be7cfa9ba3da722be31",
+    "start_line": 254,
+    "end_line": 272,
+    "excerpt": "254:         if dtype == torch.uint8:\n255:             all_gather_inputs = [\n256:                 t.view(torch.uint8) for ts in param_all_gather_inputs for t in ts\n257:             ]\n258:         else:\n259:             all_gather_inputs = [*chain.from_iterable(param_all_gather_inputs)]\n260:         inp_split_sizes = [t.numel() for t in all_gather_inputs]\n261:         all_gather_input_numel = sum(inp_split_sizes)\n262:         all_gather_output = all_gather_comm.allocate(\n263:             (all_gather_input_numel * world_size,), dtype=dtype, device=device\n264:         )\n265:         all_gather_input, all_gather_output = torch.ops.fsdp.all_gather_copy_in(\n266:             all_gather_inputs,\n267:             all_gather_output,\n268:             inp_split_sizes,\n269:             all_gather_input_numel,\n270:             rank,\n271:         )\n272:         del param_all_gather_inputs"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/fully_shard.py",
+    "sha256": "96bfb2e0159afd7cd419f4c5b350464acd5fed2835f85ba3faf585cc438f583e",
+    "start_line": 98,
+    "end_line": 108,
+    "excerpt": "98:     report_nan_in_param_grad: bool = False,\n99:     average_in_collective: bool = False,\n100:     disable_bucketing: bool = False,\n101:     calculate_per_token_loss: bool = False,\n102:     keep_fp8_transpose_cache: bool = False,\n103:     nccl_ub: bool = False,\n104:     fsdp_double_buffer: bool = False,\n105:     fsdp_db_use_persist_buf_on_alloc_fail: bool = False,\n106:     disable_symmetric_registration: bool = False,\n107:     enable_fine_grained_param_gather: bool = False,\n108:     use_decoupled_grad: bool = False,"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py",
+    "sha256": "0970a02c832a616d65c3d5ba685f6f8401009510ad978f23ef8d20a13911abbe",
+    "start_line": 559,
+    "end_line": 590,
+    "excerpt": "559: class StorageResizeBasedBucketAllocator(TemporaryBucketAllocator):\n560:     \"\"\"\n561:     A specialized temporary bucket allocator that resizes the storage of temporary buckets\n562:     based on the required size.\n563:     \"\"\"\n564: \n565:     def __init__(self):\n566:         super().__init__()\n567: \n568:     def allocate(\n569:         self,\n570:         bucket_id: int,\n571:         size: int,\n572:         dtype: torch.dtype,\n573:         device: torch.device,\n574:         mem_alloc_context: Optional[Callable] = None,\n575:         strict_assignments: bool = True,\n576:     ) -> Bucket:\n577:         \"\"\"\n578:         allocate a temporary bucket.\n579:         \"\"\"\n580:         if bucket_id not in self.buckets:\n581:             self.buckets[bucket_id] = Bucket(data=torch.empty(size, dtype=dtype, device=device))\n582:         bucket = self.buckets[bucket_id]\n583:         _alloc_storage(bucket.data, torch.Size([size]))\n584:         return bucket\n585: \n586:     def free(self, bucket_id: int):\n587:         \"\"\"\n588:         free a temporary bucket.\n589:         \"\"\"\n590:         if bucket_id in self.buckets:"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py",
+    "sha256": "0970a02c832a616d65c3d5ba685f6f8401009510ad978f23ef8d20a13911abbe",
+    "start_line": 2644,
+    "end_line": 2653,
+    "excerpt": "2644:             self.double_buf_units = self.weight_alloc.fsdp_double_buffer_units\n2645:         else:\n2646:             self.weight_alloc = StorageResizeBasedBucketAllocator()\n2647:             self.transpose_weight_alloc = StorageResizeBasedBucketAllocator()\n2648:             self.main_grad_alloc = None\n2649:             if self.dist_index.use_hybrid_fsdp:\n2650:                 # Only required for custom communication dtype buffer allocation\n2651:                 # for low-precision gradient communication over DP-Outer for H(F)SDP.\n2652:                 # Otherwise, this allocator will never be used.\n2653:                 self.hsdp_grad_comm_alloc = None"
+  },
+  {
+    "file": "/tmp/torchinductor_root/ye/cye2ynusgy6is2b7pczcdusdyavpcte3rqh4akleioz2cotccqbi.py",
+    "sha256": "2f3a62c4e66950501390192aef02d742b04880a6317b41739737fb0ade0191d9",
+    "start_line": 5498,
+    "end_line": 5510,
+    "excerpt": "5498:             buf37 = empty_strided_cuda((59648, 12288), (12288, 1), torch.bfloat16)\n5499:             # Topologically Sorted Source Nodes: [linear_19], Original ATen: [aten.t, aten.mm]\n5500:             extern_kernels.mm(buf35, reinterpret_tensor(primals_101, (4096, 12288), (1, 4096), 0), out=buf37)\n5501:             buf40 = empty_strided_cuda((59648, 12288), (12288, 1), torch.bfloat16)\n5502:             # Topologically Sorted Source Nodes: [down_proj_1, permute_32, mm_22], Original ATen: [aten.t, aten.mm]\n5503:             extern_kernels.mm(tangents_1, primals_102, out=buf40)\n5504:             del primals_102\n5505:             buf38 = empty_strided_cuda((59648, 12288), (12288, 1), torch.bfloat16)\n5506:             buf41 = empty_strided_cuda((59648, 12288), (12288, 1), torch.bfloat16)\n5507:             buf44 = empty_strided_cuda((59648, 12288), (12288, 1), torch.bfloat16)\n5508:             # Topologically Sorted Source Nodes: [silu_2, mul_46, mul_50, mul_51, convert_element_type_80, neg_10, exp, add_28, reciprocal, mul_52, mul_53, sub, mul_54, add_29, mul_55, convert_element_type_82], Original ATen: [aten.silu, aten.mul, aten.silu_backward]\n5509:             stream0 = get_raw_stream(0)\n5510:             triton_poi_fused_mul_silu_silu_backward_9.run(buf36, buf37, buf40, buf38, buf41, buf44, 732954624, stream=stream0)"
+  }
+]

@@ -152,6 +152,8 @@ def main():
     parser.add_argument("--profile-start-iteration", type=int)
     parser.add_argument("--profile-updates", type=int, default=2)
     parser.add_argument("--disable-param-prefetch", action="store_true")
+    parser.add_argument("--profile-python-gc", action="store_true")
+    parser.add_argument("--disable-auto-gc-after-warmup", action="store_true")
     parser.add_argument("--und-tokens", type=int, default=512)
     parser.add_argument("--gen-tokens", type=int, default=8192)
     parser.add_argument("--action-tokens", type=int, default=128)
@@ -169,6 +171,8 @@ def main():
         parser.error("Preserving source normalization requires extend")
     if args.expected_start_iteration is not None and not args.benchmark_json:
         parser.error("--expected-start-iteration requires --benchmark-json")
+    if (args.profile_python_gc or args.disable_auto_gc_after_warmup) and not args.benchmark_json:
+        parser.error("GC observation/control requires --benchmark-json")
     if args.benchmark_json:
         first_iteration = args.expected_start_iteration or 0
         if args.warmup_steps < 0 or args.steps - first_iteration <= args.warmup_steps:
@@ -296,6 +300,17 @@ def main():
         from live_loader_trace import LiveTrace
 
         trainer.callbacks._callbacks.append(LiveTrace(args.trace_json))
+    if args.profile_python_gc or args.disable_auto_gc_after_warmup:
+        from python_gc_trace import PythonGCTrace
+
+        disable_iteration = None
+        if args.disable_auto_gc_after_warmup:
+            if args.expected_start_iteration is None or args.warmup_steps < 1:
+                parser.error("GC control requires explicit restored iteration and positive warmup")
+            disable_iteration = args.expected_start_iteration + args.warmup_steps
+        trainer.callbacks._callbacks.append(
+            PythonGCTrace(args.benchmark_json.parent / "python_gc.json", disable_iteration)
+        )
     faulthandler.dump_traceback_later(180, repeat=True)
     loader = instantiate(config.dataloader_train) if args.live_data else ReplayBatch(args.batch)
     if args.live_data:

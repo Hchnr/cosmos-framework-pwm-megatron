@@ -1,0 +1,183 @@
+{
+  "observations": [
+    {
+      "backend": "megatron",
+      "rank": 0,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 35.937007741,
+      "other_non_nccl_active_seconds": 35.937007741,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 0,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.077467972,
+      "other_non_nccl_active_seconds": 34.077467972,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 1,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 35.868139625,
+      "other_non_nccl_active_seconds": 35.868139625,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 1,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.0197513,
+      "other_non_nccl_active_seconds": 34.0197513,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 2,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 35.845292505,
+      "other_non_nccl_active_seconds": 35.845292505,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 2,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 33.953751824,
+      "other_non_nccl_active_seconds": 33.953751824,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 3,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 36.152369037,
+      "other_non_nccl_active_seconds": 36.152369037,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "megatron",
+      "rank": 3,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.536076408,
+      "other_non_nccl_active_seconds": 34.536076408,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    {
+      "backend": "pytorch",
+      "rank": 0,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 36.277401617,
+      "other_non_nccl_active_seconds": 36.097822576,
+      "buffer_copy_only_seconds": 0.17957904100000377,
+      "buffer_copy_service_seconds": 0.2362301829999999
+    },
+    {
+      "backend": "pytorch",
+      "rank": 0,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.314940336,
+      "other_non_nccl_active_seconds": 34.13637502,
+      "buffer_copy_only_seconds": 0.1785653159999967,
+      "buffer_copy_service_seconds": 0.23364759799999965
+    },
+    {
+      "backend": "pytorch",
+      "rank": 1,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 36.093413981,
+      "other_non_nccl_active_seconds": 35.920877752,
+      "buffer_copy_only_seconds": 0.172536228999995,
+      "buffer_copy_service_seconds": 0.2240909880000003
+    },
+    {
+      "backend": "pytorch",
+      "rank": 1,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.214534001,
+      "other_non_nccl_active_seconds": 34.04032351,
+      "buffer_copy_only_seconds": 0.17421049099999664,
+      "buffer_copy_service_seconds": 0.22734105400000001
+    },
+    {
+      "backend": "pytorch",
+      "rank": 2,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 36.035636172,
+      "other_non_nccl_active_seconds": 35.861832535,
+      "buffer_copy_only_seconds": 0.1738036369999989,
+      "buffer_copy_service_seconds": 0.22588032500000035
+    },
+    {
+      "backend": "pytorch",
+      "rank": 2,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.160931533,
+      "other_non_nccl_active_seconds": 33.986887431,
+      "buffer_copy_only_seconds": 0.17404410200000342,
+      "buffer_copy_service_seconds": 0.2253316300000002
+    },
+    {
+      "backend": "pytorch",
+      "rank": 3,
+      "update": "attribution.update.001204",
+      "all_non_nccl_active_seconds": 36.491653994,
+      "other_non_nccl_active_seconds": 36.319275653,
+      "buffer_copy_only_seconds": 0.17237834100000526,
+      "buffer_copy_service_seconds": 0.22495138300000003
+    },
+    {
+      "backend": "pytorch",
+      "rank": 3,
+      "update": "attribution.update.001205",
+      "all_non_nccl_active_seconds": 34.724196275,
+      "other_non_nccl_active_seconds": 34.549759531,
+      "buffer_copy_only_seconds": 0.17443674399999765,
+      "buffer_copy_service_seconds": 0.22697434899999996
+    }
+  ],
+  "summary": {
+    "megatron": {
+      "all_non_nccl_active_seconds": 35.048732051500004,
+      "other_non_nccl_active_seconds": 35.048732051500004,
+      "buffer_copy_only_seconds": 0.0,
+      "buffer_copy_service_seconds": 0.0
+    },
+    "pytorch": {
+      "all_non_nccl_active_seconds": 35.289088488625,
+      "other_non_nccl_active_seconds": 35.114144251,
+      "buffer_copy_only_seconds": 0.17494423762499967,
+      "buffer_copy_service_seconds": 0.22805593875000005
+    }
+  },
+  "kernels": [
+    {
+      "backend": "pytorch",
+      "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)",
+      "total_calls": 9024,
+      "total_service_seconds": 0.4589854539999997
+    },
+    {
+      "backend": "pytorch",
+      "name": "at::native::detail::split_with_sizes_copy_out_contiguous_no_cast_kernel(char **, char **, long *, long *, long *, long, long)",
+      "total_calls": 1752,
+      "total_service_seconds": 1.0864591829999997
+    },
+    {
+      "backend": "pytorch",
+      "name": "void at::native::detail::chunk_cat_cuda_kernel<char, char>(T2 **, T1 *, long *, long *, long *, long *, long *, long *, long, long, long)",
+      "total_calls": 888,
+      "total_service_seconds": 0.2790028729999997
+    }
+  ],
+  "note": "Non-NCCL occupancy exclusively covered by these copy kernels; may overlap NCCL. Observational decomposition, not an isolated wall-time effect."
+}

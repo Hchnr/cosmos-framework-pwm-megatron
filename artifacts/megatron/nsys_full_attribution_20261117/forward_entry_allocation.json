@@ -1,0 +1,181 @@
+{
+  "entries": [
+    {
+      "update": "attribution.update.001204",
+      "microbatch": 1,
+      "entry_wall_seconds": {
+        "pytorch": 0.7208254095,
+        "megatron": 0.270214278
+      },
+      "entry_wall_difference_seconds": 0.4506111315,
+      "longest_sampled_allocation_seconds": 0.444005961,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 2,
+            "seconds": 0.444005961,
+            "first_sample_ns": 5143730221,
+            "last_sample_ns": 5587736182
+          },
+          {
+            "rank": 1,
+            "seconds": 0.440006569,
+            "first_sample_ns": 5174908201,
+            "last_sample_ns": 5614914770
+          },
+          {
+            "rank": 3,
+            "seconds": 0.440006261,
+            "first_sample_ns": 5141993441,
+            "last_sample_ns": 5581999702
+          }
+        ],
+        "megatron": []
+      }
+    },
+    {
+      "update": "attribution.update.001204",
+      "microbatch": 2,
+      "entry_wall_seconds": {
+        "pytorch": 0.469913796,
+        "megatron": 0.24256973825
+      },
+      "entry_wall_difference_seconds": 0.22734405775,
+      "longest_sampled_allocation_seconds": 0.17600067,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 0,
+            "seconds": 0.17600067,
+            "first_sample_ns": 19223792414,
+            "last_sample_ns": 19399793084
+          }
+        ],
+        "megatron": []
+      }
+    },
+    {
+      "update": "attribution.update.001204",
+      "microbatch": 3,
+      "entry_wall_seconds": {
+        "pytorch": 0.823289431,
+        "megatron": 0.53228356975
+      },
+      "entry_wall_difference_seconds": 0.29100586124999994,
+      "longest_sampled_allocation_seconds": 0.268923464,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 2,
+            "seconds": 0.268923464,
+            "first_sample_ns": 32374022883,
+            "last_sample_ns": 32642946347
+          },
+          {
+            "rank": 3,
+            "seconds": 0.260000366,
+            "first_sample_ns": 32373995892,
+            "last_sample_ns": 32633996258
+          }
+        ],
+        "megatron": []
+      }
+    },
+    {
+      "update": "attribution.update.001205",
+      "microbatch": 1,
+      "entry_wall_seconds": {
+        "pytorch": 0.4978139855,
+        "megatron": 0.270317665
+      },
+      "entry_wall_difference_seconds": 0.22749632050000002,
+      "longest_sampled_allocation_seconds": 0.220752535,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 3,
+            "seconds": 0.220752535,
+            "first_sample_ns": 45257215306,
+            "last_sample_ns": 45477967841
+          },
+          {
+            "rank": 2,
+            "seconds": 0.040000152,
+            "first_sample_ns": 45263728127,
+            "last_sample_ns": 45303728279
+          },
+          {
+            "rank": 1,
+            "seconds": 0.027998628,
+            "first_sample_ns": 45314911354,
+            "last_sample_ns": 45342909982
+          },
+          {
+            "rank": 0,
+            "seconds": 0.020068766,
+            "first_sample_ns": 45278125598,
+            "last_sample_ns": 45298194364
+          },
+          {
+            "rank": 2,
+            "seconds": 0.020000549,
+            "first_sample_ns": 45171728899,
+            "last_sample_ns": 45191729448
+          }
+        ],
+        "megatron": []
+      }
+    },
+    {
+      "update": "attribution.update.001205",
+      "microbatch": 2,
+      "entry_wall_seconds": {
+        "pytorch": 0.452697844,
+        "megatron": 0.24091130875
+      },
+      "entry_wall_difference_seconds": 0.21178653525000002,
+      "longest_sampled_allocation_seconds": 0.160001101,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 2,
+            "seconds": 0.160001101,
+            "first_sample_ns": 58199733622,
+            "last_sample_ns": 58359734723
+          }
+        ],
+        "megatron": []
+      }
+    },
+    {
+      "update": "attribution.update.001205",
+      "microbatch": 3,
+      "entry_wall_seconds": {
+        "pytorch": 2.24639060425,
+        "megatron": 1.873146137
+      },
+      "entry_wall_difference_seconds": 0.37324446725000016,
+      "longest_sampled_allocation_seconds": 0.364462442,
+      "allocation_sample_spans": {
+        "pytorch": [
+          {
+            "rank": 2,
+            "seconds": 0.364462442,
+            "first_sample_ns": 73687264393,
+            "last_sample_ns": 74051726835
+          },
+          {
+            "rank": 0,
+            "seconds": 0.364000624,
+            "first_sample_ns": 73679791247,
+            "last_sample_ns": 74043791871
+          }
+        ],
+        "megatron": []
+      }
+    }
+  ],
+  "mean_entry_wall_difference_per_update": 0.8907441867500001,
+  "sum_longest_sampled_allocation_per_entry_divided_by_two_updates": 0.8170730865,
+  "note": "Take the longest sampled allocator span across ranks separately for each logical forward entry; do not sum across ranks. Clipped to own VAE GPU completion\u2192first decoder GEMM. Still observational sampled residency, not an isolated net wall-time effect."
+}
