@@ -1,0 +1,28 @@
+{
+  "sharding_strategy": "optim_grads",
+  "fuse_projections": false,
+  "output": "artifacts/megatron/recheck_20261117_production_shape_parity.json",
+  "passed": true,
+  "torch": "2.10.0+cu130",
+  "seed": 42,
+  "scope": "production-width one-layer three-tower decoder",
+  "losses": [
+    [
+      0.66951984167099,
+      0.66951984167099
+    ],
+    [
+      0.66951984167099,
+      0.66951984167099
+    ],
+    [
+      0.66951984167099,
+      0.66951984167099
+    ]
+  ],
+  "relative_gradient_error": 9.658903813842133e-05,
+  "max_gradient_error": 2.9802322387695312e-08,
+  "relative_weight_error": 1.1133111621574527e-05,
+  "gradient_error_limit": 0.02,
+  "weight_error_limit": 0.002
+}

@@ -804,6 +804,32 @@ python tools/summarize_megatron_benchmarks.py \
 
 ## Remaining acceptance gates
 
+### Current handoff and four-GPU recheck (2026-11-17)
+
+The implementation and its acceptance evidence are maintained at
+<https://github.com/Hchnr/cosmos-framework-pwm-megatron>. The source snapshot
+and subsequent migration commits are retained in history. Runtime environments,
+datasets, downloaded weights and training outputs are not included in Git;
+the setup and reproduction commands above describe their external dependencies.
+
+The current requested validation scope is the four available H100 80GB GPUs.
+A fresh run on Torch 2.10.0+cu130 / Megatron-Core 0.20.0 passed:
+
+- FP32 reference comparison, ZeRO-2, shard2 × replica2, GA=3, clipping and
+  three optimizer updates; maximum output error was zero.
+- Production-width one-layer three-tower BF16 comparison, compiled full AC,
+  production short-UND capacities, GA=3, clipping and FusedAdam FP32 masters;
+  gradient relative L2 error was 9.6589e-5 and updated-weight relative L2 error
+  was 1.1133e-5. See `recheck_20261117_production_shape_parity.json` in
+  `artifacts/megatron/` for the explicit gates and observations.
+- The benchmark-summary, NormMonitor and pretraining path regression suites:
+  15 tests passed.
+
+These rechecks supplement the earlier full-depth and live-data evidence; they
+do not change the production-scale acceptance status below.
+
+### Outstanding broader acceptance
+
 The source entry, 58-source configuration, live training, asynchronous full-state
 restart, exact loader continuation, production attention, GA/clipping, VAE AOT
 coverage and controlled full-depth gradient comparison have passed the scoped
