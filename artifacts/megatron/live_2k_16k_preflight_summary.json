@@ -1,0 +1,122 @@
+{
+  "passed": true,
+  "scope": "Original 58-source catalog, first 36 microbatches per rank; not every source decoded",
+  "world_size": 4,
+  "seed": 42,
+  "token_capacities": [
+    2048,
+    16384,
+    128
+  ],
+  "num_workers": 1,
+  "prefetch_factor": 1,
+  "packing_pool_size": 1,
+  "max_samples_per_batch": 1,
+  "ranks": [
+    {
+      "rank": 0,
+      "returned_microbatches": 36,
+      "returned_sources": [
+        "AgiBotWorld-Beta-eef--deformable_textiles:12",
+        "AgiBotWorld-Beta-eef--household_appliances:10",
+        "AgiBotWorld-Beta-joint--household_appliances:11",
+        "AgiBotWorld-Beta-joint--precision_tools:15",
+        "AgiBotWorld2026-eef:34",
+        "FastUMI-eef:28",
+        "Galbot-joint:31",
+        "InternData-A1-eef--household_daily:0",
+        "InternData-A1-joint--household_daily:1",
+        "InternData-M1-eef:33",
+        "RoboCasa365-eef:25",
+        "RoboMIND-v1-joint:39",
+        "RoboMIND2.0-eef:36",
+        "RoboMIND2.0-joint:37",
+        "egolive:53",
+        "egopro:54",
+        "egostandard:55",
+        "legacy:44",
+        "univtac:51"
+      ],
+      "input_trace": "artifacts/megatron/live_2k_16k_preflight_rank_0.json"
+    },
+    {
+      "rank": 1,
+      "returned_microbatches": 36,
+      "returned_sources": [
+        "AgiBotWorld-Beta-eef--deformable_textiles:12",
+        "AgiBotWorld-Beta-eef--household_appliances:10",
+        "AgiBotWorld-Beta-joint--household_appliances:11",
+        "AgiBotWorld-Beta-joint--precision_tools:15",
+        "AgiBotWorld2026-eef:34",
+        "FastUMI-eef:28",
+        "Galbot-joint:31",
+        "InternData-A1-eef--household_daily:0",
+        "InternData-A1-joint--household_daily:1",
+        "InternData-M1-eef:33",
+        "RoboCasa365-eef:25",
+        "RoboMIND-v1-joint:39",
+        "RoboMIND2.0-eef:36",
+        "RoboMIND2.0-joint:37",
+        "egolive:53",
+        "egopro:54",
+        "egostandard:55",
+        "legacy:44",
+        "univtac:51"
+      ],
+      "input_trace": "artifacts/megatron/live_2k_16k_preflight_rank_1.json"
+    },
+    {
+      "rank": 2,
+      "returned_microbatches": 36,
+      "returned_sources": [
+        "AgiBotWorld-Beta-eef--deformable_textiles:12",
+        "AgiBotWorld-Beta-eef--household_appliances:10",
+        "AgiBotWorld-Beta-joint--household_appliances:11",
+        "AgiBotWorld-Beta-joint--precision_tools:15",
+        "AgiBotWorld2026-eef:34",
+        "FastUMI-eef:28",
+        "Galbot-joint:31",
+        "InternData-A1-eef--household_daily:0",
+        "InternData-A1-joint--household_daily:1",
+        "InternData-M1-eef:33",
+        "RoboCasa365-eef:25",
+        "RoboMIND-v1-joint:39",
+        "RoboMIND2.0-eef:36",
+        "RoboMIND2.0-joint:37",
+        "egolive:53",
+        "egopro:54",
+        "egostandard:55",
+        "legacy:44",
+        "univtac:51"
+      ],
+      "input_trace": "artifacts/megatron/live_2k_16k_preflight_rank_2.json"
+    },
+    {
+      "rank": 3,
+      "returned_microbatches": 36,
+      "returned_sources": [
+        "AgiBotWorld-Beta-eef--deformable_textiles:12",
+        "AgiBotWorld-Beta-eef--household_appliances:10",
+        "AgiBotWorld-Beta-joint--household_appliances:11",
+        "AgiBotWorld-Beta-joint--precision_tools:15",
+        "AgiBotWorld2026-eef:34",
+        "FastUMI-eef:28",
+        "Galbot-joint:31",
+        "InternData-A1-eef--household_daily:0",
+        "InternData-A1-joint--household_daily:1",
+        "InternData-M1-eef:33",
+        "RoboCasa365-eef:25",
+        "RoboMIND-v1-joint:39",
+        "RoboMIND2.0-eef:36",
+        "RoboMIND2.0-joint:37",
+        "egolive:53",
+        "egopro:54",
+        "egostandard:55",
+        "legacy:44",
+        "univtac:51"
+      ],
+      "input_trace": "artifacts/megatron/live_2k_16k_preflight_rank_3.json"
+    }
+  ],
+  "existing_media_skip_policy_preserved": true
+}

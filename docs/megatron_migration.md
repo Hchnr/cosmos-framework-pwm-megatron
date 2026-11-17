@@ -718,6 +718,70 @@ The full-depth three-tower replay was also reaggregated including every
 steady-state observation: mean updates are 4.655577 versus 4.390820 seconds,
 **6.03% mean-based throughput gain**, consistent with its 5.98% median ratio.
 
+## Live full-depth benchmark protocol
+
+The full-depth harness also supports original live 58-source catalog loading.
+It records a separate whole-update interval starting before the first
+microbatch's data fetch, plus rank-maximum data-wait time; the older
+`step_seconds` starts after that first fetch. It hashes every raw input,
+worker cursor and worker RNG state. The summary refuses mismatched or
+incomplete traces rather than comparing different samples. Five negative and
+positive summary regression tests pass; reaggregation of the original replay
+and standalone VLM runs reproduces their previous results exactly.
+
+A 36-microbatch CPU preflight on all four ranks passes with capacities
+**[2048, 16384, 128]**. It initializes the 58-source recipe and actually returns
+samples from 19 distinct sources per rank. Earlier live attempts failed the
+intended packing guards: GEN=8192 could not fit an egolive sample's 9661 GEN
+tokens; UND=512 could not fit an AgiBot sample's 536 UND tokens. These failures
+are retained separately and excluded from throughput statistics. No samples
+were truncated or dropped to bypass capacity checks.
+
+The constrained four-GPU harness uses one loader worker, prefetch factor one,
+packing pool one and one sample per microbatch. The source configuration's
+existing temporary media-failure skip policy is preserved; this is not a
+qualification that all 58 datasets decode successfully. Model, original VAE,
+BF16/FusedAdam, full AC, static language compilation, clipping and original
+callbacks remain active, with GA=3. Tokenizer compilation and checkpoint writes
+are excluded. Content hashing overhead is included in whole-update timing.
+
+All four independent launches completed 12 updates each; three warmup updates
+per launch are excluded, leaving 18 complete steady observations per backend.
+All 144 input/cursor/worker-RNG records (36 per rank) match bitwise across every
+launch and the CPU preflight. Combined four-rank logs show zero non-finite loss,
+non-finite gradient sanitization or skipped optimizer events. Maximum relative
+loss-trace difference is 0.003590.
+
+| Live metric | PyTorch FSDP2 | Megatron ZeRO-2 |
+| --- | ---: | ---: |
+| Whole-update mean seconds, including first data fetch | 12.078714 | 11.832846 |
+| Whole-update median seconds | 12.863401 | 12.628146 |
+| Whole-update P95 seconds | 14.568303 | 14.488494 |
+| Mean maximum-rank data-wait seconds | 2.463229 | 2.559599 |
+| Peak allocated bytes | 51,811,713,024 | 73,096,211,456 |
+
+Mean whole-update throughput improves **2.08%** in this constrained live scope,
+including original VAE/data work, callbacks, clipping and content-hash overhead.
+The older interval that excludes the first data fetch improves 2.31% by mean.
+Every steady observation is retained. This uses **shard4 × replica1**, not the
+production shard16 × replica12 topology; 192-GPU production performance remains
+unaccepted. Raw rank traces, timing observations, numeric-log audit and aggregate
+are retained under `live_2k_16k_*`. Checkpoint stalls and tokenizer AOT warmup
+remain outside this timing; both have separate correctness tests above.
+
+Reproduce the crossed launch order PyTorch/Megatron/Megatron/PyTorch with:
+
+```bash
+export BASE_CHECKPOINT_PATH=/path/to/original/completed/checkpoint
+BENCHMARK_LIVE_DATA=1 BENCHMARK_TAG=live_2k_16k \
+BENCHMARK_UND_TOKENS=2048 BENCHMARK_GEN_TOKENS=16384 \
+BENCHMARK_STEPS=12 BENCHMARK_WARMUP_STEPS=3 \
+bash tools/benchmark_megatron_full_depth.sh
+python tools/summarize_megatron_benchmarks.py \
+  artifacts/megatron/live_2k_16k_{1_pytorch,2_megatron,3_megatron,4_pytorch}.json \
+  --output artifacts/megatron/live_2k_16k_summary.json
+```
+
 ## Remaining acceptance gates
 
 The source entry, 58-source configuration, live training, asynchronous full-state

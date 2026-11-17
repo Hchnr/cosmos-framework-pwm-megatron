@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "backend": "pytorch",
+  "live_data": true,
+  "microbatch": 21,
+  "dataset": "AgiBotWorld-Beta-eef--household_appliances:10",
+  "observed_rank": 3,
+  "real_und": 536,
+  "real_gen": 7421,
+  "real_video": 7360,
+  "real_action": 61,
+  "configured_capacities": [
+    512,
+    16384,
+    128
+  ],
+  "failure": "SequentialPackingBatcher fixed-sequence sample exceeds UND capacity",
+  "throughput_qualification": false,
+  "followup": "Preflight 36 real microbatches with UND2048/GEN16384 before restarting paired training"
+}

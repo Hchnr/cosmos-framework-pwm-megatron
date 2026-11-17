@@ -96,8 +96,18 @@ def summarize(paths):
     grouped = {backend: [run for run in runs if run["backend"] == backend] for backend in ("pytorch", "megatron")}
     if any(not values for values in grouped.values()):
         raise ValueError("Need observations for both backends")
-    for key in ("token_capacities", "gradient_accumulation", "seed_reset_after_initialization", "live_data"):
-        if any(run[key] != runs[0][key] for run in runs):
+    for key in (
+        "token_capacities",
+        "gradient_accumulation",
+        "seed_reset_after_initialization",
+        "live_data",
+        "checkpoint",
+        "fresh_optimizer_state",
+        "warmup_steps",
+        "excludes",
+        "content_trace_enabled",
+    ):
+        if any(run.get(key) != runs[0].get(key) for run in runs):
             raise ValueError(f"Incompatible benchmark setting: {key}")
     result = {
         "scope": runs[0]["scope"],
@@ -107,6 +117,26 @@ def summarize(paths):
         "runs": [str(path) for path in paths],
         "backends": {},
     }
+    if runs[0]["live_data"]:
+        if any(run["world_size"] != runs[0]["world_size"] for run in runs):
+            raise ValueError("Incompatible live benchmark world_size")
+        reference_inputs = None
+        for path, run in zip(paths, runs, strict=True):
+            if not run.get("content_trace_enabled"):
+                raise ValueError("Live comparison requires complete content traces")
+            inputs = []
+            for rank in range(run["world_size"]):
+                trace = json.loads(path.with_name(f"{path.stem}_inputs_rank_{rank}.json").read_text())
+                if len(trace) != len(run["step_seconds"]) * run["gradient_accumulation"]:
+                    raise ValueError(f"Incomplete live input trace: {path}, rank {rank}")
+                inputs.append(trace)
+            if reference_inputs is None:
+                reference_inputs = inputs
+            elif inputs != reference_inputs:
+                raise ValueError(f"Live content/cursor/RNG traces differ: {path}")
+        result["live_input_traces_bitwise_equal"] = True
+        result["input_trace_microbatches_per_rank"] = len(reference_inputs[0])
+        result["includes_content_hashing_overhead"] = True
     for backend, values in grouped.items():
         observations = [value for run in values for value in run["step_seconds"][run["warmup_steps"] :]]
         result["backends"][backend] = {
@@ -114,12 +144,29 @@ def summarize(paths):
             "per_run_median_seconds": [run["median_seconds"] for run in values],
             "peak_allocated_bytes": max(run["peak_allocated_bytes"] for run in values),
         }
+        if runs[0]["live_data"]:
+            result["backends"][backend]["whole_update_including_first_dataload"] = _latencies(
+                [
+                    value
+                    for run in values
+                    for value in run["update_including_first_dataload_seconds"][run["warmup_steps"] :]
+                ]
+            )
+            result["backends"][backend]["data_wait"] = _latencies(
+                [value for run in values for value in run["update_data_wait_seconds"][run["warmup_steps"] :]]
+            )
     result["throughput_gain_fraction"] = (
         result["backends"]["pytorch"]["median_seconds"] / result["backends"]["megatron"]["median_seconds"] - 1
     )
     result["mean_throughput_gain_fraction"] = (
         result["backends"]["pytorch"]["mean_seconds"] / result["backends"]["megatron"]["mean_seconds"] - 1
     )
+    if runs[0]["live_data"]:
+        result["whole_update_mean_throughput_gain_fraction"] = (
+            result["backends"]["pytorch"]["whole_update_including_first_dataload"]["mean_seconds"]
+            / result["backends"]["megatron"]["whole_update_including_first_dataload"]["mean_seconds"]
+            - 1
+        )
     reference = grouped["pytorch"][0]["mean_final_microbatch_losses"]
     if any(len(run["mean_final_microbatch_losses"]) != len(reference) for run in runs):
         raise ValueError("Cannot compare loss traces with different step counts")

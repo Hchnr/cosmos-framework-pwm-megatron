@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "scope": "Combined four-rank logs for all four live training launches",
+  "runs": [
+    {
+      "run": 1,
+      "backend": "pytorch",
+      "nonfinite_or_skipped_update_events": 0,
+      "log": "artifacts/megatron/live_2k_16k_1_pytorch.log"
+    },
+    {
+      "run": 2,
+      "backend": "megatron",
+      "nonfinite_or_skipped_update_events": 0,
+      "log": "artifacts/megatron/live_2k_16k_2_megatron.log"
+    },
+    {
+      "run": 3,
+      "backend": "megatron",
+      "nonfinite_or_skipped_update_events": 0,
+      "log": "artifacts/megatron/live_2k_16k_3_megatron.log"
+    },
+    {
+      "run": 4,
+      "backend": "pytorch",
+      "nonfinite_or_skipped_update_events": 0,
+      "log": "artifacts/megatron/live_2k_16k_4_pytorch.log"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "backend": "pytorch",
+  "live_data": true,
+  "microbatch": 8,
+  "dataset": "egolive:53",
+  "real_gen": 9661,
+  "real_video": 9600,
+  "real_action": 61,
+  "configured_capacities": [
+    512,
+    8192,
+    128
+  ],
+  "failure": "SequentialPackingBatcher fixed-sequence sample exceeds capacity",
+  "throughput_qualification": false,
+  "followup": "Retry controlled live comparison with GEN capacity 16384",
+  "real_und_observed": [
+    146,
+    158
+  ]
+}

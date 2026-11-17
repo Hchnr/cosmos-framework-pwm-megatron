@@ -40,6 +40,10 @@ class StepMeasurement(Callback):
         self.peak_bytes = 0
         self.losses = []
         self.initialization_peak_bytes = 0
+        self.inclusive_started = None
+        self.inclusive_seconds = []
+        self.data_wait_seconds = []
+        self.data_wait = 0.0
 
     def on_train_start(self, model, iteration=0):
         from cosmos_framework.utils.misc import set_random_seed
@@ -49,6 +53,15 @@ class StepMeasurement(Callback):
         torch.distributed.all_reduce(peak, op=torch.distributed.ReduceOp.MAX)
         self.initialization_peak_bytes = peak.item()
         torch.cuda.reset_peak_memory_stats()
+
+    def on_before_dataloading(self, iteration=0):
+        if self.inclusive_started is None:
+            torch.cuda.synchronize()
+            self.inclusive_started = time.perf_counter()
+        self.loading_started = time.perf_counter()
+
+    def on_after_dataloading(self, iteration=0):
+        self.data_wait += time.perf_counter() - self.loading_started
 
     def on_training_step_start(self, model, data_batch, iteration=0):
         if self.started is None:
@@ -60,6 +73,13 @@ class StepMeasurement(Callback):
         value = torch.tensor(time.perf_counter() - self.started, device="cuda", dtype=torch.float64)
         torch.distributed.all_reduce(value, op=torch.distributed.ReduceOp.MAX)
         self.seconds.append(value.item())
+        inclusive = torch.tensor(
+            [time.perf_counter() - self.inclusive_started, self.data_wait], device="cuda", dtype=torch.float64
+        )
+        torch.distributed.all_reduce(inclusive, op=torch.distributed.ReduceOp.MAX)
+        self.inclusive_seconds.append(inclusive[0].item())
+        self.data_wait_seconds.append(inclusive[1].item())
+        self.inclusive_started, self.data_wait = None, 0.0
         mean_loss = loss.detach().float().clone()
         torch.distributed.all_reduce(mean_loss)
         mean_loss.div_(torch.distributed.get_world_size())
@@ -68,6 +88,20 @@ class StepMeasurement(Callback):
         peak = torch.tensor(torch.cuda.max_memory_allocated(), device="cuda", dtype=torch.int64)
         torch.distributed.all_reduce(peak, op=torch.distributed.ReduceOp.MAX)
         self.peak_bytes = max(self.peak_bytes, peak.item())
+        if torch.distributed.get_rank() == 0:
+            print(
+                json.dumps(
+                    dict(
+                        benchmark_update=iteration,
+                        seconds=value.item(),
+                        including_first_dataload_seconds=inclusive[0].item(),
+                        data_wait_seconds=inclusive[1].item(),
+                        loss=mean_loss.item(),
+                        peak_allocated_bytes=self.peak_bytes,
+                    )
+                ),
+                flush=True,
+            )
 
 
 def main():
@@ -83,6 +117,9 @@ def main():
     parser.add_argument("--trace-json", type=Path)
     parser.add_argument("--benchmark-json", type=Path)
     parser.add_argument("--warmup-steps", type=int, default=2)
+    parser.add_argument("--und-tokens", type=int, default=512)
+    parser.add_argument("--gen-tokens", type=int, default=8192)
+    parser.add_argument("--action-tokens", type=int, default=128)
     args = parser.parse_args()
     os.environ.setdefault(
         "ACTION128_EPISODE_CACHE_DIR", "/share-mixed/project/eai_pwm/cache/action128_episode_metadata_v1"
@@ -101,12 +138,12 @@ def main():
         f"model.config.parallelism.megatron_sharding_strategy={args.sharding_strategy}",
         f"model.config.parallelism.data_parallel_shard_degree={distributed.get_world_size()}",
         "model.config.parallelism.data_parallel_replicate_degree=1",
-        "model.config.fixed_sequence_length.und_tokens=512",
-        "model.config.fixed_sequence_length.gen_tokens=8192",
-        "model.config.fixed_sequence_length.action_tokens=128",
+        f"model.config.fixed_sequence_length.und_tokens={args.und_tokens}",
+        f"model.config.fixed_sequence_length.gen_tokens={args.gen_tokens}",
+        f"model.config.fixed_sequence_length.action_tokens={args.action_tokens}",
         "model.config.action_tower_und_short_tokens=0",
-        "model.config.max_num_tokens_after_packing=8704",
-        "dataloader_train.max_sequence_length=8704",
+        f"model.config.max_num_tokens_after_packing={args.und_tokens + args.gen_tokens}",
+        f"dataloader_train.max_sequence_length={args.und_tokens + args.gen_tokens}",
         "dataloader_train.max_samples_per_batch=1",
         "trainer.seed=42",
         f"trainer.max_iter={args.steps}",
@@ -174,7 +211,7 @@ def main():
             "gradient_accumulation": 3,
             "optimizer_steps": args.steps,
             "checkpoint": str(args.checkpoint),
-            "token_capacities": [512, 8192, 128],
+            "token_capacities": [args.und_tokens, args.gen_tokens, args.action_tokens],
             "fresh_optimizer_state": not args.resume_training,
             "backend": args.backend,
             "torch_version": torch.__version__,
@@ -191,6 +228,9 @@ def main():
                 if args.live_data
                 else "full 36-layer stock trainer with real-batch replay; reduced token capacities",
                 step_seconds=measurement.seconds,
+                update_including_first_dataload_seconds=measurement.inclusive_seconds,
+                update_data_wait_seconds=measurement.data_wait_seconds,
+                content_trace_enabled=args.trace_json is not None,
                 mean_final_microbatch_losses=measurement.losses,
                 seed_reset_after_initialization=42,
                 warmup_steps=args.warmup_steps,

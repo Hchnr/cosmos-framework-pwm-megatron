@@ -1,0 +1,614 @@
+[
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND-v1-joint:39",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 0,
+    "source": 39,
+    "resume_rng_sha256": "dfff6523ec05926e9383996c6d2f5a2069cc813b9b8b722cc5e3d51932288c9f",
+    "content_sha256": "c59fe09ab920ef717ee7d59adbeff5287c7895019a0fbaaf858fd1183c0fa324"
+  },
+  {
+    "iteration": 0,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 1,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "e81217679b2c908b7f3edde99a868f8f56a2a0930d19eb9a9ff93cfa0725c2bd"
+  },
+  {
+    "iteration": 0,
+    "dataset": "RoboMIND2.0-eef:36",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 2,
+    "source": 36,
+    "resume_rng_sha256": "87e17ec1ecf2bab5c38f38f145e6df7437e73f9358030170e8d5fbedb16ecb8b",
+    "content_sha256": "f10cee994ff29ee75db06b9b0598258d5a782412242640567a36fa93948c25cf"
+  },
+  {
+    "iteration": 1,
+    "dataset": "InternData-M1-eef:33",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 3,
+    "source": 33,
+    "resume_rng_sha256": "8ac044f31042d692b9c57f235f10e1afbc20535c6c544c1642106c5a2dbe3eba",
+    "content_sha256": "6bcf27cc3f8cfe1a024200b272cb56c808c475f0b33299f6f02e48e1d2b85ffb"
+  },
+  {
+    "iteration": 1,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 4,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "516693191f2798339a3a5e441f54f7cdd87a0f08750ea4075e84bf9f3a48e9fb"
+  },
+  {
+    "iteration": 1,
+    "dataset": "legacy:44",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 5,
+    "source": 44,
+    "resume_rng_sha256": "aa8d852cd3bd226efc25b18386b5106e49ce2078ca06e7264e8d1d60a8ca6a8b",
+    "content_sha256": "eed8a0063f68e2865563d0bc3a025ed0b7088e9f67af675ca6fe1477a29a4499"
+  },
+  {
+    "iteration": 2,
+    "dataset": "Galbot-joint:31",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 6,
+    "source": 31,
+    "resume_rng_sha256": "70078097661bd895580be3fa3d3465400a0f9aa1795cd880c2771db4ca81b24a",
+    "content_sha256": "f069109ea80fef6def7bc05e65beb1c59ed72480810593f17b4935f6c86cb64b"
+  },
+  {
+    "iteration": 2,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 7,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "543faa3b2f9a14b853fdef71e15072941da49d4365160d2c78b665a2408945d1"
+  },
+  {
+    "iteration": 2,
+    "dataset": "egolive:53",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 8,
+    "source": 53,
+    "resume_rng_sha256": "64f2291d593431944a8825487a92abbac3c4229d44d5fd286986d53b9b94d48c",
+    "content_sha256": "c5c2dc386783939ccb7a5ab7287024cd3a075bfb6869bfff2f6cf35325abd9ac"
+  },
+  {
+    "iteration": 3,
+    "dataset": "egolive:53",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 9,
+    "source": 53,
+    "resume_rng_sha256": "64f2291d593431944a8825487a92abbac3c4229d44d5fd286986d53b9b94d48c",
+    "content_sha256": "0798a42ddc464a5c2d7ae2f44afedaec4b5ddf1f45f043bf9fbaf6eaa2276b75"
+  },
+  {
+    "iteration": 3,
+    "dataset": "Galbot-joint:31",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 10,
+    "source": 31,
+    "resume_rng_sha256": "70078097661bd895580be3fa3d3465400a0f9aa1795cd880c2771db4ca81b24a",
+    "content_sha256": "15318f1c117e09cd272f645f32d023321eb0664211c6682cc0c482267c5a7854"
+  },
+  {
+    "iteration": 3,
+    "dataset": "InternData-A1-eef--household_daily:0",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 11,
+    "source": 0,
+    "resume_rng_sha256": "c84b3285f3ec4589382a0b77e701292743352363efaa0ffbd57010e8098f07d5",
+    "content_sha256": "93d284db1b983380982229fb7b8caca3f1eed0de0b4b476f4aece1c506779ad5"
+  },
+  {
+    "iteration": 4,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      2
+    ],
+    "global_id": 12,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "e79c5056ab81d145241924431ea395a48581ca6e65f6e1973a5e04aec9b1047a"
+  },
+  {
+    "iteration": 4,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 13,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "f23b0c452eff08ddb5e09054b9780cacadfe69bcb7d9d0ed85ea2bff4c1135fb"
+  },
+  {
+    "iteration": 4,
+    "dataset": "AgiBotWorld-Beta-joint--household_appliances:11",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 14,
+    "source": 11,
+    "resume_rng_sha256": "51fc6b6e5c9f7e89dedfb4ba2000db830d03a374384361d5a599cfc5e6aa33eb",
+    "content_sha256": "3f0d8c091cd15c2bc028225fce7ba4c4c0115787b62178a5b8c1e3d5a245cad1"
+  },
+  {
+    "iteration": 5,
+    "dataset": "univtac:51",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 15,
+    "source": 51,
+    "resume_rng_sha256": "f34bb3688d0661bc1d8358d762ce8dbc875abd357f669ee8f805daaafdd882ab",
+    "content_sha256": "df4253738662b4938666c8761ec19f6952de3f7ebe0cd4dad88ea2825ac47729"
+  },
+  {
+    "iteration": 5,
+    "dataset": "RoboCasa365-eef:25",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 16,
+    "source": 25,
+    "resume_rng_sha256": "8766645bb2a2d41ed1b2d6b1f0bb2b5f05f57183362fca6da19884f783ca7f0a",
+    "content_sha256": "f98b3a4455941080ce72755d511c054ec182881050d049f88683fdde27aa17c4"
+  },
+  {
+    "iteration": 5,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      2
+    ],
+    "global_id": 17,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "a021f7f234864ca6ab77d19722e34218b7f09b335df28f9854ecd44ae8b02eed"
+  },
+  {
+    "iteration": 6,
+    "dataset": "RoboCasa365-eef:25",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 18,
+    "source": 25,
+    "resume_rng_sha256": "8766645bb2a2d41ed1b2d6b1f0bb2b5f05f57183362fca6da19884f783ca7f0a",
+    "content_sha256": "65b79788ad8fa4f2e60caeb0cabb444b684ee5d598b4a974acc3c8635c84bf0b"
+  },
+  {
+    "iteration": 6,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      3
+    ],
+    "global_id": 19,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "ad5c59db48ac9e250556b9c263c42cb99142655cf4f226e6bedb1ebf30aeebd6"
+  },
+  {
+    "iteration": 6,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      3
+    ],
+    "global_id": 20,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "abbdf5d80456565c80e9c909ade3d2f77e832e71c187c36dbcb07aff4c53ce5b"
+  },
+  {
+    "iteration": 7,
+    "dataset": "AgiBotWorld-Beta-eef--household_appliances:10",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 21,
+    "source": 10,
+    "resume_rng_sha256": "2224fbff3426bf9b6f18b7c8a88a6a93f0782ba59a42a11895ce45c6e2ab0ff6",
+    "content_sha256": "3a3e300932f59e635fc552b3b275e43da7971b7692663866f88505fe78a73a84"
+  },
+  {
+    "iteration": 7,
+    "dataset": "FastUMI-eef:28",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 22,
+    "source": 28,
+    "resume_rng_sha256": "975c0b7f5f832d2d3aef5affda10d0ade63abf552077e4e59ff292b4ee5aca52",
+    "content_sha256": "d780be291c4987e0c9dc230e830b848febd48c5df9a8c73879f85853d5dee081"
+  },
+  {
+    "iteration": 7,
+    "dataset": "AgiBotWorld-Beta-joint--precision_tools:15",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 23,
+    "source": 15,
+    "resume_rng_sha256": "af762cfd71286390b85d0b33bdcfaf073a0fb4efba94929cae22919ecc1d398f",
+    "content_sha256": "50652e3e134ac3cc61443047590937cf857eb55111ead79851bef668390cc8ad"
+  },
+  {
+    "iteration": 8,
+    "dataset": "FastUMI-eef:28",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 24,
+    "source": 28,
+    "resume_rng_sha256": "975c0b7f5f832d2d3aef5affda10d0ade63abf552077e4e59ff292b4ee5aca52",
+    "content_sha256": "aa65e2a16e484c9bb3c9fbc88959cf54d11aca8edf87bd73da558b639d6635ec"
+  },
+  {
+    "iteration": 8,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      4
+    ],
+    "global_id": 25,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "e15642d17d4298fd7dc956f8c3df9e7da95b04e6f04d25e4435d490c686f3fe5"
+  },
+  {
+    "iteration": 8,
+    "dataset": "InternData-A1-joint--household_daily:1",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 26,
+    "source": 1,
+    "resume_rng_sha256": "f514906e515b834952f1f8bec8c540b85aefcfe758847007b1102ab6ddb3f53e",
+    "content_sha256": "808fa117f54aa06e466bc27f83d13ef389e25270c692849046654ea394a033af"
+  },
+  {
+    "iteration": 9,
+    "dataset": "FastUMI-eef:28",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      2
+    ],
+    "global_id": 27,
+    "source": 28,
+    "resume_rng_sha256": "975c0b7f5f832d2d3aef5affda10d0ade63abf552077e4e59ff292b4ee5aca52",
+    "content_sha256": "7827b856dd65839e6434e616f11f7056a4e5a9c194af10e77ccd9a7e9a0b9654"
+  },
+  {
+    "iteration": 9,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      5
+    ],
+    "global_id": 28,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "7be730441e34436da01ec077e6372de6c5d1f4b2290e0ef20bb93d57609cbfca"
+  },
+  {
+    "iteration": 9,
+    "dataset": "egopro:54",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 29,
+    "source": 54,
+    "resume_rng_sha256": "db74d300d3864d63314f84a9c1a7ed48b7746375f59a9cca3d03f5a568ad9378",
+    "content_sha256": "6b04985f212efa2808b120df25b910f2a534082ca9f21780945a4fe5d196034b"
+  },
+  {
+    "iteration": 10,
+    "dataset": "egolive:53",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      2
+    ],
+    "global_id": 30,
+    "source": 53,
+    "resume_rng_sha256": "64f2291d593431944a8825487a92abbac3c4229d44d5fd286986d53b9b94d48c",
+    "content_sha256": "019f77652ea9fcc21adece18d4d251354000195e472398816b6a0911f9a27827"
+  },
+  {
+    "iteration": 10,
+    "dataset": "egostandard:55",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      6
+    ],
+    "global_id": 31,
+    "source": 55,
+    "resume_rng_sha256": "d8e8859cda30eba03bbb546d89af25344777e7f2010bb31ba7f73e4e5ab3553b",
+    "content_sha256": "88a3a35f4bb8921ed7e948fe946a970b2e854aa9f7f685a852c458ec8158c8c2"
+  },
+  {
+    "iteration": 10,
+    "dataset": "InternData-A1-eef--household_daily:0",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      1
+    ],
+    "global_id": 32,
+    "source": 0,
+    "resume_rng_sha256": "c84b3285f3ec4589382a0b77e701292743352363efaa0ffbd57010e8098f07d5",
+    "content_sha256": "1cce056c6436e2990d56b7c52fe1ac7935c91423319599b87ee085b9714146f6"
+  },
+  {
+    "iteration": 11,
+    "dataset": "AgiBotWorld2026-eef:34",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 33,
+    "source": 34,
+    "resume_rng_sha256": "ae66eaec40e976afc0cd16f102e4bac28ea44caba8c3f17c65687cc4c4e8fb82",
+    "content_sha256": "fac6cc862a5911707bfc9f9974217e22d5259584c68f85f3fc5f2701ddfb8d50"
+  },
+  {
+    "iteration": 11,
+    "dataset": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      4
+    ],
+    "global_id": 34,
+    "source": 12,
+    "resume_rng_sha256": "3b3168b39e8125e1abeec5bfc758ae6972ce745116dfd1ae586c70b6b74cca69",
+    "content_sha256": "50320e3f3b40bb6796df985e33927e6abe21012d33708a2c81dcf0efc22fb8f4"
+  },
+  {
+    "iteration": 11,
+    "dataset": "RoboMIND2.0-joint:37",
+    "worker": [
+      0
+    ],
+    "epoch": [
+      0
+    ],
+    "index": [
+      0
+    ],
+    "global_id": 35,
+    "source": 37,
+    "resume_rng_sha256": "3ddf7aa72f2a453bda3f0fe12fed7aac2662c2933e22cb2c62fd23e0a77a9749",
+    "content_sha256": "182aacf2794f7afc8d1d8c337af4f3fa0ca92723f582d8573c3441ab49bbc1d4"
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "scope": "full 36-layer stock trainer; reduced token capacities; live data",
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation"
+  ],
+  "token_capacities": [
+    2048,
+    16384,
+    128
+  ],
+  "gradient_accumulation": 3,
+  "runs": [
+    "artifacts/megatron/live_2k_16k_1_pytorch.json",
+    "artifacts/megatron/live_2k_16k_2_megatron.json",
+    "artifacts/megatron/live_2k_16k_3_megatron.json",
+    "artifacts/megatron/live_2k_16k_4_pytorch.json"
+  ],
+  "backends": {
+    "pytorch": {
+      "observations": 18,
+      "median_seconds": 12.83381218276918,
+      "mean_seconds": 11.919277110447487,
+      "p95_seconds": 14.544990340806544,
+      "max_seconds": 14.902612999081612,
+      "per_run_median_seconds": [
+        12.888283524662256,
+        12.779340840876102
+      ],
+      "peak_allocated_bytes": 51811713024,
+      "whole_update_including_first_dataload": {
+        "observations": 18,
+        "median_seconds": 12.863400781527162,
+        "mean_seconds": 12.07871448310713,
+        "p95_seconds": 14.568302555382251,
+        "max_seconds": 14.927225165069103
+      },
+      "data_wait": {
+        "observations": 18,
+        "median_seconds": 3.2556321155279875,
+        "mean_seconds": 2.4632289558649063,
+        "p95_seconds": 4.743870292045176,
+        "max_seconds": 4.754789028316736
+      }
+    },
+    "megatron": {
+      "observations": 18,
+      "median_seconds": 12.599924836307764,
+      "mean_seconds": 11.64971031124393,
+      "p95_seconds": 14.33297605626285,
+      "max_seconds": 14.469636641442776,
+      "per_run_median_seconds": [
+        12.591585401445627,
+        12.608264271169901
+      ],
+      "peak_allocated_bytes": 73096211456,
+      "whole_update_including_first_dataload": {
+        "observations": 18,
+        "median_seconds": 12.628146082162857,
+        "mean_seconds": 11.832845612739524,
+        "p95_seconds": 14.488494274765253,
+        "max_seconds": 14.605605497956276
+      },
+      "data_wait": {
+        "observations": 18,
+        "median_seconds": 3.5322110671550035,
+        "mean_seconds": 2.5595986907266908,
+        "p95_seconds": 4.879025702364743,
+        "max_seconds": 4.965028814971447
+      }
+    }
+  },
+  "live_input_traces_bitwise_equal": true,
+  "input_trace_microbatches_per_rank": 36,
+  "includes_content_hashing_overhead": true,
+  "throughput_gain_fraction": 0.018562598547211095,
+  "mean_throughput_gain_fraction": 0.023139356430466718,
+  "whole_update_mean_throughput_gain_fraction": 0.02077850742030285,
+  "max_loss_trace_absolute_difference": 0.0007835030555725098,
+  "max_loss_trace_relative_difference": 0.0035891564191827606
+}
