@@ -2,11 +2,18 @@
 
 import argparse
 import json
+import math
 import statistics
 from pathlib import Path
 
 
-def _latencies(observations):
+def _finite_values(values, name, *, positive=False):
+    if not values or any(not math.isfinite(value) or (positive and value <= 0) for value in values):
+        raise ValueError(f"Invalid {name}: expected nonempty finite{' positive' if positive else ''} observations")
+
+
+def _latencies(observations, *, positive=True):
+    _finite_values(observations, "latencies", positive=positive)
     return {
         "observations": len(observations),
         "median_seconds": statistics.median(observations),
@@ -49,11 +56,17 @@ def summarize_vlm(paths, runs):
                 raise ValueError(f"Incompatible VLM benchmark setting: {key}")
         if len(run["ranks"]) != reference["world_size"]:
             raise ValueError("Missing rank observations")
+        if sorted(rank["rank"] for rank in run["ranks"]) != list(range(run["world_size"])):
+            raise ValueError("Missing or duplicate VLM ranks")
         for actual, expected in zip(run["ranks"], reference["ranks"], strict=True):
             if (actual["rank"], actual["input_sha256"]) != (expected["rank"], expected["input_sha256"]):
                 raise ValueError("VLM input hashes differ")
             if len(actual["observations"]) != len(expected["observations"]):
                 raise ValueError("VLM step counts differ")
+            if not 0 <= run["warmup_steps"] < len(actual["observations"]):
+                raise ValueError("No steady VLM observations")
+            _finite_values([row["seconds"] for row in actual["observations"]], "VLM latencies", positive=True)
+            _finite_values([row["loss"] for row in actual["observations"]], "VLM losses")
     result = dict(
         scope=reference["scope"],
         runs=[str(path) for path in paths],
@@ -91,8 +104,29 @@ def summarize_vlm(paths, runs):
 
 def summarize(paths):
     runs = [json.loads(path.read_text()) for path in paths]
+    if not runs:
+        raise ValueError("Need observations for both backends")
+    if any(run["backend"] not in ("pytorch", "megatron") for run in runs):
+        raise ValueError("Unknown benchmark backend")
     if "sequence_tokens" in runs[0]:
         return summarize_vlm(paths, runs)
+    for run in runs:
+        count = len(run["step_seconds"])
+        if run.get("passed") is not True:
+            raise ValueError("Benchmark run did not pass")
+        if run["optimizer_steps"] != count or not 0 <= run["warmup_steps"] < count:
+            raise ValueError("Incomplete benchmark optimizer-step observations")
+        for key in ("step_seconds", "mean_final_microbatch_losses"):
+            if len(run[key]) != count:
+                raise ValueError(f"Incomplete benchmark observations: {key}")
+            _finite_values(run[key], key, positive=key == "step_seconds")
+        if run["live_data"]:
+            for key in ("update_including_first_dataload_seconds", "update_data_wait_seconds"):
+                if len(run[key]) != count:
+                    raise ValueError(f"Incomplete benchmark observations: {key}")
+                _finite_values(run[key], key, positive=key == "update_including_first_dataload_seconds")
+                if any(value < 0 for value in run[key]):
+                    raise ValueError(f"Negative benchmark observations: {key}")
     grouped = {backend: [run for run in runs if run["backend"] == backend] for backend in ("pytorch", "megatron")}
     if any(not values for values in grouped.values()):
         raise ValueError("Need observations for both backends")
@@ -106,6 +140,7 @@ def summarize(paths):
         "warmup_steps",
         "excludes",
         "content_trace_enabled",
+        "world_size",
     ):
         if any(run.get(key) != runs[0].get(key) for run in runs):
             raise ValueError(f"Incompatible benchmark setting: {key}")
@@ -153,7 +188,8 @@ def summarize(paths):
                 ]
             )
             result["backends"][backend]["data_wait"] = _latencies(
-                [value for run in values for value in run["update_data_wait_seconds"][run["warmup_steps"] :]]
+                [value for run in values for value in run["update_data_wait_seconds"][run["warmup_steps"] :]],
+                positive=False,
             )
     result["throughput_gain_fraction"] = (
         result["backends"]["pytorch"]["median_seconds"] / result["backends"]["megatron"]["median_seconds"] - 1

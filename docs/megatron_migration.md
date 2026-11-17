@@ -828,6 +828,13 @@ A fresh run on Torch 2.10.0+cu130 / Megatron-Core 0.20.0 passed:
 These rechecks supplement the earlier full-depth and live-data evidence; they
 do not change the production-scale acceptance status below.
 
+The benchmark summarizer additionally rejects failed runs, unknown backends,
+incomplete optimizer-step/loss/data-wait observations, mismatched world sizes,
+invalid warmup windows and non-finite measurements (including warmup). The VLM
+path checks every rank's losses/timings and rejects duplicate rank identities.
+Zero data-wait time is valid. All 28 summary regression tests pass; reaggregating
+the earlier live and VLM evidence reproduces their stored summaries exactly.
+
 ### Outstanding broader acceptance
 
 The source entry, 58-source configuration, live training, asynchronous full-state

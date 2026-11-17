@@ -16,6 +16,8 @@ def live_runs(tmp_path):
             json.dumps(
                 dict(
                     backend=backend,
+                    passed=True,
+                    optimizer_steps=3,
                     scope="test live",
                     excludes=["checkpoint save I/O"],
                     token_capacities=[512, 8192, 128],
@@ -77,3 +79,67 @@ def test_live_summary_rejects_missing_microbatch(live_runs):
     path.write_text(json.dumps(json.loads(path.read_text())[:-1]))
     with pytest.raises(ValueError, match="Incomplete live input trace"):
         summarize(live_runs)
+
+
+@pytest.mark.parametrize("invalid", [float("nan"), float("inf"), -float("inf")])
+@pytest.mark.parametrize("key", ["step_seconds", "mean_final_microbatch_losses", "update_data_wait_seconds"])
+def test_summary_rejects_nonfinite_observations_including_warmup(live_runs, invalid, key):
+    path = live_runs[1]
+    run = json.loads(path.read_text())
+    run[key][0] = invalid
+    path.write_text(json.dumps(run))
+    with pytest.raises(ValueError, match="Invalid"):
+        summarize(live_runs)
+
+
+@pytest.mark.parametrize(
+    "key,value",
+    [
+        ("passed", False),
+        ("optimizer_steps", 4),
+        ("warmup_steps", 3),
+        ("warmup_steps", -1),
+        ("step_seconds", [3, 2, 0]),
+        ("mean_final_microbatch_losses", [1, 0.9]),
+        ("update_including_first_dataload_seconds", [3, 2]),
+        ("update_data_wait_seconds", [0.1, 0.1, -1]),
+        ("world_size", 1),
+        ("backend", "unknown"),
+    ],
+)
+def test_summary_rejects_failed_incomplete_or_incompatible_runs(live_runs, key, value):
+    path = live_runs[1]
+    run = json.loads(path.read_text())
+    run[key] = value
+    path.write_text(json.dumps(run))
+    with pytest.raises(ValueError):
+        summarize(live_runs)
+
+
+def test_summary_accepts_zero_data_wait(live_runs):
+    for path in live_runs:
+        run = json.loads(path.read_text())
+        run["update_data_wait_seconds"] = [0, 0, 0]
+        path.write_text(json.dumps(run))
+    assert summarize(live_runs)["backends"]["megatron"]["data_wait"]["mean_seconds"] == 0
+
+
+@pytest.mark.parametrize("changed", ["loss", "seconds", "rank"])
+def test_vlm_summary_rejects_invalid_rank_observations(tmp_path, changed):
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[2] / "artifacts/megatron/vlm_2b_1024_1_pytorch.json"
+    paths = []
+    for backend in ("pytorch", "megatron"):
+        run = json.loads(source.read_text())
+        run["backend"] = backend
+        if backend == "megatron":
+            if changed == "rank":
+                run["ranks"][-1]["rank"] = 0
+            else:
+                run["ranks"][-1]["observations"][0][changed] = float("nan")
+        path = tmp_path / f"{backend}.json"
+        path.write_text(json.dumps(run))
+        paths.append(path)
+    with pytest.raises(ValueError):
+        summarize(paths)

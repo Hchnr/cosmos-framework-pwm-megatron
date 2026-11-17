@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "ranks": 4,
+  "steps": 3,
+  "gradient_accumulation": 3,
+  "replicas": 2,
+  "gradient_clipping": true,
+  "max_output_error": 0.0,
+  "scope": "FP32 synthetic sharded AdamW reference; frozen parameters, GA=3, clipping and full logical weights",
+  "sharding_strategy": "optim_grads",
+  "seed": 42,
+  "torch": "2.10.0+cu130",
+  "megatron_core": "0.20.0"
+}
