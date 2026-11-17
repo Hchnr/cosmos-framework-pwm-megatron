@@ -1,0 +1,23 @@
+{
+  "scope": "Four H100s, full 36-layer 58-source production-capacity loader, original iter_000001200 optimizer/scheduler/RNG, checkpoint Action/State normalization, Megatron ZeRO-3 versus native PyTorch; checkpoint writes and tokenizer compilation excluded",
+  "run_order": [
+    "pytorch",
+    "megatron",
+    "megatron",
+    "pytorch"
+  ],
+  "initial_iteration": 1200,
+  "final_iteration": 1208,
+  "warmup_updates": 3,
+  "expected_updates_per_run": 8,
+  "expected_steady_updates_per_backend": 10,
+  "expected_microbatches_per_rank_per_run": 24,
+  "required_live_input_cursor_rng_traces_bitwise_equal": true,
+  "maximum_loss_trace_relative_difference": 0.01,
+  "minimum_whole_update_mean_throughput_gain_fraction": -0.03,
+  "minimum_each_paired_whole_update_mean_throughput_gain_fraction": -0.03,
+  "required_nonfinite_or_skipped_optimizer_update_events": 0,
+  "required_actual_media_error_events": 0,
+  "required_all_runs_complete_without_oom": true,
+  "note": "This policy evaluates the scoped ABBA run. It supplements, and does not replace, independent FP32/gradient correctness checks; it does not establish 192-GPU performance or a uniform gradient-error bound across BF16 reference captures."
+}
