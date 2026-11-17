@@ -4,8 +4,11 @@ Run via torchrun with train_real_batch_smoke arguments, steps=1, warmup=0 and
 benchmark-json set to disable checkpoint I/O. These timings are not benchmarks.
 """
 
+import argparse
 import dataclasses
+import json
 import os
+import sys
 from pathlib import Path
 
 import torch
@@ -91,6 +94,11 @@ def capture_inputs(module, args, kwargs):
 
 
 if __name__ == "__main__":
+    if "--help" in sys.argv or "-h" in sys.argv:
+        driver.main()
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--benchmark-json", type=Path, required=True)
+    audit_args, _ = parser.parse_known_args()
     if os.environ.get("GRADIENT_AUDIT_DETERMINISTIC") == "1":
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         torch.use_deterministic_algorithms(True)
@@ -112,3 +120,11 @@ if __name__ == "__main__":
     OmniMoTModel.__init__ = init_with_input_capture
     GradClip.on_before_optimizer_step = capture_then_clip
     driver.main()
+    if int(os.environ["RANK"]) == 0:
+        report = json.loads(audit_args.benchmark_json.read_text())
+        report.update(
+            scope=report["scope"] + "; input/gradient capture; not a throughput benchmark",
+            throughput_qualification=False,
+            gradient_capture_enabled=os.environ.get("GRADIENT_AUDIT_INPUTS_ONLY") != "1",
+        )
+        audit_args.benchmark_json.write_text(json.dumps(report, indent=2) + "\n")

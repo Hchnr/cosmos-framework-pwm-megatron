@@ -836,12 +836,15 @@ The benchmark summarizer additionally rejects failed runs, unknown backends,
 incomplete optimizer-step/loss/data-wait observations, mismatched world sizes,
 invalid warmup windows and non-finite measurements (including warmup). The VLM
 path checks every rank's losses/timings and rejects duplicate rank identities.
-Zero data-wait time is valid. All 34 summary regression tests pass; reaggregating
+Zero data-wait time is valid. All 35 summary regression tests pass; reaggregating
 the earlier live and VLM evidence reproduces their stored summaries exactly.
 MoT comparisons also require matching Torch/CUDA/Megatron versions and GPU
 models, and refuse to mix different Megatron sharding strategies within one
 backend result. PyTorch's unused Megatron-strategy metadata does not constrain
 which candidate strategy can be compared with that baseline.
+Reports explicitly marked `throughput_qualification=false` are rejected. The
+full-depth gradient-capture driver emits this marker because its CPU copies and
+file writes make its step timings unsuitable for throughput qualification.
 
 The fresh crossed live benchmark also completed all four independent launches,
 12 updates per launch, discarding the first three warmup updates and retaining
@@ -873,6 +876,57 @@ audit records the SHA256 of each full local log and both paired gains. Reproduce
 with the live command above using `BENCHMARK_TAG=recheck_20261117_live`, then
 summarize those four tagged run files.
 
+### Four-GPU lower-memory ZeRO-3 comparison
+
+The same crossed live protocol was repeated with
+`MEGATRON_SHARDING_STRATEGY=optim_grads_params`: four independent launches,
+12 updates each, three warmup updates excluded, 18 steady observations per
+backend. Model, fixed capacities **[2048, 16384, 128]**, live source schedule,
+GA=3, BF16/FusedAdam, VAE, clipping and callbacks are unchanged. All 144
+raw-input/cursor/worker-RNG records match across launches and also match the
+ZeRO-2 reference. The four-rank logs contain zero non-finite loss, non-finite
+pre-clip norm or skipped-update events. Maximum relative loss-trace difference
+is **0.002703** (about **0.270%**).
+
+| Live measurement | PyTorch FSDP2 | Megatron ZeRO-3 |
+| --- | ---: | ---: |
+| Mean whole-update seconds, including first fetch | 12.019081 | 11.918723 |
+| Median whole-update seconds | 12.876436 | 12.865693 |
+| P95 whole-update seconds | 14.363850 | 14.252206 |
+| Peak allocated bytes | 51,811,713,024 | 52,757,285,888 |
+
+Mean throughput improves **0.84%**; the paired gains are **0.95%** and **0.73%**.
+Peak allocated memory is only **1.83%** above this PyTorch baseline and about
+**20.34 GB lower** than the earlier ZeRO-2 measurement. This establishes a
+lower-memory operating option with essentially unchanged throughput in the
+measured scope. It does not change the 192-GPU launcher's ZeRO-2 default or
+establish full-capacity production acceptance. Checkpoint I/O and tokenizer
+compilation remain excluded; content hashing overhead is included.
+
+Timings, rank traces, filtered update/gradient-norm logs, paired observations and
+the numerical log audit are retained under `artifacts/megatron/zero3_20261117_live_*`.
+Use the live benchmark command above with tag `zero3_20261117_live` and the
+explicit `optim_grads_params` strategy to reproduce.
+
+The controlled full-depth ZeRO-3 capture compares 811 parameter tensors and
+252 bitwise-identical network inputs against a freshly captured native FSDP2
+reference. Gradient relative L2 error is **0.018611** and cosine is
+**0.999927**, passing the unchanged 0.02 / 0.999 gates. See
+`zero3_20261117_current_qualification.json` and its input/gradient audits.
+
+An earlier comparison against the archived native capture **fails** the same
+L2 gate: **0.022247**, cosine **0.999915**, with all 252 inputs also identical.
+The archived-to-fresh native comparison itself has relative L2 error
+**0.007312** and cosine **0.999981**. Both pass and failure artifacts are
+retained (`zero3_20261117_gradient_qualification.json` is the failed gate;
+`zero3_20261117_reference_repeat.json` records native reference variation).
+This is evidence of BF16 reference sensitivity, not a demonstrated uniform
+2% bound across captures. ZeRO-3 numerical qualification therefore remains
+provisional beyond the current paired comparison; the existing ZeRO-2
+production default stays unchanged. Capturing gradients performs CPU copies
+and disk writes, and those driver timings are explicitly excluded from all
+throughput results above.
+
 ### Outstanding broader acceptance
 
 The source entry, 58-source configuration, live training, asynchronous full-state
@@ -885,6 +939,10 @@ are available, but do not replace a distributed production run.
 
 1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
    stalls and stragglers with the original 16-shard × 12-replica layout.
+   The available four-GPU warm-start timings also do not qualify original
+   production-token training or the source 52-to-58 `extend` continuation with
+   the original checkpoint's optimizer and scheduler states. The existing
+   full-depth restart tests restore newly generated Megatron checkpoints.
 2. Extend qualification to remaining model families, large-model initialization,
    optimizers, higher CP degrees and other parallelism paths.
 3. Measure live, representative standalone VLM recipes including data loading,

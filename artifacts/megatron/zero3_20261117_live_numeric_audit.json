@@ -1,0 +1,56 @@
+{
+  "scope": "All four ranks in four full-depth live ZeRO-3 comparison launches",
+  "failure_patterns": "GradClip: non-finite pre-clip norm|Local rank observed non-finite loss|ALL ranks NaN/Inf[^\\n]*skipping optimizer step",
+  "runs": [
+    {
+      "run": 1,
+      "backend": "pytorch",
+      "optimizer_update_observations": 12,
+      "nonfinite_or_skipped_update_events": 0,
+      "raw_log_sha256": "4a08b4ac06923ee15c795952d0ec8b7177ffe6868e2b4324f439e3b0d05173e0",
+      "filtered_log": "artifacts/megatron/zero3_20261117_live_1_pytorch.filtered.log"
+    },
+    {
+      "run": 2,
+      "backend": "megatron",
+      "optimizer_update_observations": 12,
+      "nonfinite_or_skipped_update_events": 0,
+      "raw_log_sha256": "70aeb049219799f2a7ef1021699eb64d5acd388396577f7819eb4b9d3f0d0b0e",
+      "filtered_log": "artifacts/megatron/zero3_20261117_live_2_megatron.filtered.log"
+    },
+    {
+      "run": 3,
+      "backend": "megatron",
+      "optimizer_update_observations": 12,
+      "nonfinite_or_skipped_update_events": 0,
+      "raw_log_sha256": "79932a603b20f27535a72b149723bf77c9282870fb93e341d930fdf4d2c0c5e1",
+      "filtered_log": "artifacts/megatron/zero3_20261117_live_3_megatron.filtered.log"
+    },
+    {
+      "run": 4,
+      "backend": "pytorch",
+      "optimizer_update_observations": 12,
+      "nonfinite_or_skipped_update_events": 0,
+      "raw_log_sha256": "48078d03d54462ea8411eea253b34c583834bcab02aaabeab8fdfa734b08909f",
+      "filtered_log": "artifacts/megatron/zero3_20261117_live_4_pytorch.filtered.log"
+    }
+  ],
+  "passed": true,
+  "all_traces_match_zero2_reference": true,
+  "paired_results": [
+    {
+      "runs": [
+        1,
+        2
+      ],
+      "whole_update_mean_throughput_gain_fraction": 0.009499654701971671
+    },
+    {
+      "runs": [
+        4,
+        3
+      ],
+      "whole_update_mean_throughput_gain_fraction": 0.007343656673771237
+    }
+  ]
+}

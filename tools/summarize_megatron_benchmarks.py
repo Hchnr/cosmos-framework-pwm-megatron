@@ -106,6 +106,8 @@ def summarize(paths):
     runs = [json.loads(path.read_text()) for path in paths]
     if not runs:
         raise ValueError("Need observations for both backends")
+    if any(run.get("throughput_qualification", True) is not True for run in runs):
+        raise ValueError("Run is explicitly excluded from throughput qualification")
     if any(run["backend"] not in ("pytorch", "megatron") for run in runs):
         raise ValueError("Unknown benchmark backend")
     if "sequence_tokens" in runs[0]:

@@ -1,0 +1,12 @@
+{
+  "passed": false,
+  "inputs": "artifacts/megatron/zero3_20261117_deterministic_inputs.json",
+  "gradients": "artifacts/megatron/zero3_20261117_deterministic_gradients.json",
+  "input_tensor_count": 252,
+  "inputs_bitwise_equal": true,
+  "gradient_relative_l2_error": 0.022246953656422055,
+  "relative_l2_limit": 0.02,
+  "gradient_cosine": 0.9999154080925171,
+  "minimum_cosine": 0.999,
+  "scope": "Archived native FSDP2 capture versus current Megatron ZeRO-3; full 36-layer model; 252 identical inputs; reduced tokens; historical reference sensitivity check"
+}

@@ -101,6 +101,7 @@ def test_summary_rejects_nonfinite_observations_including_warmup(live_runs, inva
     "key,value",
     [
         ("passed", False),
+        ("throughput_qualification", False),
         ("optimizer_steps", 4),
         ("warmup_steps", 3),
         ("warmup_steps", -1),

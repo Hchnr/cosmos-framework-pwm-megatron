@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "inputs": "artifacts/megatron/zero3_20261117_current_inputs.json",
+  "gradients": "artifacts/megatron/zero3_20261117_current_gradients.json",
+  "input_tensor_count": 252,
+  "inputs_bitwise_equal": true,
+  "gradient_relative_l2_error": 0.018610966667030254,
+  "relative_l2_limit": 0.02,
+  "gradient_cosine": 0.9999270412623007,
+  "minimum_cosine": 0.999,
+  "scope": "Current native FSDP2 versus Megatron ZeRO-3; full pretrained 36-layer model; 811 parameter tensors; 252 identical network inputs; reduced token capacities; deterministic noising and cuDNN"
+}
