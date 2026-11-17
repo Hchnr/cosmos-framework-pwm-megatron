@@ -1,0 +1,4 @@
+{
+  "valid_ablation": false,
+  "reason": "MCore MegatronFSDP constructor unconditionally forces overlap_param_gather=True for optim_grads_params; requested False was overridden. Preserve reports as a repeated-default measurement, not a causal control."
+}

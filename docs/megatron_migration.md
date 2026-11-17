@@ -2,6 +2,8 @@
 
 中文总结报告：[Megatron 接入中文总结报告](./megatron_migration_summary_zh.md)。
 
+四卡性能归因与 Nsight App timeline：[nsys 对比报告](./megatron_fsdp_nsys_attribution_zh.md)。
+
 The independent repository is based on the working-tree snapshot recorded in
 `MIGRATION_SOURCE.json`. The production entry is
 `examples/launch_pretrain_state_h1_58src_192gpu.sh`. Its new default output tree

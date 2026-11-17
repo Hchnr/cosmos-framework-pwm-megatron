@@ -19,6 +19,8 @@
 
 性能结论对应四卡、原始 token 容量的短程测试，包含数据等待，排除 checkpoint 写入和 tokenizer 编译。FP32 正确性测试保留完整模型层数，使用缩小 token 容量和 SDPA math；其耗时不计入性能比较。192 卡性能尚未实测，BF16 全模型梯度尚不能保证统一的 2% 误差上界。
 
+性能来源的实测分析、原始 nsys 文件位置和 Nsight App timeline 对比，见 [四卡性能归因报告](./megatron_fsdp_nsys_attribution_zh.md)。
+
 ## 二、分布式策略
 
 ### 2.1 ZeRO-3 具体 shard 什么
@@ -106,7 +108,7 @@ Megatron 的通信 hooks 已适配 Cosmos 的嵌套输出结构，保证反向�
 
 多个样本按 token 预算装入同一微批，再将文本、视频、动作编码后的 token 组织为 packed sequence。样本边界、position 与 attention mask 保持独立，避免不同样本互相注意。
 
-当前固定容量为 **UND 11776 / VIDEO GEN 62592 / ACTION 2944**，UND 另有 **5120** 的短桶；每个微批最多 **92 个样本**，实际数量由各模态 token 预算决定。固定容量会保留 padding，用来稳定编译形状，packing 不代表完全没有 padding。
+当前固定配置为 **UND 11776 / GEN 62592 / ACTION 2944**；其中 GEN 包含 Action，三塔实际拆为 **VIDEO 59648 + ACTION 2944**，UND 另有 **5120** 的短桶；每个微批最多 **92 个样本**，实际数量由各模态 token 预算决定。固定容量会保留 padding，用来稳定编译形状，packing 不代表完全没有 padding。
 
 当前固定长度路径采用顺序 token-budget / packing batcher，按顺序收集能容纳的样本；溢出的样本留给后续微批，不依赖池内重排。配置 schema 中虽有 `packing_pool_size=16` 默认值，**当前固定长度路径不使用该池式 packing 分支**。
 

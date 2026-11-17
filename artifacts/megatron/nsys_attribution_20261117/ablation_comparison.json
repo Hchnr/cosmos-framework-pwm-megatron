@@ -1,0 +1,33 @@
+{
+  "valid_control": true,
+  "change": "Force AllGatherPipeline.all_gather_params(prefetch=False), preserve overlapped ZeRO3 operation",
+  "default_profiled_seconds": 39.091324016451836,
+  "no_prefetch_profiled_seconds": 39.333230750635266,
+  "no_prefetch_slowdown_fraction": 0.006188246120331531,
+  "suppressed_prefetch_requests_rank0_all_five_updates_and_setup": 1106,
+  "effective_overlap_param_gather_still_true": true,
+  "input_comparison": [
+    {
+      "rank": 0,
+      "microbatches": 15,
+      "records_equal": true
+    },
+    {
+      "rank": 1,
+      "microbatches": 15,
+      "records_equal": true
+    },
+    {
+      "rank": 2,
+      "microbatches": 15,
+      "records_equal": true
+    },
+    {
+      "rank": 3,
+      "microbatches": 15,
+      "records_equal": true
+    }
+  ],
+  "max_loss_trace_relative_difference_to_default_megatron": 0.002718834518211916,
+  "note": "Two profiled updates; small difference, not a precise stable causal percentage."
+}

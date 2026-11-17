@@ -107,6 +107,7 @@ class MegatronRuntime:
         compute_dtype=None,
         init_model_with_meta_device=False,
         frozen_master_dtype=None,
+        param_prefetch=True,
     ):
         from megatron.core.distributed.fsdp.src.megatron_fsdp import fully_shard_model
         from megatron.core.distributed.fsdp.src.megatron_fsdp.mixed_precision import MixedPrecisionPolicy
@@ -147,6 +148,20 @@ class MegatronRuntime:
             report_nan_in_param_grad=False,
             **kwargs,
         )
+        self.suppressed_prefetch_requests = 0
+        if not param_prefetch:
+            # ZeRO-3 forces overlap_param_gather=True inside MCore. Disable
+            # actual lookahead requests for attribution, retaining its required
+            # asynchronous gather/reduce lifecycle and numerical behavior.
+            original_gather = self.fsdp.all_gather_pipeline.all_gather_params
+
+            @wraps(original_gather)
+            def gather_without_prefetch(*args, **kwargs):
+                self.suppressed_prefetch_requests += int(kwargs.get("prefetch", False))
+                kwargs["prefetch"] = False
+                return original_gather(*args, **kwargs)
+
+            self.fsdp.all_gather_pipeline.all_gather_params = gather_without_prefetch
         _support_pytree_backward_hooks(module)
         _support_compiled_parameter_casts(self.fsdp)
         # Megatron's forward method only swaps optimizer DTensors to compute

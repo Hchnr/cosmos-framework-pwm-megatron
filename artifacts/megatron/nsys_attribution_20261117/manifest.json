@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-17",
+  "baseline_commit": "67084efd50da14cc3d2c52ead02d25a17b42e76f",
+  "scope": "Four H100, original 58-source checkpoint continuation, full capacity BF16 GA3 compile/full AC; FSDP2 versus Megatron ZeRO3",
+  "capture_updates": [
+    1204,
+    1205
+  ],
+  "warmup_updates": [
+    1201,
+    1202,
+    1203
+  ],
+  "nsys_version": "NVIDIA Nsight Systems version 2026.2.1.210-262137639646v0",
+  "trace": [
+    "cuda",
+    "nvtx",
+    "nccl"
+  ],
+  "cpu_sampling": false,
+  "cuda_graph_trace": "node",
+  "raw_root": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_attribution_20261117",
+  "sources_sha256": {
+    "tests/megatron/train_real_batch_smoke.py": "75099ace97fc7973f6e08abbb0fdb9f53b57b8fd83319eed0d2347eed6a5176e",
+    "tools/profile_megatron_fsdp_rank.py": "6799712e0b08fb88a58e564c3d2690ce6ba941cc1af16d5d6f04fff05d7ef031",
+    "tools/profile_megatron_fsdp.sh": "68caa9547a2ae6166809f529377789e1500868a9b238f9658dc58f82b3535fa6",
+    "cosmos_framework/training_backends/megatron.py": "a2c0c49e5038aadce4ae84106c9eb88234608616ebf24891243a15713d0b0f6f"
+  },
+  "previous_unprofiled_qualification": "artifacts/megatron/source_full_20261117_qualification.json",
+  "note": "Profile timings are diagnostic, not new throughput claims. Retain every .nsys-rep and export beside it.",
+  "megatron_fsdp_sources": {
+    ".venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/megatron_fsdp.py": {
+      "resolved_path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/megatron_fsdp.py",
+      "sha256": "c5a6245faaa3fda5333d76cbe3401a034e786198ce9ec869b7eaad0353aba9d5"
+    },
+    ".venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py": {
+      "resolved_path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py",
+      "sha256": "0970a02c832a616d65c3d5ba685f6f8401009510ad978f23ef8d20a13911abbe"
+    }
+  },
+  "valid_ablation": "ablation_no_prefetch: intercept AllGatherPipeline.all_gather_params and force prefetch=False; preserve required overlapped ZeRO3 mode",
+  "rejected_ablation": "ablation_no_param_overlap: overlap_param_gather=False is forced back to True by MCore constructor, not a causal control",
+  "runtime_test_sources_sha256": {
+    "cosmos_framework/training_backends/megatron.py": "4ff81047fee826887b358e48a335451c61833db4cf5e190dd4b452e56907ceca",
+    "tests/megatron/train_real_batch_smoke.py": "16563946fa929d79d80f3febb528dbbb5b665fb8b623139593e3450cfad16bfb",
+    "tools/profile_megatron_fsdp.sh": "4847531491954c25e6504d40356a786ab93c74127a0bec16567852656705c6ba"
+  }
+}

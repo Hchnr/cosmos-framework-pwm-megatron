@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "valid_profile_reports": 12,
+  "captured_updates_per_rank": 2,
+  "expected_captured_updates": [
+    1204,
+    1205
+  ],
+  "finite_losses": true,
+  "original_optimizer_and_normalization_restored": true,
+  "no_actual_media_error_files": true,
+  "whole_update_partition_identity_checked": true,
+  "links_and_images_exist": true,
+  "raw_reports_retained_including_invalid_control": 16,
+  "qualification_scope": "Profiling/attribution only, no new unprofiled throughput claim"
+}

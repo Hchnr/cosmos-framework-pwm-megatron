@@ -32,6 +32,23 @@ class ReplayBatch:
         return (copy.deepcopy(self.batch) for _ in itertools.count())
 
 
+class ProfileUpdateRanges(Callback):
+    """Mark whole updates, including loader wait and benchmark synchronization."""
+
+    def __init__(self):
+        super().__init__()
+        self.active = None
+
+    def on_before_dataloading(self, iteration=0):
+        if self.active is None:
+            self.active = torch.cuda.nvtx.range_start(f"attribution.update.{iteration + 1:06d}")
+
+    def on_training_step_end(self, model, data_batch, output_batch, loss, iteration=0):
+        if self.active is not None:
+            torch.cuda.nvtx.range_end(self.active)
+            self.active = None
+
+
 class StepMeasurement(Callback):
     def __init__(self, *, reset_seed=True, expected_start_iteration=None):
         super().__init__()
@@ -132,6 +149,9 @@ def main():
     parser.add_argument("--trace-json", type=Path)
     parser.add_argument("--benchmark-json", type=Path)
     parser.add_argument("--warmup-steps", type=int, default=2)
+    parser.add_argument("--profile-start-iteration", type=int)
+    parser.add_argument("--profile-updates", type=int, default=2)
+    parser.add_argument("--disable-param-prefetch", action="store_true")
     parser.add_argument("--und-tokens", type=int, default=512)
     parser.add_argument("--gen-tokens", type=int, default=8192)
     parser.add_argument("--action-tokens", type=int, default=128)
@@ -212,6 +232,18 @@ def main():
         )
     if args.preserve_source_normalization:
         overrides.append("checkpoint.action128_preserve_source_normalization=true")
+    if args.profile_start_iteration is not None:
+        if args.profile_updates < 1 or args.profile_start_iteration + args.profile_updates > args.steps:
+            parser.error("Profile window must contain positive complete updates within --steps")
+        overrides.extend(
+            [
+                "trainer.profiling.enable_nsys=true",
+                f"trainer.profiling.profile_freq={args.profile_start_iteration + args.profile_updates}",
+                "trainer.profiling.profile_warmup=0",
+                f"trainer.profiling.profile_active={args.profile_updates}",
+                "trainer.profiling.target_ranks=" + str(list(range(distributed.get_world_size()))),
+            ]
+        )
     if args.state_normalization_paths:
         paths = json.loads(args.state_normalization_paths.read_text())
         overrides.append("dataloader_train.action_state_normalization_paths=" + json.dumps(paths))
@@ -227,7 +259,24 @@ def main():
         "original production token capacities" if args.production_capacities else "reduced token capacities"
     )
     trainer = config.trainer.type(config)
+    if args.profile_start_iteration is not None:
+        from cosmos_framework.utils.callback import NVTXCallback
+        from cosmos_framework.utils.nvtx import NVTXGranularity
+
+        nvtx_callbacks = [c for c in trainer.callbacks._callbacks if isinstance(c, NVTXCallback)]
+        if nvtx_callbacks:
+            for callback in nvtx_callbacks:
+                callback.granularity = NVTXGranularity.MODULE
+        else:
+            callback = NVTXCallback(granularity="module")
+            callback.config = config
+            callback.trainer = trainer
+            trainer.callbacks._callbacks.append(callback)
     model = instantiate(config.model)
+    if args.disable_param_prefetch:
+        if args.backend != "megatron":
+            parser.error("--disable-param-prefetch requires the Megatron backend")
+        model.net._cosmos_megatron_options["param_prefetch"] = False
     if distributed.get_rank() == 0:
         print("FULL_DEPTH_MODEL_INITIALIZED", flush=True)
     measurement = None
@@ -241,6 +290,8 @@ def main():
         # Isolate training-step throughput; actual async saves are tested by the
         # default integration mode. This benchmark explicitly excludes save I/O.
         trainer.checkpointer.save = lambda *args, **kwargs: None
+    if args.profile_start_iteration is not None:
+        trainer.callbacks._callbacks.append(ProfileUpdateRanges())
     if args.trace_json:
         from live_loader_trace import LiveTrace
 
@@ -255,6 +306,12 @@ def main():
     faulthandler.cancel_dump_traceback_later()
     # The stock trainer destroys the process group at completion.
     if int(os.environ["RANK"]) == 0:
+        from cosmos_framework.training_backends.megatron import get_runtime
+
+        runtime = get_runtime(model)
+        suppressed_prefetch = runtime.suppressed_prefetch_requests if runtime is not None else 0
+        if args.disable_param_prefetch and suppressed_prefetch == 0:
+            raise RuntimeError("Prefetch ablation did not suppress any actual prefetch requests")
         if measurement is not None and len(measurement.seconds) <= args.warmup_steps:
             raise ValueError("No steady updates after the restored starting iteration")
         report = {
@@ -263,6 +320,11 @@ def main():
             if args.live_data
             else f"full 36-layer model, one replayed real batch, {capacity_scope}",
             "sharding_strategy": args.sharding_strategy,
+            "param_prefetch": not args.disable_param_prefetch if args.backend == "megatron" else None,
+            "suppressed_prefetch_requests": suppressed_prefetch,
+            "effective_overlap_param_gather": bool(runtime.fsdp.ddp_config.overlap_param_gather)
+            if runtime is not None
+            else None,
             "gradient_accumulation": 3,
             "optimizer_steps": len(measurement.seconds) if measurement is not None else args.steps,
             "checkpoint": str(args.checkpoint),
