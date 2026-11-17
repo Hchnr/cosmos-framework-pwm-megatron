@@ -1,174 +1,176 @@
 # Megatron 接入中文总结报告
 
-报告日期：2026 年 11 月 17 日（北京时间）  
-结果依据：实现与验收记录提交 [`c26104a`](https://github.com/Hchnr/cosmos-framework-pwm-megatron/commit/c26104ab9e07b028803ecf37ada27a3f9f3b2a23)。
+更新日期：2026 年 11 月 17 日
 
-## 一、结论
+## 一、接入结果
 
-原始 58-source 训练已接入 Megatron-Core。在用户指定的 **4 张 H100 80GB** 上，已跑通原始 checkpoint 的续训，并完成原始容量配置下的 BF16 性能比较及独立的全模型 FP32 梯度对照。
+原始 58-source、State128 三塔训练已接入 **Megatron-Core 0.20.0 的 Megatron-FSDP backend**。模型、数据、loss 和训练配置继续使用 Cosmos 实现，由 Megatron 管理数据并行分片与通信。
 
-| 验收项 | 主要结果 | 当前结论 |
-| --- | --- | --- |
-| 原始状态续训 | 从 `iter_000001200` 恢复模型、优化器、scheduler、trainer/RNG；保留旧归一化 | 四卡续训通过 |
-| FP32 正确性 | 36 层、252 个网络输入张量逐位一致；811 个参数梯度全局相对 L2 误差 **4.27×10⁻⁸** | 独立 FP32 对照通过 |
-| BF16 数值表现 | 两组跨 backend 配对的 loss 最大相对差分别为 **0.238% / 0.294%** | 通过本次 loss 误差门槛 |
-| 性能 | 含数据等待的整次更新均值 **40.11 → 38.39 秒**，吞吐提升 **4.48%** | 本次四卡配置有收益 |
-| 显存 | 峰值分配显存 **81.764 → 81.835 GB**，增加约 **0.087%** | 基本持平，无 OOM |
+当前在 **4 张 H100 80GB** 上完成验证：
 
-**结论限于本次四卡 ZeRO-3 验证范围。尚不能据此宣称 192 卡性能已验收，也不能宣称 BF16 全模型梯度始终满足统一的 2% 误差上界。**
-
-证据：[性能验收结果:1](../artifacts/megatron/source_full_20261117_qualification.json)、[FP32 验收结果:1](../artifacts/megatron/full_depth_fp32_20261117_qualification.json)。
-
-## 二、任务范围与实现方式
-
-原始训练入口：
-
-```text
-/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/examples/launch_pretrain_state_h1_58src_192gpu.sh
-```
-
-新实现仓库：
-
-```text
-/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron
-https://github.com/Hchnr/cosmos-framework-pwm-megatron.git
-```
-
-本次采用 **Megatron-FSDP backend**：由 Megatron-Core 管理参数、梯度及优化器状态分片，以及相关通信；继续使用 Cosmos 原有的数据处理、三塔模型计算、loss、优化器参数分组、FP32 Adam master weights、scheduler、编译和 activation checkpointing。原生 PyTorch backend 保留，作为对照路径。
-
-本路径未启用 TP/PP，生产三塔配置保持 CP=1。需要区分两项配置：
-
-- **本次四卡完整配置验收使用 ZeRO-3**，即 `optim_grads_params`。
-- **192 卡生产 launcher 的默认值仍为 ZeRO-2**，即 `optim_grads`；四卡 ZeRO-3 的结果不替代该默认布局的 192 卡验收。
-
-主要适配内容包括复杂模型输出的 backward hooks、activation recomputation、梯度通信与裁剪顺序、空分片统计归约，以及 DCP checkpoint 分片元数据处理。
-
-实现参考：[megatron.py:94](../cosmos_framework/training_backends/megatron.py#L94)、[生产 launcher:61](../examples/launch_pretrain_state_h1_58src_192gpu.sh#L61)。
-
-## 三、旧归一化与完整训练状态续接
-
-### 发现的问题
-
-原始最新 checkpoint 为 `iter_000001200`。其保存的契约与当前 58-source 数据配置之间，有 **12 个旧 Bench2Dex 域的归一化 scale/bias/mask 或摘要发生变化**。原生 PyTorch 的严格 `extend` 校验同样会拒绝这一差异，因此不能直接跳过校验加载。
-
-根据用户确认，本次采用“**保留 checkpoint 旧归一化，继续原始训练状态**”的语义。
-
-### 实际处理
-
-1. 在模型构建前读取源 checkpoint 的契约，按域名保留 **106 个旧域**的动作归一化；**6 个新增域**使用当前配置。
-2. 模型和数据 loader 使用同一份合并后的 Action128 契约，继续严格校验域身份、embodiment、投影路由、版本和空间 RoPE 等信息。
-3. State128 输入有独立的归一化，不能仅从动作 normalizer 推导。已纳入发布方升级前的 State 快照，并通过显式路径映射加载。
-4. 恢复后，Bench2Dex 处理指纹与 checkpoint 保存值完全一致，原有数据流指纹校验保持启用。
-5. 恢复模型、优化器、scheduler、trainer/RNG。**追加数据源后重置数据流游标**，遵循原始 `extend` 语义，并非从旧 52-source 的原游标直接延续到新 58-source 调度。
-
-对应配置为 `checkpoint.action128_preserve_source_normalization=true` 与 `dataloader_train.action_state_normalization_paths`，生产 launcher 已提供配置。
-
-需要保留一项数据边界：发布方升级还改过部分被动 Action 的原始值和 mask。本次恢复的是旧归一化及训练状态，**不等同于恢复升级前每一个原始数据 payload**。
-
-证据与实现：[归一化保留记录:1](../artifacts/megatron/source_normalization_preservation.json)、[首次严格校验失败记录:1](../artifacts/megatron/source_extend_contract_failure.json)、[action128.py:11](../cosmos_framework/checkpoint/action128.py#L11)、[配置组装:1336](../cosmos_framework/configs/toml_config/sft_config.py#L1336)。
-
-## 四、正确性验证
-
-### 1. 原始状态、原始容量的 BF16 续训
-
-两端先分别从第 1200 步续训至第 1203 步，随后进行四次配对运行，每次从同一源 checkpoint 续训至第 1208 步。
-
-四次运行中，每张卡各记录 **24 个微批**；跨卡共 96 个不同内容哈希的记录，在四次运行间逐项一致，包括输入内容、游标和恢复 RNG 信息。未出现非有限 loss、非有限裁剪范数、跳过优化器更新、实际媒体错误或 OOM。
-
-BF16 loss 对照结果：
-
-| 比较范围 | 最大相对差 |
-| --- | ---: |
-| 第一组 PyTorch / Megatron | 0.23769% |
-| 第二组 PyTorch / Megatron | 0.29355% |
-| PyTorch 自身两次重复 | 0.43786% |
-| Megatron 自身两次重复 | 0.35769% |
-
-因此，全部四次 loss 轨迹相对首轮 PyTorch 的最大差为 **0.43786%**，该最大值来自 PyTorch 自身重复运行。上述结果是 loss 层面的验证，不能代替完整梯度误差比较。
-
-证据：[原始状态续训检查:1](../artifacts/megatron/source_extend_preserved_qualification.json)、[ABBA 数值与输入检查:1](../artifacts/megatron/source_full_20261117_qualification.json)。
-
-### 2. 独立的全模型 FP32 梯度对照
-
-为进一步区分 backend 接入误差与 BF16 参考波动，保留完整 **36 层模型**进行临时 FP32 对照：
-
-- 使用真实 batch 回放、GA=3、编译和完整 activation checkpointing。
-- 容量缩小为 UND/GEN/ACTION = **512 / 8192 / 128**。
-- 从原始 checkpoint 做模型初始化，使用当前 catalog 归一化及新优化器状态；该测试与上面的原始状态 BF16 续训是两项互补验证。
-- 强制 SDPA math backend、确定性算法，关闭 matmul/cuDNN TF32，并检查参数与梯度 dtype。
-
-| 指标 | 实测值 | 测试前设定门槛 |
-| --- | ---: | ---: |
-| 网络输入 | 252 个张量逐位一致 | 一致 |
-| 比较范围 | 全部 811 个参数梯度 | 全量比较 |
-| 全局梯度相对 L2 误差 | **4.2703274×10⁻⁸** | ≤ 10⁻⁴ |
-| 梯度余弦相似度 | **0.9999999999025** | ≥ 0.999999 |
-| 两端最终微批 loss | **0.1289336234331131** | 有限 |
-
-全部门槛通过。FP32 测试改变了精度、attention backend 和 token 容量，并包含梯度导出开销，其耗时明确排除在性能结论之外。
-
-早期 BF16 全模型梯度对照仍完整保留：对新 PyTorch 参考的相对 L2 误差约 **1.8611%**，对归档参考则约 **2.2247%**，后者未通过当时的 2% 门槛；两份 PyTorch 参考之间也存在约 **0.7312%** 的梯度差。因此，本报告不宣称统一的 BF16 2% 梯度上界。新增 FP32 结果独立验证 backend 梯度计算误差。
-
-证据：[FP32 全量梯度结果:1](../artifacts/megatron/full_depth_fp32_20261117_gradients.json)、[FP32 验收:1](../artifacts/megatron/full_depth_fp32_20261117_qualification.json)、[保留的 BF16 失败记录:1](../artifacts/megatron/zero3_20261117_gradient_qualification.json)。
-
-## 五、性能验证
-
-### 测试设置
-
-| 项目 | 配置 |
+| 项目 | 结果 |
 | --- | --- |
-| 硬件与环境 | 4 × H100 80GB；PyTorch 2.10.0+cu130；Megatron-Core 0.20.0 |
-| 模型 | 原始三塔结构，完整 36 层，BF16，FusedAdam FP32 master weights |
-| Token 容量 | UND 11776 / GEN 62592 / ACTION 2944；保留 short UND 5120 策略 |
-| 训练 | GA=3、梯度裁剪、编译、完整 activation checkpointing |
-| 生产 loader | 16 workers、prefetch 8、packing pool 16、最多 92 样本 |
-| 状态 | 从原始第 1200 步恢复优化器、scheduler、trainer/RNG及旧归一化 |
-| 运行顺序 | PyTorch → Megatron → Megatron → PyTorch（ABBA） |
-| 采样 | 每次更新 8 步，剔除前 3 步；每端共 10 个稳定阶段观测 |
+| 原始 checkpoint 续训 | 保留旧归一化，恢复模型、优化器、scheduler、trainer/RNG |
+| FP32 全模型正确性 | 36 层、811 个参数梯度的全局相对 L2 误差 **4.27×10⁻⁸** |
+| BF16 loss 对照 | 两组跨 backend 比较最大相对差 **0.238% / 0.294%** |
+| 整次更新平均耗时 | 原生 PyTorch **40.11 s** → Megatron ZeRO-3 **38.39 s** |
+| 吞吐收益 | **+4.48%** |
+| 峰值分配显存 | **81.764 → 81.835 GB**，增加约 **0.087%** |
 
-主指标是**包含数据等待的整次更新耗时**。两端均包含内容哈希检查开销，排除 checkpoint 写入和 tokenizer 编译。测试前已提交验收门槛：输入完全一致、无非有限/跳过更新及媒体错误、loss 相对差不超过 1%，整体及两组配对吞吐均不得下降超过 3%。
+性能结论对应四卡、原始 token 容量的短程测试，包含数据等待，排除 checkpoint 写入和 tokenizer 编译。FP32 正确性测试保留完整模型层数，使用缩小 token 容量和 SDPA math；其耗时不计入性能比较。192 卡性能尚未实测，BF16 全模型梯度尚不能保证统一的 2% 误差上界。
 
-### 测试结果
+## 二、分布式策略
 
-| 指标 | 原生 PyTorch | Megatron ZeRO-3 |
-| --- | ---: | ---: |
-| 整次更新平均耗时 | 40.11032 s | 38.39142 s |
-| 整次更新 P95 | 42.15494 s | 39.91611 s |
-| 平均数据等待 | 0.00469 s | 0.00444 s |
-| 峰值分配显存（十进制 GB） | 81.76409 | 81.83536 |
+### 2.1 ZeRO-3 具体 shard 什么
 
-吞吐收益按 `PyTorch 平均耗时 / Megatron 平均耗时 − 1` 计算，整体为 **4.4773%**；两组正反顺序配对分别为 **4.6080%** 和 **4.3465%**。显存增加 **71,267,328 bytes，约 0.0872%**。本次测试显示稳定的正向收益，且显存基本持平；短程样本不支持向其他规模直接外推。
+本实现的 ZeRO-3 配置值为 `optim_grads_params`，在 **DP shard group** 内分摊以下持久训练状态：
 
-证据：[性能汇总:1](../artifacts/megatron/source_full_20261117_summary.json)、[预设门槛:1](../artifacts/megatron/source_full_20261117_acceptance_policy.json)。
+| 对象 | ZeRO-3 中的处理 |
+| --- | --- |
+| 模型计算权重 | 通常为 BF16，各卡长期持有其中一片；计算相应模块前 all-gather 完整权重 |
+| FP32 master weights | 各卡持有自己负责更新的权重分片 |
+| 参数梯度 | 通过 reduce-scatter 等通信聚合并分片，各卡负责对应部分 |
+| Adam 优化器状态 | 一阶矩 `m`、二阶矩 `v` 随参数分片，各卡只更新本地部分 |
+| 激活、输入 batch | **ZeRO-3 本身不沿序列维分片这些内容**；激活显存主要通过重计算控制 |
 
-## 六、适用边界与后续验证
+分片以 Transformer block 等 FSDP unit 组织。前向和反向需要某个 unit 时聚合权重，按需释放完整计算权重；梯度聚合完成后，各 rank 用本地梯度、master weights 和 Adam 状态更新本地分片。
 
-已完成的验证针对当前批准的四卡范围，仍有以下边界：
+因此，“4 卡 ZeRO-3”表示主要持久状态按 4 卡分摊，**不表示每卡峰值显存等于单卡的四分之一**：计算时仍需临时完整权重、激活、通信 buffer 和工作区。
 
-1. **192 卡尚未实测**，包括原始 shard16 × replica12 布局的通信、显存、长尾与实际吞吐。
-2. **本次 4.48% 收益不包含 checkpoint 写入及 tokenizer 编译**，不能直接作为包含这些开销的长程训练总收益。
-3. 四次运行各 8 步，稳定阶段为 5 个更新 profile 的两次重复；实际采样覆盖 **15/58 个配置数据流**，未遍历全部数据窗口。
-4. FP32 对照使用缩小容量和 SDPA math；BF16 性能测试使用原始容量及生产 attention 路径，两者用途不同。
-5. 全部失败、通过及参考波动记录均保留，未通过放宽旧校验来消除不兼容或失败结果。
+实现位置：[megatron.py:94](../cosmos_framework/training_backends/megatron.py#L94)、[optimizer.py:393](../cosmos_framework/utils/generator/optimizer.py#L393)。
 
-后续建议按顺序补充：更长程四卡训练与 checkpoint 保存/重启检查；192 卡原始并行布局实测；扩大数据流与窗口覆盖。再据此评估大规模上线范围。
+### 2.2 其他可选分片策略
 
-## 七、复现与交付
+通过 `MEGATRON_SHARDING_STRATEGY` 或 `model.config.parallelism.megatron_sharding_strategy` 切换：
 
-在仓库根目录、使用已配置的训练环境执行以下命令，可复现原始状态、原始容量的四卡 ABBA 测试。`BASE_CHECKPOINT_PATH` 需要指向实际存在且完整保存的源 checkpoint。
+| 配置值 | 对应策略 | 计算权重 | 梯度 | FP32 master weights / Adam 状态 |
+| --- | --- | --- | --- | --- |
+| `no_shard` | 普通数据并行 | 复制 | 复制并同步 | 复制 |
+| `optim` | ZeRO-1 | 复制 | 复制并同步 | 分片 |
+| `optim_grads` | ZeRO-2 | 复制 | 分片 | 分片 |
+| `optim_grads_params` | ZeRO-3 | 分片、按需聚合 | 分片 | 分片 |
+
+**生产启动脚本默认 ZeRO-2，本次四卡原始容量测试使用 ZeRO-3。** ZeRO-2 常驻完整计算权重，减少模块级反复 all-gather，代价是更多显存；ZeRO-3 进一步节省权重存储，增加按需聚合通信。应结合模型容量与集群通信开销选择。
+
+配置定义：[sft_config.py:138](../cosmos_framework/configs/toml_config/sft_config.py#L138)；启动默认值：[launch_pretrain_state_h1_58src_192gpu.sh:58](../examples/launch_pretrain_state_h1_58src_192gpu.sh#L58)。
+
+### 2.3 HSDP、CP、TP、PP 的支持情况
+
+| 策略 | 当前实现及使用情况 |
+| --- | --- |
+| DP / FSDP | 已接入；不同 rank 处理各自数据，用分片通信同步训练状态 |
+| HSDP：分片 + 外层复制 | 已接入；由 `data_parallel_shard_degree` 和 `data_parallel_replicate_degree` 配置 |
+| CP：上下文并行 | Cosmos 两塔路径已支持与 Megatron 分片组合，已有 CP=2/4 的功能验证；**本次三塔模型强制 CP=1** |
+| TP：张量并行 | **本接入路径未实现**；runtime 的 `tp` 维固定为 1，没有切分 Linear 的矩阵计算 |
+| PP：流水线并行 | **本接入路径未实现**；没有把不同模型层分配到不同 stage，也没有流水线调度 |
+
+生产计划布局为 **192 卡 = shard16 × replica12**：每组 16 卡分摊训练状态，共 12 组副本，副本之间同步梯度。ZeRO-3 下状态按 **16** 分摊，而非按 192 分摊。四卡测试则为 **shard4 × replica1**。
+
+CP 沿序列维切分 token 与激活；本仓库的 CP 叠加在现有 DP mesh 上，不额外乘出一组 GPU。仓库包含 CP 配置不代表三塔训练可直接设为 CP>1，三塔代码有显式限制。Megatron 库具备其他并行能力，也不代表当前 Cosmos 接入已经启用。
+
+实现位置：[mesh 与 HSDP:118](../cosmos_framework/training_backends/megatron.py#L118)、[CP 配置:165](../cosmos_framework/configs/toml_config/sft_config.py#L165)、[三塔 CP 限制:317](../cosmos_framework/model/generator/omni_mot_model.py#L317)、[两塔 CP 安装:304](../cosmos_framework/model/generator/mot/parallelize_unified_mot.py#L304)。
+
+## 三、训练优化的启用情况
+
+### 3.1 Attention：已使用 FlashAttention，但按分支选择
+
+生产配置为 `action_tower_attention_backend="flash3_video"`：
+
+- **VIDEO 分支使用 FlashAttention 3 的 varlen 路径**，按样本组织 Q/KV 和累计长度。
+- **UND / ACTION 分支使用 FlexAttention 块稀疏路径**，按样本和因果可见性构造 BlockMask，跳过跨样本不可见区域。
+- Attention metadata 在 decoder 层外构造并复用，避免逐层、逐次重计算重复构建。
+
+因此当前训练并非所有 attention 都使用 FlashAttention。该混合策略沿用原始三塔训练设置，Megatron 接入保留其计算路径。
+
+实现位置：[small_action_tower.py:172](../cosmos_framework/model/generator/mot/small_action_tower.py#L172)、[small_action_attention.py:1](../cosmos_framework/model/generator/mot/small_action_attention.py#L1)。
+
+### 3.2 Compile：已启用逐 block 编译
+
+`[model.compile]` 中 `enabled=true`、`compiled_region="language"`、`compile_dynamic=false`。语言 / MoT decoder 按 Transformer block 使用 `torch.compile(fullgraph=True, dynamic=False)`，配合固定 token 容量减少形状变化和重编译。
+
+Tokenizer / VAE 另有编译 callback：第 3 次迭代后执行预设分辨率的编译与覆盖检查。**跨进程 compile cache 当前关闭**，不能据此认为重启后无需编译。
+
+Megatron 适配保留原有编译范围，并处理其参数存储检查与 Dynamo 的兼容性。
+
+配置与实现：[模型编译配置:40](../examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml#L40)、[逐 block 编译:185](../cosmos_framework/model/generator/mot/parallelize_unified_mot.py#L185)、[Tokenizer 编译:399](../examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml#L399)。
+
+### 3.3 重计算：已启用完整 activation checkpointing
+
+`[model.activation_checkpointing] mode="full"`，对每个 Transformer block 包装 activation checkpoint。前向保留 block 边界所需张量，反向重新计算 block 内中间激活，以增加计算换取激活显存下降；不是只重算 attention，也不是对整个训练 step 重跑。
+
+Megatron 的通信 hooks 已适配 Cosmos 的嵌套输出结构，保证反向重计算前能正确聚合所需权重。重计算与 ZeRO-3 解决不同的显存来源，当前同时启用。
+
+实现位置：[full AC:114](../cosmos_framework/model/generator/mot/parallelize_unified_mot.py#L114)、[逐层包装:155](../cosmos_framework/model/generator/mot/parallelize_unified_mot.py#L155)、[Megatron backward hooks:20](../cosmos_framework/training_backends/megatron.py#L20)。
+
+### 3.4 Packing：已启用多样本 packing 与固定容量
+
+多个样本按 token 预算装入同一微批，再将文本、视频、动作编码后的 token 组织为 packed sequence。样本边界、position 与 attention mask 保持独立，避免不同样本互相注意。
+
+当前固定容量为 **UND 11776 / VIDEO GEN 62592 / ACTION 2944**，UND 另有 **5120** 的短桶；每个微批最多 **92 个样本**，实际数量由各模态 token 预算决定。固定容量会保留 padding，用来稳定编译形状，packing 不代表完全没有 padding。
+
+当前固定长度路径采用顺序 token-budget / packing batcher，按顺序收集能容纳的样本；溢出的样本留给后续微批，不依赖池内重排。配置 schema 中虽有 `packing_pool_size=16` 默认值，**当前固定长度路径不使用该池式 packing 分支**。
+
+配置与实现：[容量配置:34](../examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml#L34)、[batcher 选择:969](../cosmos_framework/data/generator/catalog_processors.py#L969)、[序列 packing:1](../cosmos_framework/data/generator/sequence_packing/packers.py#L1)。
+
+### 3.5 通信、优化器与数据准备
+
+| 优化 | 当前状态与作用 | 来源 |
+| --- | --- | --- |
+| 梯度通信 / 参数聚合与计算重叠 | `overlap_grad_reduce=true`、`overlap_param_gather=true`，降低通信暴露时间 | Megatron backend |
+| 梯度累积 | GA=3；按最后一个微批标记完成梯度同步，裁剪前等待通信完成；ZeRO-3 的按需参数聚合仍会发生 | 原训练设置 + Megatron 适配 |
+| 梯度范数与裁剪 | 本地 FP32 范数聚合后，在 shard group 做一次范数归约，使用 foreach 缩放；兼容空分片，避免逐参数范数 collective | Megatron 适配 |
+| 混合精度与优化器 | BF16 模型计算，FusedAdam 与 FP32 master weights，保留原有学习率及 weight decay 分组 | 沿用原训练 |
+| 模态路由投影 | VIDEO / ACTION 只计算各自 token 对应的投影和 MLP，避免冗余的全 GEN 计算 | 沿用原训练 |
+| 数据准备 | shared prefetch，16 workers、prefetch 8，复用媒体 seek groups 与 episode metadata cache | 沿用原训练 |
+| 主机内存与代码读取 | queued video 使用 pageable memory；关闭 NumPy / mimalloc 大页建议；训练代码暂存到节点本地 | 沿用原训练 |
+| Checkpoint | DCP 异步保存，每 200 步保存；Megatron 分片元数据适配原有保存 / 恢复链路 | 原机制 + Megatron 适配 |
+
+额外的 QKV / MLP 输入投影融合已有可选实现，但 `megatron_fuse_projections=false`，**当前默认未启用**。三塔 recipe 的 EMA 也关闭。
+
+以上多数计算和数据优化在原训练中已经存在，本次接入主要新增分片通信及其与原训练链路的适配。**4.48% 是整体 backend 对比收益，没有逐项消融，不能给每项优化单独分配收益。**
+
+实现位置：[通信配置:143](../cosmos_framework/training_backends/megatron.py#L143)、[累积同步:262](../cosmos_framework/training_backends/megatron.py#L262)、[梯度裁剪:298](../cosmos_framework/training_backends/megatron.py#L298)、[数据配置:69](../examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml#L69)、[可选投影融合:465](../cosmos_framework/model/generator/omni_mot_model.py#L465)。
+
+## 四、训练入口与配置位置
+
+仓库：`/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron`
+
+远端：<https://github.com/Hchnr/cosmos-framework-pwm-megatron>
+
+| 内容 | 位置 |
+| --- | --- |
+| 58-source Megatron 生产入口 | [launch_pretrain_state_h1_58src_192gpu.sh:1](../examples/launch_pretrain_state_h1_58src_192gpu.sh#L1) |
+| 训练主配置：模型、容量、优化器、58 源配比、loader、checkpoint | [action128_pretrain_state_h1_58src_192gpu.toml:1](../examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml#L1) |
+| 多节点公共启动器 | [_sft_launcher_common.sh:175](../examples/_sft_launcher_common.sh#L175) |
+| Python 训练入口 | [train.py:1](../cosmos_framework/scripts/train.py#L1) |
+| TOML schema 与配置组装 | [sft_config.py:1](../cosmos_framework/configs/toml_config/sft_config.py#L1) |
+| Megatron runtime | [megatron.py:94](../cosmos_framework/training_backends/megatron.py#L94) |
+| 四卡对比测试入口 | [benchmark_megatron_full_depth.sh:1](../tools/benchmark_megatron_full_depth.sh#L1) |
+
+启动链路为：58-source shell → 52-source 拓扑与本地 staging shell → 96gpu 路径包装 → Action128 公共 shell → `python -m torch.distributed.run ... -m cosmos_framework.scripts.train --sft-toml=...`。中间脚本名是复用的历史名称，实际数据配置仍由 58-source TOML 决定。
+
+主 TOML 定义模型和训练行为；58-source shell 额外选择 `backend=megatron`、分片策略和旧归一化续训配置；最后的命令行 Hydra overrides 可覆盖前面的设置。直接使用该 TOML 启动 Python 时，需要显式选择 Megatron backend。
+
+默认生产布局为 `NNODES=24`、`NPROC_PER_NODE=8`、`DP_SHARD=16`，各节点由平台提供一致的 rendezvous 信息。启动示例：
 
 ```bash
-BASE_CHECKPOINT_PATH=/path/to/checkpoints/iter_000001200 \
-BENCHMARK_LIVE_DATA=1 BENCHMARK_PRODUCTION_CAPACITIES=1 \
-BENCHMARK_PRODUCTION_LOADER=1 BENCHMARK_RESTORE_SOURCE_STATE=1 \
-BENCHMARK_EXPECTED_START_ITERATION=1200 BENCHMARK_STEPS=1208 \
-BENCHMARK_WARMUP_STEPS=3 BENCHMARK_TAG=source_extend_full_capacity \
+# 生产入口：默认 ZeRO-2，各节点执行
+bash examples/launch_pretrain_state_h1_58src_192gpu.sh
+
+# 4 卡 ZeRO-3：将拓扑覆盖为 shard4 × replica1
+NNODES=1 NPROC_PER_NODE=4 DP_SHARD=4 \
 MEGATRON_SHARDING_STRATEGY=optim_grads_params \
-bash tools/benchmark_megatron_full_depth.sh
+BASE_CHECKPOINT_PATH=/path/to/checkpoints/iter_000001200 \
+OUTPUT_ROOT="$PWD/outputs/megatron_58src_4gpu" \
+bash examples/launch_pretrain_state_h1_58src_192gpu.sh
 ```
 
-其中 `BENCHMARK_STEPS=1208` 是绝对结束迭代，表示从第 1200 步继续更新 8 步。
+常用环境变量：`BASE_CHECKPOINT_PATH` 指定续训 checkpoint；`OUTPUT_ROOT` 指定输出位置；`SFT_TOML_FILE` 替换主配置；`MEGATRON_SHARDING_STRATEGY` 选择分片策略；`MAX_ITER` 覆盖绝对结束迭代。
 
-交付内容包括实现代码、生产启动入口、旧 State 归一化快照、复现工具、原始测量 JSON、16 份 rank 输入记录、逐步耗时、全量梯度比较和验收门槛。大体积原始张量位于忽略跟踪的 `outputs/megatron_validation/`，未纳入 Git。
+## 五、续训语义与当前边界
 
-复现入口：[benchmark_megatron_full_depth.sh:1](../tools/benchmark_megatron_full_depth.sh)、[FP32 梯度审计入口:1](../tests/megatron/full_depth_gradient_audit.py)。完整技术记录见 [megatron_migration.md:1](./megatron_migration.md)。
+当前按原始续训目标，恢复模型、优化器、scheduler、trainer/RNG，并保留 checkpoint 中 106 个旧域的归一化；6 个新增域使用当前配置。State128 使用配套旧统计快照，模型与 loader 绑定同一份契约。追加数据源后按原始 `extend` 语义重置数据流游标。
+
+旧归一化配置由生产 shell 注入：`checkpoint.action128_preserve_source_normalization=true` 和 `dataloader_train.action_state_normalization_paths`。恢复旧归一化不等于恢复发布方升级前的所有原始数据值与 mask。
+
+当前可用于四卡范围的继续验证；192 卡吞吐、长程稳定性和更大范围数据覆盖仍需补充。详细测试记录保留在独立的 [megatron_migration.md:1](./megatron_migration.md#L1)，本报告集中说明最终实现、配置和使用方式。
