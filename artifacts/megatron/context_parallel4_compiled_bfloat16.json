@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "eager_cast_guard_preserved": true,
+  "cp": 4,
+  "family": "qwen",
+  "lora": false,
+  "shards": 2,
+  "replicas": 2,
+  "compile": true,
+  "attention_io_layout": "sequence_sharded",
+  "dtype": "bfloat16",
+  "steps": 2,
+  "gradient_accumulation": 3,
+  "maximum_output_error": 0.0,
+  "maximum_gradient_error": 0.0,
+  "maximum_parameter_error": 0.0
+}

@@ -1,4 +1,4 @@
-"""Actual MoT CP=2 forward, gradients and AdamW parity against FSDP2."""
+"""Actual MoT context-parallel forward, gradients and AdamW parity against FSDP2."""
 
 import argparse
 import copy
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import torch
 import torch.distributed as dist
-from omni_ema_smoke import batch, tiny_nemotron_config
+from omni_ema_smoke import batch, tiny_config, tiny_nemotron_config
 from torch import nn
 
 from cosmos_framework.configs.base.defaults.activation_checkpointing import ActivationCheckpointingConfig
@@ -17,7 +17,7 @@ from cosmos_framework.configs.base.defaults.compile import CompileConfig
 from cosmos_framework.model.generator.mot.action_tower_test import tiny_action128_spec, tiny_net
 from cosmos_framework.model.generator.mot.cosmos3_vfm_network import Cosmos3VFMNetwork, Cosmos3VFMNetworkConfig
 from cosmos_framework.model.generator.mot.parallelize_vfm_network import parallelize_vfm_network
-from cosmos_framework.model.generator.mot.unified_mot import Nemotron3DenseVLTextForCausalLM
+from cosmos_framework.model.generator.mot.unified_mot import Nemotron3DenseVLTextForCausalLM, Qwen3VLTextForCausalLM
 from cosmos_framework.training_backends.megatron import MegatronRuntime
 from cosmos_framework.utils.distributed import ddp_sync_grad
 from cosmos_framework.utils.generator.lora import init_lora_weights_post_materialization, inject_lora_pre_fsdp
@@ -35,7 +35,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--lora", action="store_true")
-    parser.add_argument("--cp", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--cp", type=int, choices=(1, 2, 4), default=2)
     parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--dtype", choices=("float32", "bfloat16"), default="float32")
     parser.add_argument("--layout", choices=("sequence_sharded", "replicated"), default="sequence_sharded")
@@ -44,8 +44,15 @@ def main():
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
     torch.manual_seed(42)
-    if args.family == "nemotron":
-        language = Nemotron3DenseVLTextForCausalLM(tiny_nemotron_config())
+    if args.family == "nemotron" or (args.cp == 4 and args.layout == "replicated"):
+        model_class, factory = (
+            (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config)
+            if args.family == "nemotron"
+            else (Qwen3VLTextForCausalLM, tiny_config)
+        )
+        # Replicated I/O shards KV heads, so this fixture needs >= CP heads.
+        overrides = {"num_key_value_heads": 4} if args.cp == 4 and args.layout == "replicated" else {}
+        language = model_class(factory(text_config_overrides=overrides))
         base = Cosmos3VFMNetwork(
             language,
             Cosmos3VFMNetworkConfig(

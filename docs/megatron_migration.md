@@ -607,6 +607,17 @@ See `omni_meta_60b_lora.json`, `omni_ema_integration_*meta*` and
 `omni_meta_fresh_hf_*` artifacts. Original CPU regressions still report
 116 passed / 2 skipped.
 
+## CP=4 qualification on four GPUs
+
+Two-tower Qwen compiled BF16 training also passes CP=4 with 2×2 HSDP:
+sequence-sharded attention I/O, and replicated attention I/O with active LoRA.
+Both run two GA=3 AdamW updates; outputs, full gradients and updated parameters
+are bitwise equal to native FSDP2. The replicated fixture has four KV heads,
+as the original layout requires KV-head divisibility by CP. The source's
+released-parameter eager cast guard remains observable. Five original CPU
+context-window tests pass. See `context_parallel4_*` artifacts. Three-tower
+CP=1 and standalone VLM CP=1 restrictions remain unchanged.
+
 ## Qwen visual tower with bounded Omni initialization
 
 The opt-in Omni meta path now supports Qwen native ViT in addition to text-only
