@@ -950,3 +950,66 @@ are available, but do not replace a distributed production run.
    above establishes a scoped gain, not end-to-end production throughput.
 
 Do not declare the entire repository migration complete before these gates pass.
+
+## Original-capacity optimizer residency and source normalization (2026-11-17)
+
+Four H100s completed three GA=3 updates with the full 36-layer model, the original
+configured UND/GEN/ACTION capacities **[11776, 62592, 2944]**, the original short-UND
+policy (5120), compilation, activation checkpointing and real FusedAdam updates.
+The replay batch selected short UND. These runs load weights from the original
+latest checkpoint (`iter_000001200`) but use fresh optimizer state/current
+normalization; they are memory qualification, **not full-state continuation or
+accepted throughput evidence**. Neither disables optimizer updates.
+
+| Backend | Peak allocated bytes after Adam state became resident | Steady update seconds (two observations) |
+| --- | ---: | --- |
+| PyTorch | 74,438,642,176 | 53.4439, 53.4685 |
+| Megatron ZeRO-3 | 74,509,921,792 | 53.4005, 53.4049 |
+
+Raw reports: `artifacts/megatron/full_capacity_{pytorch,megatron}_training.json`;
+per-update logs: `full_capacity_{pytorch,megatron}_updates.jsonl`. Reports explicitly
+set `throughput_qualification=false`. This establishes optimizer residency for
+this real batch, not forced full UND, maximum live packing, or 192-GPU acceptance.
+
+The unmodified original latest checkpoint cannot strictly extend into the current
+58-source recipe: 12 old Bench2Dex domains changed affine transforms/digests
+between the saved checkpoint and the published data. This is also rejected by the
+native PyTorch baseline before optimizer loading. The original recipe and strict
+validator matched the original repository byte-for-byte at discovery; see
+`artifacts/megatron/source_extend_contract_failure.json`. No normalization
+migration tolerance was added to the strict extension guard.
+
+The requested continuation policy is to retain checkpoint normalization and full
+training state. `checkpoint.action128_preserve_source_normalization=true` now
+reads the immutable local source contract before model construction and overlays
+only old-domain affine transforms and normalization digests. Existing domain
+identity, embodiment, action/state projection routing, registry/projection
+versions and spatial RoPE remain strictly validated. Added domains retain their
+current transforms. The model and catalog loader receive the same resulting
+Action128 spec. Source tensor digests remain checked at actual checkpoint load.
+This option requires `extend` with full training state and a local checkpoint.
+
+State128 has independently fitted input transforms, not recoverable from the
+action normalizer alone. `dataloader_train.action_state_normalization_paths`
+explicitly maps dataset roots to validated snapshots. The checked-in
+`examples/normalization/bench2dex_state_prephysical_20261102.json` is the publisher's
+pre-upgrade State snapshot. With it and the old global spec, Bench2Dex's processing
+fingerprint exactly matches the saved checkpoint (`55827259…62b83a24`). All existing
+stream fingerprint validation stays enabled. The 58-source launcher selects both
+preservation settings; trailing CLI overrides still take precedence. The mapping
+is also available as `examples/normalization/state_h1_source_paths.json` for probes.
+
+The publisher's 2026-11-02 upgrade also altered passive Action payload values and
+masks. Preserving affine transforms and matching metadata-based fingerprints does
+**not** assert every raw data payload is byte-identical to the old publication.
+`artifacts/megatron/source_normalization_preservation.json` records this boundary.
+Actual original-state reload/update validation is tracked separately from this
+contract preflight.
+
+`tests/megatron/train_real_batch_smoke.py` now supports opt-in production capacity
+and loader settings, explicit `extend`, restored iteration checks, and preservation
+of restored RNG. Its `--steps` is the absolute final iteration: from iteration
+1200, `--steps 1203` requests three updates. Full-state extend requires live loading
+so the checkpoint validator sees the real bound catalog loader. Benchmark summaries
+reject mixing restored/fresh starts, normalization policies, short-UND capacities,
+and live packing settings.

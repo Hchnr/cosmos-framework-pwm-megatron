@@ -48,6 +48,7 @@ PATH_REMAPS: dict[str, dict[tuple[str, ...], "tuple[str, ...] | None"]] = {
     "vfm": {
         ("dataloader_train", "action_video_fps_default"): None,
         ("dataloader_train", "action_use_state"): None,
+        ("dataloader_train", "action_state_normalization_paths"): None,
         ("dataloader_train", "first_frame_color_jitter"): None,
         # [job].upload_reproducible_setup lives at the top-level config field,
         # not config.job.* — hoist it out of the job section.
@@ -86,6 +87,7 @@ PATH_REMAPS: dict[str, dict[tuple[str, ...], "tuple[str, ...] | None"]] = {
     "vlm": {
         ("dataloader_train", "action_video_fps_default"): None,
         ("dataloader_train", "action_use_state"): None,
+        ("dataloader_train", "action_state_normalization_paths"): None,
         ("dataloader_train", "first_frame_color_jitter"): None,
         ("model", "fp8_training"): None,  # Enabled VLM FP8 training is rejected by the schema.
         # [job].upload_reproducible_setup lives at the top-level config field,

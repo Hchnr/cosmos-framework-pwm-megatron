@@ -14,6 +14,7 @@ from cosmos_framework.callbacks.cosmos_dataloader_state import JointCosmosDataLo
 from cosmos_framework.checkpoint.action128 import (
     action128_skip_keys,
     checkpoint_contract,
+    preserve_source_normalization,
     read_source_contract,
     validate_checkpoint_digest,
     validate_contract_extension,
@@ -503,3 +504,36 @@ def test_dcp_roundtrip_restores_shared_prefetch_committed_state(tmp_path, cpu_ch
             restored.close()
     finally:
         original.close()
+
+
+def test_preserve_source_normalization_keeps_new_domains_and_strict_routes():
+    saved = checkpoint_contract(_training_model(tiny_action128_spec()))
+    saved["spec"]["source_digests"] = [{"normalization": "old", "state_projection_id": 8}]
+    current = copy.deepcopy(saved)
+    current["spec"] = _extended_spec()
+    current["spec"]["source_digests"][-1] = {"normalization": "new", "state_projection_id": 8}
+    current["spec"]["transforms"][-1]["scale"][0] = 123.0
+    result = preserve_source_normalization(saved, current)
+    assert result["spec"]["transforms"][-1] == saved["spec"]["transforms"][0]
+    assert result["spec"]["transforms"][0] == current["spec"]["transforms"][0]
+    assert current["spec"]["transforms"][-1]["scale"][0] == 123.0
+    validate_contract_extension(saved, result)
+    current["spec"]["source_digests"][-1]["state_projection_id"] = 9
+    with pytest.raises(ValueError, match="changed or removed"):
+        preserve_source_normalization(saved, current)
+
+
+@pytest.mark.parametrize("change", ["head", "embodiment", "spatial", "remove"])
+def test_preserve_source_normalization_rejects_non_affine_changes(change):
+    saved = checkpoint_contract(_training_model(tiny_action128_spec()))
+    current = copy.deepcopy(saved)
+    if change == "head":
+        current["spec"]["registry"]["domain_projection_ids"][0] = 33
+    elif change == "embodiment":
+        current["spec"]["registry"]["embodiments"][0] = "different_robot"
+    elif change == "spatial":
+        current["vision_spatial_position_mode"] = "canvas"
+    else:
+        current["spec"]["registry"]["domains"] = []
+    with pytest.raises(ValueError):
+        preserve_source_normalization(saved, current)

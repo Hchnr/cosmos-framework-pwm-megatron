@@ -1,10 +1,43 @@
 """Resolve Action128 initialization from checkpoint metadata before any state load."""
 
+import copy
 import json
 
 from cosmos_framework.model.generator.mot.action128 import action128_contract_digest
 
 ACTION128_FRESH_KEYS = ("action2llm", "llm2action", "action_normalization.")
+
+
+def preserve_source_normalization(saved, current):
+    """Retain old affine transforms by name; all routing changes still fail closed."""
+    result = copy.deepcopy(current)
+    old, new = saved["spec"], result["spec"]
+    domains = new["registry"]["domains"]
+    for index, domain in enumerate(old["registry"]["domains"]):
+        if domain not in domains:
+            raise ValueError(f"Cannot preserve normalization for removed domain: {domain}")
+        target = domains.index(domain)
+        old_digest, new_digest = old["source_digests"][index], new["source_digests"][target]
+        # The normalization digest changes with the affine. Keep every other
+        # source identity field visible to the strict extension validator.
+        if isinstance(old_digest, dict) and isinstance(new_digest, dict):
+            new_digest["normalization"] = old_digest["normalization"]
+        elif old_digest != new_digest:
+            raise ValueError(f"Cannot distinguish normalization from source identity: {domain}")
+        new["transforms"][target] = copy.deepcopy(old["transforms"][index])
+    validate_contract_extension(saved, result)
+    return result
+
+
+def read_local_source_contract(path):
+    """Read immutable source metadata during config assembly, before model init."""
+    from types import SimpleNamespace
+
+    from torch.distributed.checkpoint import FileSystemReader
+
+    source = SimpleNamespace(path=str(path), backend_key=None)
+    reader = SimpleNamespace(get_storage_reader=lambda path, source: FileSystemReader(path))
+    return read_source_contract(reader, source)
 
 
 def action128_skip_keys(metadata, configured_skips, *, mode="auto", load_training_state=False):

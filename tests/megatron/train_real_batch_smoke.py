@@ -1,8 +1,8 @@
 """Full-depth real-batch integration smoke using the stock Cosmos trainer.
 
-Uses the original production TOML and checkpoint, reduced token capacities for
-four GPUs, fresh optimizer state and a deterministic replay of one decoded batch.
-This is an integration check, not a production throughput or loader-resume run.
+Defaults to reduced capacities, fresh optimizer state and real-batch replay.
+Opt-in flags retain production capacities/loading and restored training state.
+Benchmark mode excludes checkpoint writes and tokenizer compilation.
 """
 
 import argparse
@@ -33,8 +33,11 @@ class ReplayBatch:
 
 
 class StepMeasurement(Callback):
-    def __init__(self):
+    def __init__(self, *, reset_seed=True, expected_start_iteration=None):
         super().__init__()
+        self.reset_seed = reset_seed
+        self.expected_start_iteration = expected_start_iteration
+        self.initial_iteration = None
         self.started = None
         self.seconds = []
         self.peak_bytes = 0
@@ -48,7 +51,11 @@ class StepMeasurement(Callback):
     def on_train_start(self, model, iteration=0):
         from cosmos_framework.utils.misc import set_random_seed
 
-        set_random_seed(seed=42, by_rank=True)
+        self.initial_iteration = iteration
+        if self.expected_start_iteration is not None and iteration != self.expected_start_iteration:
+            raise ValueError(f"Restored iteration {iteration}, expected {self.expected_start_iteration}")
+        if self.reset_seed:
+            set_random_seed(seed=42, by_rank=True)
         peak = torch.tensor(torch.cuda.max_memory_allocated(), device="cuda", dtype=torch.int64)
         torch.distributed.all_reduce(peak, op=torch.distributed.ReduceOp.MAX)
         self.initialization_peak_bytes = peak.item()
@@ -112,6 +119,14 @@ def main():
     parser.add_argument("--sharding-strategy", default="optim_grads")
     parser.add_argument("--steps", type=int, default=1)
     parser.add_argument("--resume-training", action="store_true")
+    parser.add_argument("--checkpoint-load-mode", choices=("auto", "warm_start", "extend"))
+    parser.add_argument("--preserve-source-normalization", action="store_true")
+    parser.add_argument(
+        "--state-normalization-paths", type=Path, help="JSON mapping dataset root to immutable State128 snapshot"
+    )
+    parser.add_argument("--expected-start-iteration", type=int)
+    parser.add_argument("--production-capacities", action="store_true")
+    parser.add_argument("--production-loader", action="store_true")
     parser.add_argument("--backend", choices=("pytorch", "megatron"), default="megatron")
     parser.add_argument("--live-data", action="store_true")
     parser.add_argument("--trace-json", type=Path)
@@ -121,6 +136,23 @@ def main():
     parser.add_argument("--gen-tokens", type=int, default=8192)
     parser.add_argument("--action-tokens", type=int, default=128)
     args = parser.parse_args()
+    if args.production_loader and not args.live_data:
+        parser.error("--production-loader requires --live-data")
+    load_mode = args.checkpoint_load_mode or ("auto" if args.resume_training else "warm_start")
+    if load_mode == "extend" and not args.resume_training:
+        parser.error("extend requires --resume-training")
+    if load_mode == "extend" and not args.live_data:
+        parser.error("extend requires --live-data to bind and restore the real catalog loader")
+    if args.resume_training and load_mode == "warm_start":
+        parser.error("warm_start cannot restore training state")
+    if args.preserve_source_normalization and load_mode != "extend":
+        parser.error("Preserving source normalization requires extend")
+    if args.expected_start_iteration is not None and not args.benchmark_json:
+        parser.error("--expected-start-iteration requires --benchmark-json")
+    if args.benchmark_json:
+        first_iteration = args.expected_start_iteration or 0
+        if args.warmup_steps < 0 or args.steps - first_iteration <= args.warmup_steps:
+            parser.error("Benchmark requires at least one steady optimizer update")
     os.environ.setdefault(
         "ACTION128_EPISODE_CACHE_DIR", "/share-mixed/project/eai_pwm/cache/action128_episode_metadata_v1"
     )
@@ -151,16 +183,25 @@ def main():
         "trainer.timeout_period=7200",
         "trainer.run_validation=false",
         "trainer.callbacks.compile_tokenizer.enabled=false",
-        "optimizer.lr=1e-5",
-        "scheduler.warm_up_steps=[0]",
-        "scheduler.f_start=[1.0]",
         f"checkpoint.load_training_state={str(args.resume_training).lower()}",
-        f"checkpoint.action128_load_mode={'auto' if args.resume_training else 'warm_start'}",
+        f"checkpoint.action128_load_mode={load_mode}",
         "checkpoint.save_iter=1000000",
         "checkpoint.keep_last_n=1",
         "checkpoint.keep_every_n_steps=null",
     ]
-    if args.live_data:
+    if not args.resume_training:
+        overrides.extend(["optimizer.lr=1e-5", "scheduler.warm_up_steps=[0]", "scheduler.f_start=[1.0]"])
+    if args.production_capacities:
+        prefixes = (
+            "model.config.fixed_sequence_length.",
+            "model.config.action_tower_und_short_tokens=",
+            "model.config.max_num_tokens_after_packing=",
+            "dataloader_train.max_sequence_length=",
+        )
+        overrides = [item for item in overrides if not item.startswith(prefixes)]
+    if args.production_loader:
+        overrides.remove("dataloader_train.max_samples_per_batch=1")
+    if args.live_data and not args.production_loader:
         overrides.extend(
             [
                 "dataloader_train.num_workers=1",
@@ -169,21 +210,33 @@ def main():
                 "dataloader_train.microbatch_timeout_sec=0",
             ]
         )
+    if args.preserve_source_normalization:
+        overrides.append("checkpoint.action128_preserve_source_normalization=true")
+    if args.state_normalization_paths:
+        paths = json.loads(args.state_normalization_paths.read_text())
+        overrides.append("dataloader_train.action_state_normalization_paths=" + json.dumps(paths))
     config = load_experiment_from_toml(
         "examples/toml/sft_config/action128_pretrain_state_h1_58src_192gpu.toml",
         extra_overrides=overrides,
     )
     config.validate()
     config.freeze()
+    fixed = config.model.config.fixed_sequence_length
+    capacities = [int(fixed.und_tokens), int(fixed.gen_tokens), int(fixed.action_tokens)]
+    capacity_scope = (
+        "original production token capacities" if args.production_capacities else "reduced token capacities"
+    )
     trainer = config.trainer.type(config)
     model = instantiate(config.model)
     if distributed.get_rank() == 0:
         print("FULL_DEPTH_MODEL_INITIALIZED", flush=True)
     measurement = None
     if args.benchmark_json:
-        if args.steps <= args.warmup_steps or args.resume_training:
-            raise ValueError("Benchmark requires fresh state and steps > warmup_steps")
-        measurement = StepMeasurement()
+        if args.steps <= args.warmup_steps:
+            raise ValueError("Benchmark requires steps > warmup_steps")
+        measurement = StepMeasurement(
+            reset_seed=not args.resume_training, expected_start_iteration=args.expected_start_iteration
+        )
         trainer.callbacks._callbacks.append(measurement)
         # Isolate training-step throughput; actual async saves are tested by the
         # default integration mode. This benchmark explicitly excludes save I/O.
@@ -202,16 +255,24 @@ def main():
     faulthandler.cancel_dump_traceback_later()
     # The stock trainer destroys the process group at completion.
     if int(os.environ["RANK"]) == 0:
+        if measurement is not None and len(measurement.seconds) <= args.warmup_steps:
+            raise ValueError("No steady updates after the restored starting iteration")
         report = {
             "passed": True,
-            "scope": "full 36-layer model, reduced token capacities, live data"
+            "scope": f"full 36-layer model, {capacity_scope}, live data"
             if args.live_data
-            else "full 36-layer model, one replayed real batch, reduced token capacities",
+            else f"full 36-layer model, one replayed real batch, {capacity_scope}",
             "sharding_strategy": args.sharding_strategy,
             "gradient_accumulation": 3,
-            "optimizer_steps": args.steps,
+            "optimizer_steps": len(measurement.seconds) if measurement is not None else args.steps,
             "checkpoint": str(args.checkpoint),
-            "token_capacities": [args.und_tokens, args.gen_tokens, args.action_tokens],
+            "token_capacities": capacities,
+            "short_und_capacity": int(config.model.config.action_tower_und_short_tokens),
+            "checkpoint_load_mode": load_mode,
+            "preserve_source_normalization": args.preserve_source_normalization,
+            "state_normalization_paths": dict(config.dataloader_train.action_state_normalization_paths),
+            "dataloader_max_samples_per_batch": int(config.dataloader_train.max_samples_per_batch),
+            "dataloader_packing_pool_size": int(config.dataloader_train.packing_pool_size),
             "fresh_optimizer_state": not args.resume_training,
             "backend": args.backend,
             "torch_version": torch.__version__,
@@ -224,15 +285,17 @@ def main():
         }
         if measurement is not None:
             report.update(
-                scope="full 36-layer stock trainer; reduced token capacities; live data"
+                scope=f"full 36-layer stock trainer; {capacity_scope}; live data"
                 if args.live_data
-                else "full 36-layer stock trainer with real-batch replay; reduced token capacities",
+                else f"full 36-layer stock trainer with real-batch replay; {capacity_scope}",
                 step_seconds=measurement.seconds,
                 update_including_first_dataload_seconds=measurement.inclusive_seconds,
                 update_data_wait_seconds=measurement.data_wait_seconds,
                 content_trace_enabled=args.trace_json is not None,
                 mean_final_microbatch_losses=measurement.losses,
-                seed_reset_after_initialization=42,
+                seed_reset_after_initialization=42 if measurement.reset_seed else None,
+                initial_iteration=measurement.initial_iteration,
+                requested_final_iteration=args.steps,
                 warmup_steps=args.warmup_steps,
                 median_seconds=statistics.median(measurement.seconds[args.warmup_steps :]),
                 peak_allocated_bytes=measurement.peak_bytes,

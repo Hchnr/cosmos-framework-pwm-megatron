@@ -624,6 +624,7 @@ class UnifiedAction128Dataset(torch.utils.data.Dataset):
         root,
         *,
         action128_spec=None,
+        state_normalization_path=None,
         tokenizer_config=None,
         seed=42,
         mode="wam",
@@ -671,7 +672,7 @@ class UnifiedAction128Dataset(torch.utils.data.Dataset):
         if use_state:
             from cosmos_framework.data.generator.action.pretrain_state import load_state_transforms
 
-            self.state_transforms = load_state_transforms(self.root)
+            self.state_transforms = load_state_transforms(self.root, normalization_path=state_normalization_path)
         self.action128_spec = action128_spec or build_action128_spec([str(self.root)])
         self.registry = self.action128_spec["registry"]
         self.domain_ids = {d: i for i, d in enumerate(self.registry["domains"])}

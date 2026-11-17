@@ -150,6 +150,11 @@ def summarize(paths):
         "cuda_version",
         "megatron_core_version",
         "gpu",
+        "short_und_capacity",
+        "checkpoint_load_mode",
+        "preserve_source_normalization",
+        "state_normalization_paths",
+        "initial_iteration",
     ):
         if any(run.get(key) != runs[0].get(key) for run in runs):
             raise ValueError(f"Incompatible benchmark setting: {key}")
@@ -162,6 +167,9 @@ def summarize(paths):
         "backends": {},
     }
     if runs[0]["live_data"]:
+        for key in ("dataloader_max_samples_per_batch", "dataloader_packing_pool_size"):
+            if any(run.get(key) != runs[0].get(key) for run in runs):
+                raise ValueError(f"Incompatible live benchmark setting: {key}")
         if any(run["world_size"] != runs[0]["world_size"] for run in runs):
             raise ValueError("Incompatible live benchmark world_size")
         reference_inputs = None

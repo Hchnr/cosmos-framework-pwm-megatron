@@ -1122,6 +1122,7 @@ ratio = 1
     )
     joint = build_catalog_training_dataloader(
         dataset_specs=[dict(spec) for spec in config.dataloader_train.dataset_specs],
+        action128_spec=config.dataloader_train.action128_spec,
         processor=_FakeQwenProcessor(),
         num_workers=0,
         max_samples_per_batch=2,
@@ -1710,3 +1711,32 @@ def test_episode_metadata_cache_writes_bounded_batches(source, tmp_path, monkeyp
     assert hit.cache_hit and hit.episodes.equals(result.episodes)
     assert hit.episodes["episode_index"].to_pylist() == list(range(7))
     np.testing.assert_array_equal(hit.ends, np.arange(1, 8) * 2)
+
+
+def test_toml_preserves_source_normalization_in_model_and_loader(source, tmp_path, monkeypatch):
+    import copy
+
+    from cosmos_framework.configs.toml_config.sft_config import load_experiment_from_toml
+
+    root, catalog, _ = source
+    saved_spec = build_action128_spec([str(root)])
+    saved_spec["transforms"][0]["scale"][0] = 2.0
+    saved_spec["source_digests"][0]["normalization"] = "checkpoint-normalization"
+    saved = {"version": 1, "spec": saved_spec, "vision_spatial_position_mode": "canvas"}
+    monkeypatch.setattr(
+        "cosmos_framework.checkpoint.action128.read_local_source_contract", lambda _: copy.deepcopy(saved)
+    )
+    recipe = tmp_path / "resume.toml"
+    recipe.write_text(
+        '[job]\ntask="vfm"\nexperiment="action_policy_droid_nano"\n'
+        "[model]\naction_gen=true\n"
+        '[checkpoint]\naction128_load_mode="extend"\nload_training_state=true\n'
+        'action128_preserve_source_normalization=true\nload_path="/source/checkpoint"\n'
+        '[[dataloader_train.datasets]]\npath="' + str(catalog) + '"\nratio=1\n'
+    )
+    config = load_experiment_from_toml(recipe)
+    assert config.model.config.action128_spec == saved_spec
+    assert config.dataloader_train.action128_spec == config.model.config.action128_spec
+    assert build_action128_spec([str(root)])["transforms"][0]["scale"][0] == 0.5
+    with pytest.raises(ValueError, match="requires full-state"):
+        load_experiment_from_toml(recipe, extra_overrides=["checkpoint.load_training_state=false"])

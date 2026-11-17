@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "scope": "full 36-layer stock trainer with real-batch replay; original production token capacities; three-update memory qualification, not accepted throughput evidence",
+  "sharding_strategy": "optim_grads_params",
+  "gradient_accumulation": 3,
+  "optimizer_steps": 3,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "token_capacities": [
+    11776,
+    62592,
+    2944
+  ],
+  "short_und_capacity": 5120,
+  "checkpoint_load_mode": "warm_start",
+  "dataloader_max_samples_per_batch": 1,
+  "dataloader_packing_pool_size": 16,
+  "fresh_optimizer_state": true,
+  "backend": "pytorch",
+  "torch_version": "2.10.0+cu130",
+  "cuda_version": "13.0",
+  "megatron_core_version": "0.20.0",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "world_size": 4,
+  "live_data": false,
+  "output_root": "outputs/megatron_validation/full_capacity_pytorch_training",
+  "step_seconds": [
+    78.4140606932342,
+    53.44389831647277,
+    53.46852086111903
+  ],
+  "update_including_first_dataload_seconds": [
+    78.47496754676104,
+    53.49424397200346,
+    53.520205695182085
+  ],
+  "update_data_wait_seconds": [
+    0.128282118588686,
+    0.11329089105129242,
+    0.11596484109759331
+  ],
+  "content_trace_enabled": false,
+  "mean_final_microbatch_losses": [
+    0.1317196637392044,
+    0.09848259389400482,
+    0.2551644444465637
+  ],
+  "seed_reset_after_initialization": 42,
+  "initial_iteration": 0,
+  "requested_final_iteration": 3,
+  "warmup_steps": 1,
+  "median_seconds": 53.4562095887959,
+  "peak_allocated_bytes": 74438642176,
+  "initialization_peak_allocated_bytes": 9500686336,
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation",
+    "live shared-prefetch data loading"
+  ],
+  "throughput_qualification": false,
+  "optimizer_updates_disabled": false,
+  "optimizer_state_allocated": true
+}

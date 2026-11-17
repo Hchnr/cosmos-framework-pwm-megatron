@@ -64,5 +64,7 @@ case "$MEGATRON_SHARDING_STRATEGY" in
     *) echo "ERROR: invalid MEGATRON_SHARDING_STRATEGY: $MEGATRON_SHARDING_STRATEGY" >&2; exit 1 ;;
 esac
 exec bash examples/launch_pretrain_state_h1_52src_192gpu.sh \
+    checkpoint.action128_preserve_source_normalization=true \
+    'dataloader_train.action_state_normalization_paths={"/share-mixed/projset/eai_pwm/datasets/action_tactile_pretraining_20261026/bench2dex":"examples/normalization/bench2dex_state_prephysical_20261102.json"}' \
     model.config.parallelism.backend=megatron \
     "model.config.parallelism.megatron_sharding_strategy=$MEGATRON_SHARDING_STRATEGY" "$@"

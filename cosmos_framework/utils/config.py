@@ -319,6 +319,7 @@ class CheckpointConfig:
     # Auto preserves trained Action128 heads; reset_heads is a model-only restart.
     # warm_start preserves trained heads with new normalization and fresh training state.
     action128_load_mode: str = "auto"
+    action128_preserve_source_normalization: bool = False
 
     # Whether to load the scheduler state only from the checkpoint path. If
     # load_training_state is True, this will be ignored.

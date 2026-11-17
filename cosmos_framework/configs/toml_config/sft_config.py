@@ -811,6 +811,10 @@ class CheckpointConfig(BaseModel):
         default="auto",
         description="extend preserves full state after append-only changes; warm_start loads weights with new normalization.",
     )
+    action128_preserve_source_normalization: bool = Field(
+        default=False,
+        description="For local full-state extend, retain checkpoint affine transforms for existing domains.",
+    )
 
     strict_resume: bool = Field(
         default=False,
@@ -958,6 +962,11 @@ class DataloaderTrainConfig(BaseModel):
             "Legacy name: maximum Action128 video sampling FPS, applied to video_views[].fps; "
             "lower rates remain unchanged. None applies no cap. Missing view FPS is an error."
         ),
+    )
+
+    action_state_normalization_paths: dict[str, str] = Field(
+        default_factory=dict,
+        description="Explicit root-to-snapshot paths for independently fitted State128 transforms; resume fingerprints still apply.",
     )
 
     max_samples_per_batch: Optional[int] = Field(
@@ -1324,6 +1333,21 @@ def load_experiment_from_toml(
         if task != "vfm" or not config.model.config.action_gen:
             raise ValueError("Action128 catalogs require a VFM recipe with action_gen=true")
         spec = build_action128_spec(action128_roots)
+        if config.checkpoint.action128_preserve_source_normalization:
+            from cosmos_framework.checkpoint.action128 import preserve_source_normalization, read_local_source_contract
+
+            if config.checkpoint.action128_load_mode != "extend" or not config.checkpoint.load_training_state:
+                raise ValueError("Preserving source normalization requires full-state Action128 extend")
+            if config.checkpoint.load_from_object_store.enabled:
+                raise ValueError("Preserving source normalization currently requires a local checkpoint")
+            current_contract = {
+                "version": 1,
+                "spec": spec,
+                "vision_spatial_position_mode": config.model.config.diffusion_expert_config.vision_spatial_position_mode,
+            }
+            spec = preserve_source_normalization(
+                read_local_source_contract(config.checkpoint.load_path), current_contract
+            )["spec"]
         config.model.config.action128_spec = spec
         config.model.config.max_action_dim = 128
         config.model.config.num_embodiment_domains = spec["projection_routing"]["num_slots"]
@@ -1386,6 +1410,8 @@ def load_experiment_from_toml(
             pin_memory = bool(worker_loader.get("pin_memory", False))
         config.dataloader_train = L(build_catalog_training_dataloader)(
             dataset_specs=config.catalog_datasets,
+            action128_spec=config.model.config.action128_spec if action128_roots else None,
+            action_state_normalization_paths=cfg.dataloader_train.action_state_normalization_paths,
             action_video_fps_default=cfg.dataloader_train.action_video_fps_default,
             action_use_state=cfg.dataloader_train.action_use_state,
             first_frame_color_jitter=cfg.dataloader_train.first_frame_color_jitter,

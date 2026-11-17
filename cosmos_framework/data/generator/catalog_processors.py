@@ -596,6 +596,7 @@ def build_action_dataset_from_catalog(
     tokenizer_config: dict | None = None,
     parquet_handle_cache_size: int = 8,
     action128_spec: dict | None = None,
+    action_state_normalization_paths: dict[str, str] | None = None,
     seed: int = 42,
     media_config: dict | None = None,
     action_video_fps_default: float | None = None,
@@ -636,6 +637,7 @@ def build_action_dataset_from_catalog(
         return UnifiedAction128Dataset(
             **data,
             action128_spec=action128_spec,
+            state_normalization_path=(action_state_normalization_paths or {}).get(data["root"]),
             seed=seed,
             video_decoder=build_video_decoder_from_config(media_config),
         )
@@ -675,6 +677,8 @@ def build_catalog_joint_dataloader(
     media_config: dict[str, Any] | None = None,
     action_video_fps_default: float | None = None,
     action_use_state: bool | None = None,
+    action128_spec: dict | None = None,
+    action_state_normalization_paths: dict[str, str] | None = None,
     first_frame_color_jitter: bool = False,
     enable_map_style_resume: bool = True,
     map_style_resume_mode: str = "exact",
@@ -708,7 +712,12 @@ def build_catalog_joint_dataloader(
         row = ParquetCatalogDataset(spec["path"])[0]
         if row["type"] == "action" and row["data"].get("adapter") == "unified_action128":
             action128_roots.append(row["data"]["root"])
-    action128_spec = build_action128_spec(action128_roots) if action128_roots else None
+    from omegaconf import OmegaConf
+
+    if OmegaConf.is_config(action128_spec):
+        action128_spec = OmegaConf.to_container(action128_spec, resolve=True)
+    if action128_spec is None:
+        action128_spec = build_action128_spec(action128_roots) if action128_roots else None
     # ``num_workers`` is a budget for the whole joint loader.  Replicating it
     # for every stream multiplies worker processes and tensor-sharing file
     # descriptors by the dataset count, which is especially costly for packed
@@ -757,6 +766,7 @@ def build_catalog_joint_dataloader(
                 tokenizer_config=tokenizer_config,
                 parquet_handle_cache_size=parquet_handle_cache_size,
                 action128_spec=action128_spec,
+                action_state_normalization_paths=action_state_normalization_paths,
                 seed=seed,
                 media_config=media_config,
             )
@@ -848,6 +858,8 @@ def build_catalog_training_dataloader(
     processor: Any,
     action_video_fps_default: float | None = None,
     action_use_state: bool | None = None,
+    action128_spec: dict | None = None,
+    action_state_normalization_paths: dict[str, str] | None = None,
     first_frame_color_jitter: bool = False,
     conditioning_config: dict[int | str, float] | None = None,
     cfg_drop_ratio: float = 0.0,
@@ -1063,6 +1075,8 @@ def build_catalog_training_dataloader(
         components = {key: components[key] for key in ("visual_generation", "action")}
     return build_catalog_joint_dataloader(
         dataset_specs,
+        action128_spec=action128_spec,
+        action_state_normalization_paths=action_state_normalization_paths,
         action_video_fps_default=action_video_fps_default,
         action_use_state=action_use_state,
         first_frame_color_jitter=first_frame_color_jitter,

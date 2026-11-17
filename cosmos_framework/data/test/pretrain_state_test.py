@@ -195,3 +195,30 @@ def test_normalization_changes_fingerprint(state_source):
     next(iter(doc["domains"].values()))["transform"]["scale"][0] *= 2
     path.write_text(json.dumps(doc))
     assert UnifiedAction128Dataset(root, use_state=True).fingerprint != before
+
+
+def test_explicit_state_snapshot_restores_values_and_fingerprint(state_source, media_stub, tmp_path):
+    root, catalog = state_source
+    before = build_action_dataset_from_catalog(catalog, tokenizer_config=object(), action_use_state=True)
+    snapshot = tmp_path / "old_state_normalization.json"
+    snapshot.write_text((root / "meta/state_normalization.json").read_text())
+    doc = json.loads(snapshot.read_text())
+    next(iter(doc["domains"].values()))["transform"]["scale"][0] = 0.1
+    (root / "meta/state_normalization.json").write_text(json.dumps(doc))
+    changed = build_action_dataset_from_catalog(catalog, tokenizer_config=object(), action_use_state=True)
+    restored = build_action_dataset_from_catalog(
+        catalog,
+        tokenizer_config=object(),
+        action_use_state=True,
+        action_state_normalization_paths={str(root): str(snapshot)},
+    )
+    assert changed.fingerprint != before.fingerprint
+    assert restored.fingerprint == before.fingerprint
+    before.decoder = changed.decoder = restored.decoder = media_stub
+    torch.testing.assert_close(restored[1]["action"], before[1]["action"])
+    assert changed[1]["action"][0, 0] != before[1]["action"][0, 0]
+    # The explicit path still validates the published State contract.
+    doc["application"]["field"] = "action"
+    snapshot.write_text(json.dumps(doc))
+    with pytest.raises(CatalogSchemaError):
+        load_state_transforms(root, normalization_path=snapshot)

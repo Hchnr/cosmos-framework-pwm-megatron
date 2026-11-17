@@ -8,7 +8,7 @@ import torch
 from cosmos_framework.data.generator.catalog import CatalogSchemaError
 
 
-def load_state_transforms(root):
+def load_state_transforms(root, *, normalization_path=None):
     """Read fixed, independently fitted State transforms; never fit at runtime."""
     info = json.loads((root / "meta/info.json").read_text())
     reference = info.get("state_normalization", {})
@@ -32,7 +32,9 @@ def load_state_transforms(root):
         declared = storage.get("value") == expected["field"] and storage.get("loader_mask") == expected["mask"]
     if not declared:
         raise CatalogSchemaError(f"missing inline State128 storage contract: {root}")
-    document = json.loads((root / expected["path"]).read_text())
+    from pathlib import Path
+
+    document = json.loads(Path(normalization_path or root / expected["path"]).read_text())
     application = document.get("application", {})
     if (
         document.get("schema_version") != "action-normalization-v1"

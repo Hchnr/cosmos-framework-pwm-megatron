@@ -1,0 +1,191 @@
+{
+  "passed": false,
+  "scope": "Native PyTorch baseline; original latest 52-source checkpoint to current 58-source extend preflight",
+  "source_checkpoint": "iter_000001200",
+  "source_domains": 106,
+  "target_domains": 112,
+  "removed_domains": [],
+  "added_domains": [
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/egodex/ego-r2-unified-storage-20261030-v1",
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/egolive/ego-r2-unified-storage-20261030-v1",
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/egopro/ego-r2-unified-storage-20261030-v1",
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/egostandard/ego-r2-unified-storage-20261030-v1",
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/egoverse/ego-r2-unified-storage-20261030-v1",
+    "human_ego/ego128/wrist_world_local_delta+hand32_absolute_next+camera_local_delta/lightwheel/ego-r2-unified-storage-20261030-v1"
+  ],
+  "changed_old_domains": [
+    {
+      "domain": "franka_panda__allegro/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 14,
+      "maximum_scale_difference": 1172.4364333271462,
+      "maximum_bias_difference": 6.3430536501988755,
+      "old_source_digest": {
+        "normalization": "718a3ef1a07d72407c7d5ddf7f9233b8",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "96bedb25275fd04ffc273ee9f73bbc59",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "franka_panda__orca/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 8,
+      "maximum_scale_difference": 422.42826161164726,
+      "maximum_bias_difference": 5.7429991090061705,
+      "old_source_digest": {
+        "normalization": "5b23f4e7a66c8a2aa326326f1bbdd5d3",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "5cbb43fc492f8a39ec0754fdb57708c6",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "jaka_zu7__dexhand021_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 0,
+      "maximum_scale_difference": 287.12242060213634,
+      "maximum_bias_difference": 4.839993181248561,
+      "old_source_digest": {
+        "normalization": "043e85404272b81a53af16d355fb8bfa",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "29040fde8c138324550b6f13d69b87bd",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "kuka_iiwa7__sharpa/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 4,
+      "maximum_scale_difference": 167.06707833175074,
+      "maximum_bias_difference": 4.597852814419458,
+      "old_source_digest": {
+        "normalization": "05ff27e5fef960ca5c98de5333b9e047",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "191887982d4dfdc441372db75f799aec",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "realman_rm65__revo2/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 10,
+      "maximum_scale_difference": 1.3419863816437685,
+      "maximum_bias_difference": 3.1607153386987807,
+      "old_source_digest": {
+        "normalization": "661f362bd19c63adb5af18db8e5e1d54",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "9261a06ced6121a0082b59092f24a1d2",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "ufactory_xarm7__ability/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 8,
+      "maximum_scale_difference": 1.8568273113978144,
+      "maximum_bias_difference": 3.6510727754576515,
+      "old_source_digest": {
+        "normalization": "9724d2786a0226af14b365fa06dcccae",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "2641b08d778e20f001f0ccbe6ba5c1d2",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "ufactory_xarm7__leap/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 6,
+      "maximum_scale_difference": 107.76294930898915,
+      "maximum_bias_difference": 4.520730616543741,
+      "old_source_digest": {
+        "normalization": "bb285a4fb5cbe060165d8a610aed018b",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "dbf0d2183a0957f8f5cb6c181543f476",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "universal_robots_ur5__rh56dfx_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 10,
+      "maximum_scale_difference": 2.3472360615613654,
+      "maximum_bias_difference": 3.944579545858978,
+      "old_source_digest": {
+        "normalization": "fbabdc27783cebdc85cde48270eb240b",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "026d8edd9b10815bd475c5023dc1c13e",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "universal_robots_ur5__rh5dg2_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 10,
+      "maximum_scale_difference": 4.214483198263841,
+      "maximum_bias_difference": 4.272324079585076,
+      "old_source_digest": {
+        "normalization": "37d8078e99fb59a446e4aedad7b4e641",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "3dcc3fbb26c827ff479df9695fd4022d",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "universal_robots_ur5__schunk_hand_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 4,
+      "maximum_scale_difference": 187.4109554983424,
+      "maximum_bias_difference": 4.104198860168614,
+      "old_source_digest": {
+        "normalization": "530f8777cf825df7c62ea2ac104e2d07",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "cb0214753158e5a72adb9e937d0ac575",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "universal_robots_ur5__shadow_hand_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 2,
+      "maximum_scale_difference": 59.770864920952384,
+      "maximum_bias_difference": 3.6256209879988837,
+      "old_source_digest": {
+        "normalization": "96de70f117b64f0e949238f95cd2ec7c",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "f3543bbebd001b6205e1c3ba57d253b8",
+        "state_projection_id": 33
+      }
+    },
+    {
+      "domain": "universal_robots_ur5__wuji_with_flange/joint128/observed_absolute_state_t_plus_1/bench2dex-named-action128-next-state-v1",
+      "changed_mask_dimensions": 0,
+      "maximum_scale_difference": 41.097590454902026,
+      "maximum_bias_difference": 4.162151334605258,
+      "old_source_digest": {
+        "normalization": "0d72a6d94a323458814090b9aa0bc0c5",
+        "state_projection_id": 33
+      },
+      "new_source_digest": {
+        "normalization": "e298834ab24159bbdade45bccd297a99",
+        "state_projection_id": 33
+      }
+    }
+  ],
+  "optimizer_loaded": false,
+  "training_updates_completed": 0,
+  "reason": "Existing strict Action128 extension validation rejects changed normalization transforms; preserve guard pending normalization decision",
+  "original_and_migration_contract_validator_sha256": "38976fa624c0888c2987f6b682011e0dce18a7c0bdb01ca6aae4b71ab8a1d075",
+  "original_and_migration_58_source_recipe_sha256": "68c7c039e26e0a7f5e2a4a439d2b95d34bf41932b19c0695d6584677688a8440"
+}

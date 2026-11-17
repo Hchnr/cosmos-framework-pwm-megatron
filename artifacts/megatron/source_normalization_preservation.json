@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "scope": "strict 106-to-112 domain contract preservation and Bench2Dex old-spec processing fingerprint; not a complete-state load qualification",
+  "source_checkpoint": "iter_000001200",
+  "source_domains": 106,
+  "target_domains": 112,
+  "preserved_old_domains": 106,
+  "new_domains_using_current_normalization": 6,
+  "state_snapshot": "examples/normalization/bench2dex_state_prephysical_20261102.json",
+  "state_snapshot_sha256": "e024edaeb7499604843ff4a3159f265900df4f7d8cb0dd7ef2e957fe096d9900",
+  "bench2dex_saved_processing_fingerprint": "5582725904346b6c8907d9269c6cfed558594737d96e811c7f4cbff062b83a24",
+  "bench2dex_restored_processing_fingerprint": "5582725904346b6c8907d9269c6cfed558594737d96e811c7f4cbff062b83a24",
+  "strict_extension_validation_retained": true,
+  "note": "The publisher also changed passive Action values/masks on 2026-11-02. This restores normalization and the existing metadata-based resume fingerprint, not an assertion that every raw payload equals the original training publication."
+}
