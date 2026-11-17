@@ -1,0 +1,9 @@
+{"checkpoint_load_message": "[11-17 12:03:31|INFO] Action128 append-only continuation: preserve all 64 heads and training state; reset data streams"}
+{"checkpoint_load_message": "[11-17 12:03:31|INFO] - Loading the model..."}
+{"checkpoint_load_message": "[11-17 12:03:37|INFO] - Loading the optimizer..."}
+{"checkpoint_load_message": "[11-17 12:05:28|INFO] - Loading the scheduler..."}
+{"checkpoint_load_message": "[11-17 12:05:29|INFO] - Loading the trainer..."}
+{"checkpoint_load_message": "[11-17 12:05:29|INFO] Loaded checkpoint from /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200 (warm-start, local) in iteration 1200"}
+{"benchmark_update": 1201, "seconds": 65.20463252440095, "including_first_dataload_seconds": 86.05778989568353, "data_wait_seconds": 23.142637491226196, "loss": 0.10597650706768036, "peak_allocated_bytes": 80584488448}
+{"benchmark_update": 1202, "seconds": 41.57544594630599, "including_first_dataload_seconds": 41.80748439580202, "data_wait_seconds": 0.004791479557752609, "loss": 0.21819642186164856, "peak_allocated_bytes": 80584488448}
+{"benchmark_update": 1203, "seconds": 35.87802033498883, "including_first_dataload_seconds": 36.10935294255614, "data_wait_seconds": 0.005845818668603897, "loss": 0.6452900767326355, "peak_allocated_bytes": 80584488448}

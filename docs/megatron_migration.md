@@ -939,10 +939,11 @@ are available, but do not replace a distributed production run.
 
 1. Measure actual 192-GPU production-token throughput, peak memory, checkpoint
    stalls and stragglers with the original 16-shard × 12-replica layout.
-   The available four-GPU warm-start timings also do not qualify original
-   production-token training or the source 52-to-58 `extend` continuation with
-   the original checkpoint's optimizer and scheduler states. The existing
-   full-depth restart tests restore newly generated Megatron checkpoints.
+   The initial four-GPU warm-start timings did not qualify original
+   production-token training or source-state `extend`. The subsequent
+   original-state/full-capacity integration qualification is recorded below;
+   a traced full-configuration ABBA timing run is in progress. The user has
+   scoped current resource validation to the available four GPUs.
 2. Extend qualification to remaining model families, large-model initialization,
    optimizers, higher CP degrees and other parallelism paths.
 3. Measure live, representative standalone VLM recipes including data loading,
@@ -1013,3 +1014,40 @@ of restored RNG. Its `--steps` is the absolute final iteration: from iteration
 so the checkpoint validator sees the real bound catalog loader. Benchmark summaries
 reject mixing restored/fresh starts, normalization policies, short-UND capacities,
 and live packing settings.
+
+Native PyTorch has now completed original-state continuation at full capacity and
+production packing: restored iteration 1200, three updates through 1203, finite
+losses `[0.1059765, 0.2181964, 0.6452901]`, peak allocated **80,584,488,448 bytes**.
+The saved optimizer, scheduler, trainer/RNG were loaded with no skipped optimizer
+keys; the original append-only `extend` policy resets data streams after adding
+catalogs. This is an integration qualification with only three observations,
+explicitly excluded from accepted throughput summaries:
+`artifacts/megatron/source_extend_preserved_pytorch.json` and its filtered update
+log. Megatron ZeRO-3 also completed the same original-state qualification:
+peak **80,913,564,672 bytes**, finite losses
+`[0.1059497, 0.2181473, 0.6451105]`. Maximum relative loss difference is
+**0.027831%**. Both logs contain zero nonfinite/skip-update events and no actual
+media-error files. See `source_extend_preserved_qualification.json` plus the
+Megatron raw report and filtered update JSONL. These three-update integration
+runs did not record content traces and are not substituted for the traced
+ABBA throughput qualification.
+
+The ABBA shell supports a reproducible full-capacity, production-loader, original
+state comparison (absolute final iteration, not number of new updates):
+
+```bash
+BASE_CHECKPOINT_PATH=/path/to/original/checkpoints/iter_000001200 \
+BENCHMARK_LIVE_DATA=1 BENCHMARK_PRODUCTION_CAPACITIES=1 \
+BENCHMARK_PRODUCTION_LOADER=1 BENCHMARK_RESTORE_SOURCE_STATE=1 \
+BENCHMARK_EXPECTED_START_ITERATION=1200 BENCHMARK_STEPS=1208 \
+BENCHMARK_WARMUP_STEPS=3 BENCHMARK_TAG=source_extend_full_capacity \
+MEGATRON_SHARDING_STRATEGY=optim_grads_params \
+bash tools/benchmark_megatron_full_depth.sh
+```
+
+This preserves checkpoint normalization and uses the checked-in State snapshot
+mapping by default. Set `BENCHMARK_STATE_NORMALIZATION_PATHS` for another explicit
+root-to-snapshot JSON mapping. Every run records per-rank live content/cursor/RNG
+hashes. Source-state/production-loader modes reject replay before launching GPUs.
+The shell argument plumbing and incompatible-mode rejection were checked with a
+fake Python executable; the numeric run must still complete to qualify throughput.

@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "scope": "original source-state continuation with preserved Action/State normalization, production capacities and packing, four GPUs; not accepted throughput or an input-hash parity qualification",
+  "failure_patterns": "GradClip: non-finite pre-clip norm|Local rank observed non-finite loss|ALL ranks NaN/Inf[^\\n]*skipping optimizer step",
+  "runs": [
+    {
+      "backend": "pytorch",
+      "initial_iteration": 1200,
+      "final_iteration": 1203,
+      "optimizer_updates": 3,
+      "nonfinite_or_skipped_update_events": 0,
+      "media_error_files": 0,
+      "raw_log_sha256": "b4913d85a388e8f9cb412a0cbb04fc331e8deb9837a6428f73c326f151763250",
+      "peak_allocated_bytes": 80584488448
+    },
+    {
+      "backend": "megatron",
+      "initial_iteration": 1200,
+      "final_iteration": 1203,
+      "optimizer_updates": 3,
+      "nonfinite_or_skipped_update_events": 0,
+      "media_error_files": 0,
+      "raw_log_sha256": "e8e9ba4b3f17092359df60007c55dcdbe67467c045b769c12030f2c0a5157400",
+      "peak_allocated_bytes": 80913564672
+    }
+  ],
+  "loss_relative_differences": [
+    0.0002528134637370864,
+    0.00022495522407630066,
+    0.0002783070764354267
+  ],
+  "maximum_loss_relative_difference": 0.0002783070764354267,
+  "live_input_trace_comparison": false,
+  "note": "Input/cursor/RNG hashing and representative steady timing are checked by a separate ABBA run."
+}

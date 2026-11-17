@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "scope": "full 36-layer stock trainer; original production token capacities; live data",
+  "sharding_strategy": "optim_grads",
+  "gradient_accumulation": 3,
+  "optimizer_steps": 3,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "token_capacities": [
+    11776,
+    62592,
+    2944
+  ],
+  "short_und_capacity": 5120,
+  "checkpoint_load_mode": "extend",
+  "preserve_source_normalization": true,
+  "state_normalization_paths": {
+    "/share-mixed/projset/eai_pwm/datasets/action_tactile_pretraining_20261026/bench2dex": "/share-mixed/projset/eai_pwm/datasets/action_tactile_pretraining_20261026/bench2dex/processing/artifacts/bench2dex_pretrain_physical_upgrade_20261102/preimage/meta/state_normalization.json"
+  },
+  "dataloader_max_samples_per_batch": 92,
+  "dataloader_packing_pool_size": 16,
+  "fresh_optimizer_state": false,
+  "backend": "pytorch",
+  "torch_version": "2.10.0+cu130",
+  "cuda_version": "13.0",
+  "megatron_core_version": "0.20.0",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "world_size": 4,
+  "live_data": true,
+  "output_root": "outputs/megatron_validation/source_extend_preserved_pytorch",
+  "step_seconds": [
+    65.20463252440095,
+    41.57544594630599,
+    35.87802033498883
+  ],
+  "update_including_first_dataload_seconds": [
+    86.05778989568353,
+    41.80748439580202,
+    36.10935294255614
+  ],
+  "update_data_wait_seconds": [
+    23.142637491226196,
+    0.004791479557752609,
+    0.005845818668603897
+  ],
+  "content_trace_enabled": false,
+  "mean_final_microbatch_losses": [
+    0.10597650706768036,
+    0.21819642186164856,
+    0.6452900767326355
+  ],
+  "seed_reset_after_initialization": null,
+  "initial_iteration": 1200,
+  "requested_final_iteration": 1203,
+  "warmup_steps": 1,
+  "median_seconds": 38.72673314064741,
+  "peak_allocated_bytes": 80584488448,
+  "initialization_peak_allocated_bytes": 33474877952,
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation"
+  ],
+  "throughput_qualification": false,
+  "measurement_scope": "three-update production-capacity original-state continuation qualification, not accepted throughput evidence",
+  "optimizer_updates_disabled": false,
+  "optimizer_state_restored": true,
+  "dataloader_cursor_policy": "reset on append, matching original extend behavior"
+}

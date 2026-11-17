@@ -4,6 +4,19 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 : "${BASE_CHECKPOINT_PATH:?Set the original trained checkpoint path}"
 BENCHMARK_LIVE_DATA="${BENCHMARK_LIVE_DATA:-0}"
+BENCHMARK_PRODUCTION_CAPACITIES="${BENCHMARK_PRODUCTION_CAPACITIES:-0}"
+BENCHMARK_PRODUCTION_LOADER="${BENCHMARK_PRODUCTION_LOADER:-0}"
+BENCHMARK_RESTORE_SOURCE_STATE="${BENCHMARK_RESTORE_SOURCE_STATE:-0}"
+for setting in BENCHMARK_PRODUCTION_CAPACITIES BENCHMARK_PRODUCTION_LOADER BENCHMARK_RESTORE_SOURCE_STATE; do
+    [[ "${!setting}" =~ ^[01]$ ]] || { echo "ERROR: $setting must be 0 or 1" >&2; exit 1; }
+done
+if [[ "$BENCHMARK_PRODUCTION_LOADER" == "1" || "$BENCHMARK_RESTORE_SOURCE_STATE" == "1" ]]; then
+    [[ "$BENCHMARK_LIVE_DATA" == "1" ]] || { echo "ERROR: production loader/source restore require live data" >&2; exit 1; }
+fi
+if [[ "$BENCHMARK_RESTORE_SOURCE_STATE" == "1" ]]; then
+    : "${BENCHMARK_EXPECTED_START_ITERATION:?Set the source checkpoint iteration}"
+    : "${BENCHMARK_STEPS:?Set the absolute final iteration, greater than source iteration plus warmup}"
+fi
 case "$BENCHMARK_LIVE_DATA" in
     0) : "${REAL_BATCH_PATH:?Set the materialized real batch path}" ;;
     1) REAL_BATCH_PATH="${REAL_BATCH_PATH:-$PWD/outputs/megatron_validation/real_batch.pt}" ;;
@@ -27,6 +40,17 @@ for index in "${!backends[@]}"; do
     extra_args=()
     if [[ "$BENCHMARK_LIVE_DATA" == "1" ]]; then
         extra_args+=(--live-data --trace-json "${result}_inputs.json")
+    fi
+    if [[ "$BENCHMARK_PRODUCTION_CAPACITIES" == "1" ]]; then
+        extra_args+=(--production-capacities)
+    fi
+    if [[ "$BENCHMARK_PRODUCTION_LOADER" == "1" ]]; then
+        extra_args+=(--production-loader)
+    fi
+    if [[ "$BENCHMARK_RESTORE_SOURCE_STATE" == "1" ]]; then
+        extra_args+=(--resume-training --checkpoint-load-mode extend --preserve-source-normalization
+            --expected-start-iteration "$BENCHMARK_EXPECTED_START_ITERATION"
+            --state-normalization-paths "${BENCHMARK_STATE_NORMALIZATION_PATHS:-examples/normalization/state_h1_source_paths.json}")
     fi
     "$PYTHON_BIN" -m torch.distributed.run --standalone --nproc-per-node="${NPROC_PER_NODE:-4}" \
         tests/megatron/train_real_batch_smoke.py \
