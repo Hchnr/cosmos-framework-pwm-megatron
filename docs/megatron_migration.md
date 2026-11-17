@@ -718,6 +718,26 @@ The full-depth three-tower replay was also reaggregated including every
 steady-state observation: mean updates are 4.655577 versus 4.390820 seconds,
 **6.03% mean-based throughput gain**, consistent with its 5.98% median ratio.
 
+## Two-tower checkpoint to three-tower conversion
+
+The existing `action_tower_init=copy_gen` conversion now copies logical GEN
+values into GEN_ACTION's actual chunks. A direct DTensor copy failed when
+Megatron assigned different local offsets or lengths (for example 4 versus 64,
+or 60 versus 0). DCP state views retain prepared chunk metadata while detaching
+the Parameter's owner attribute, so the logical copy helper also recognizes
+those views. Ordinary tensors and native FSDP2 retain their original copy path.
+
+A native two-tower DCP is loaded into a compiled Megatron three-tower model with
+EMA and 2×2 HSDP. It independently verifies all **184** model/EMA tensors,
+including **54** deferred parameters, bitwise equal to their intended sources.
+Each rank exercises six different GEN/GEN_ACTION ownership cases. Explicit
+in-memory `copy_from_gen` also restores deliberately zeroed destinations, and
+the converted model completes a compiled GA=3 FusedAdam update. The original
+action-tower suite reports **53 passed**. See
+`three_tower_copy_initialization.json` and its reproduction driver. This is
+initialization/architecture conversion coverage; production action128 resume
+qualification remains separately described above.
+
 ## Live full-depth benchmark protocol
 
 The full-depth harness also supports original live 58-source catalog loading.

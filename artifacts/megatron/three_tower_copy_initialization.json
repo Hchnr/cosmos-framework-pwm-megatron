@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "native_two_tower_checkpoint": true,
+  "target_three_tower": true,
+  "compile": true,
+  "ema_weights_verified": true,
+  "independently_verified_tensors": 184,
+  "deferred_parameters": 54,
+  "different_owner_cases_per_rank": [
+    6,
+    6,
+    6,
+    6
+  ],
+  "all_initialized_weights_bitwise_equal": true,
+  "explicit_in_memory_gen_copy_verified": true,
+  "gradient_accumulation": 3,
+  "subsequent_fused_adam_update": true
+}

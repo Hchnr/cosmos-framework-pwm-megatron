@@ -21,14 +21,20 @@ def materialize_tensor(tensor: torch.Tensor) -> torch.Tensor:
 
 @torch.no_grad()
 def copy_model_parameter(destination: torch.Tensor, source: torch.Tensor) -> None:
-    """Copy logical UND→GEN values even when their local owners differ."""
+    """Copy logical tower parameters even when their local owners differ."""
     owner = getattr(destination, "_megatron_fsdp_model", None)
-    if not isinstance(destination, DTensor) or owner is None:
+    chunks = (
+        getattr(destination._local_tensor, "__create_chunk_list__", None) if isinstance(destination, DTensor) else None
+    )
+    # state_dict() detaches the Parameter's owner attribute but retains its
+    # prepared uneven chunk metadata. Those views need logical copies too.
+    if not isinstance(destination, DTensor) or (owner is None and chunks is None):
         destination.data.copy_(source.data)
         return
-    from cosmos_framework.training_backends.checkpoint_metadata import prepare_uneven_state
+    if owner is not None:
+        from cosmos_framework.training_backends.checkpoint_metadata import prepare_uneven_state
 
-    prepare_uneven_state({"source": source, "destination": destination}, owner.dist_index.get_fsdp_group())
+        prepare_uneven_state({"source": source, "destination": destination}, owner.dist_index.get_fsdp_group())
     full = materialize_tensor(source)
     chunks = getattr(destination._local_tensor, "__create_chunk_list__", None)
     if chunks is None:

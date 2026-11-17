@@ -21,6 +21,7 @@ from cosmos_framework.data.generator.sequence_packing.runtime import (
     get_und_seq,
 )
 from cosmos_framework.model.generator.mot.joint_attention import build_joint_block_mask, joint_flex_attention
+from cosmos_framework.utils.generator.materialize_tensor import copy_model_parameter
 
 
 def source_key(key: str) -> str | None:
@@ -82,7 +83,7 @@ def validate_checkpoint_initialization(state_dict, checkpoint_keys, *, skipped=(
 @torch.no_grad()
 def finish_copy_initialization(state_dict, pending):
     for key, (destination, source) in pending.items():
-        destination.copy_(state_dict[source])
+        copy_model_parameter(destination, state_dict[source])
         state_dict[key] = destination
 
 
@@ -114,7 +115,7 @@ def copy_from_gen(net):
     for key, value in state.items():
         source = source_key(key)
         if source is not None:
-            value.copy_(state[source])
+            copy_model_parameter(value, state[source])
 
 
 def resolve_execution(execution, attention_backend="auto", projection_mode="auto"):

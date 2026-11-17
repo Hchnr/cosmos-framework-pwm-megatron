@@ -46,7 +46,16 @@ def checkpoint_key(name, family):
 
 
 def construct(
-    backend, family, path, optimizer_type, sharding_strategy, partial_freeze, lora, visual=False, train_visual=False
+    backend,
+    family,
+    path,
+    optimizer_type,
+    sharding_strategy,
+    partial_freeze,
+    lora,
+    visual=False,
+    train_visual=False,
+    tower_structure="two_tower",
 ):
     config = copy.deepcopy(OmniMoTModelConfig())
     config.parallelism.backend = backend
@@ -58,7 +67,7 @@ def construct(
     config.lora_rank, config.lora_alpha = 4, 8
     config.vision_gen = config.action_gen = True
     config.action128_spec = tiny_action128_spec()
-    config.tower_structure = "two_tower"
+    config.tower_structure = tower_structure
     config.load_vision_tokenizer = config.load_vlm_visual = False
     config.load_vlm_visual, config.train_vlm_visual = visual, train_visual
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
@@ -99,7 +108,7 @@ def construct(
                         "llm2action",
                     ]
                     if partial_freeze
-                    else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+                    else ["_moe_gen", "action_modality_embed", "action_time", "action2llm", "llm2action"]
                 )
             )
         ),
