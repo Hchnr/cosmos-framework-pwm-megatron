@@ -1,0 +1,81 @@
+{
+  "scope": "full 36-layer stock trainer; reduced token capacities; live data",
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation"
+  ],
+  "token_capacities": [
+    2048,
+    16384,
+    128
+  ],
+  "gradient_accumulation": 3,
+  "runs": [
+    "artifacts/megatron/recheck_20261117_live_1_pytorch.json",
+    "artifacts/megatron/recheck_20261117_live_2_megatron.json",
+    "artifacts/megatron/recheck_20261117_live_3_megatron.json",
+    "artifacts/megatron/recheck_20261117_live_4_pytorch.json"
+  ],
+  "backends": {
+    "pytorch": {
+      "observations": 18,
+      "median_seconds": 12.848879976198077,
+      "mean_seconds": 11.8626463804394,
+      "p95_seconds": 14.501044233143329,
+      "max_seconds": 14.505690649151802,
+      "per_run_median_seconds": [
+        12.883335575461388,
+        12.814424376934767
+      ],
+      "peak_allocated_bytes": 51811713024,
+      "whole_update_including_first_dataload": {
+        "observations": 18,
+        "median_seconds": 12.88124074600637,
+        "mean_seconds": 12.02604307896561,
+        "p95_seconds": 14.526955271139741,
+        "max_seconds": 14.531457997858524
+      },
+      "data_wait": {
+        "observations": 18,
+        "median_seconds": 3.291248109191656,
+        "mean_seconds": 2.478665182366967,
+        "p95_seconds": 4.792516096122563,
+        "max_seconds": 4.836008280515671
+      }
+    },
+    "megatron": {
+      "observations": 18,
+      "median_seconds": 12.577241165563464,
+      "mean_seconds": 11.61820347317391,
+      "p95_seconds": 14.13183736447245,
+      "max_seconds": 14.239180739969015,
+      "per_run_median_seconds": [
+        12.66207429766655,
+        12.50880440697074
+      ],
+      "peak_allocated_bytes": 73096211456,
+      "whole_update_including_first_dataload": {
+        "observations": 18,
+        "median_seconds": 12.617691522464156,
+        "mean_seconds": 11.796511805719799,
+        "p95_seconds": 14.244179225899279,
+        "max_seconds": 14.294250339269638
+      },
+      "data_wait": {
+        "observations": 18,
+        "median_seconds": 3.528512444347143,
+        "mean_seconds": 2.585969163932734,
+        "p95_seconds": 4.832727419398725,
+        "max_seconds": 4.966742165386677
+      }
+    }
+  },
+  "live_input_traces_bitwise_equal": true,
+  "input_trace_microbatches_per_rank": 36,
+  "includes_content_hashing_overhead": true,
+  "throughput_gain_fraction": 0.021597646658661596,
+  "mean_throughput_gain_fraction": 0.02103964763828614,
+  "whole_update_mean_throughput_gain_fraction": 0.019457554659040754,
+  "max_loss_trace_absolute_difference": 0.0008043050765991211,
+  "max_loss_trace_relative_difference": 0.0022108119655336114
+}

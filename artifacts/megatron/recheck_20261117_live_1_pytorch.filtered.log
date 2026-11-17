@@ -1,0 +1,24 @@
+[11-17 10:43:13|INFO] clip_grad_norm/video/global: 0.52734 (iteration 1)
+{"benchmark_update": 1, "seconds": 29.12063631042838, "including_first_dataload_seconds": 31.14541408792138, "data_wait_seconds": 4.062885828316212, "loss": 0.06026840582489967, "peak_allocated_bytes": 37749622784}
+[11-17 10:43:27|INFO] clip_grad_norm/video/global: 0.16406 (iteration 2)
+{"benchmark_update": 2, "seconds": 13.684722974896431, "including_first_dataload_seconds": 13.716858249157667, "data_wait_seconds": 0.10407711565494537, "loss": 0.19695636630058289, "peak_allocated_bytes": 51465583104}
+[11-17 10:43:39|INFO] clip_grad_norm/video/global: 0.32617 (iteration 3)
+{"benchmark_update": 3, "seconds": 12.505830202251673, "including_first_dataload_seconds": 12.537649925798178, "data_wait_seconds": 3.7062310241162777, "loss": 0.5863256454467773, "peak_allocated_bytes": 51564329984}
+[11-17 10:43:52|INFO] clip_grad_norm/video/global: 0.20898 (iteration 4)
+{"benchmark_update": 4, "seconds": 13.028711803257465, "including_first_dataload_seconds": 13.069698721170425, "data_wait_seconds": 4.0288875587284565, "loss": 0.09456899017095566, "peak_allocated_bytes": 51564329984}
+[11-17 10:44:03|INFO] clip_grad_norm/video/global: 0.24023 (iteration 5)
+{"benchmark_update": 5, "seconds": 10.547101117670536, "including_first_dataload_seconds": 10.570798147469759, "data_wait_seconds": 0.0019609853625297546, "loss": 0.10299548506736755, "peak_allocated_bytes": 51564329984}
+[11-17 10:44:16|INFO] clip_grad_norm/video/global: 0.54688 (iteration 6)
+{"benchmark_update": 6, "seconds": 12.883335575461388, "including_first_dataload_seconds": 12.914729453623295, "data_wait_seconds": 4.315078914165497, "loss": 0.15266557037830353, "peak_allocated_bytes": 51564329984}
+[11-17 10:44:24|INFO] clip_grad_norm/video/global: 0.46484 (iteration 7)
+{"benchmark_update": 7, "seconds": 8.358962070196867, "including_first_dataload_seconds": 8.381742432713509, "data_wait_seconds": 0.0010256245732307434, "loss": 0.11738752573728561, "peak_allocated_bytes": 51796083200}
+[11-17 10:44:38|INFO] clip_grad_norm/video/global: 0.20508 (iteration 8)
+{"benchmark_update": 8, "seconds": 12.99940511956811, "including_first_dataload_seconds": 14.184919614344835, "data_wait_seconds": 3.4721077419817448, "loss": 0.0789269283413887, "peak_allocated_bytes": 51796083200}
+[11-17 10:44:51|INFO] clip_grad_norm/video/global: 0.40820 (iteration 9)
+{"benchmark_update": 9, "seconds": 13.182533275336027, "including_first_dataload_seconds": 13.201897695660591, "data_wait_seconds": 4.836008280515671, "loss": 0.07973121106624603, "peak_allocated_bytes": 51811713024}
+[11-17 10:45:04|INFO] clip_grad_norm/video/global: 0.41016 (iteration 10)
+{"benchmark_update": 10, "seconds": 12.530786864459515, "including_first_dataload_seconds": 12.549378592520952, "data_wait_seconds": 3.2965214289724827, "loss": 0.7401270270347595, "peak_allocated_bytes": 51811713024}
+[11-17 10:45:13|INFO] clip_grad_norm/video/global: 0.24609 (iteration 11)
+{"benchmark_update": 11, "seconds": 8.842609979212284, "including_first_dataload_seconds": 8.883363410830498, "data_wait_seconds": 0.001716267317533493, "loss": 0.15677408874034882, "peak_allocated_bytes": 51811713024}
+[11-17 10:45:27|INFO] clip_grad_norm/video/global: 0.27148 (iteration 12)
+{"benchmark_update": 12, "seconds": 14.505690649151802, "including_first_dataload_seconds": 14.531457997858524, "data_wait_seconds": 2.4402196891605854, "loss": 0.1371346265077591, "peak_allocated_bytes": 51811713024}

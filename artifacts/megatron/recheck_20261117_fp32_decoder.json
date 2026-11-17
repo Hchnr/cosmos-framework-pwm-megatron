@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "model": "actual three-stream MoT decoder",
+  "compiled": true,
+  "fused_projections": false,
+  "replicas": 2,
+  "max_gradient_error": 6.69620931148529e-07,
+  "dtype": "float32",
+  "sharding_strategy": "optim_grads",
+  "world_size": 4,
+  "gradient_accumulation": 3,
+  "full_activation_checkpointing": true,
+  "seed": 42,
+  "torch": "2.10.0+cu130"
+}

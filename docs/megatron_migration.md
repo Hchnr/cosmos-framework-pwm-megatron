@@ -817,6 +817,10 @@ A fresh run on Torch 2.10.0+cu130 / Megatron-Core 0.20.0 passed:
 
 - FP32 reference comparison, ZeRO-2, shard2 × replica2, GA=3, clipping and
   three optimizer updates; maximum output error was zero.
+- Actual three-stream decoder in FP32, static compilation, full AC, GA=3 and
+  shard2 × replica2; maximum absolute gradient error was 6.6963e-7, within the
+  existing 2e-6 absolute / 2e-5 relative per-tensor gates. See
+  `recheck_20261117_fp32_decoder.json`.
 - Production-width one-layer three-tower BF16 comparison, compiled full AC,
   production short-UND capacities, GA=3, clipping and FusedAdam FP32 masters;
   gradient relative L2 error was 9.6589e-5 and updated-weight relative L2 error
@@ -834,6 +838,36 @@ invalid warmup windows and non-finite measurements (including warmup). The VLM
 path checks every rank's losses/timings and rejects duplicate rank identities.
 Zero data-wait time is valid. All 28 summary regression tests pass; reaggregating
 the earlier live and VLM evidence reproduces their stored summaries exactly.
+
+The fresh crossed live benchmark also completed all four independent launches,
+12 updates per launch, discarding the first three warmup updates and retaining
+all remaining observations (18 per backend). It uses the same 36-layer model,
+VAE, live 58-source recipe, BF16/FusedAdam, GA=3, clipping and callbacks as the
+earlier live test, with **[2048, 16384, 128]** capacities and shard4 × replica1.
+All 144 raw-input/cursor/worker-RNG identities match across launches and also
+match the previous live reference. The combined four-rank logs contain zero
+non-finite loss, non-finite pre-clip norm or skipped-update events. Maximum
+relative loss-trace difference is **0.002211** (about **0.221%**).
+
+| Fresh live measurement | PyTorch FSDP2 | Megatron ZeRO-2 |
+| --- | ---: | ---: |
+| Mean whole-update seconds, including first fetch | 12.026043 | 11.796512 |
+| Median whole-update seconds | 12.881241 | 12.617692 |
+| P95 whole-update seconds | 14.526955 | 14.244179 |
+| Peak allocated bytes | 51,811,713,024 | 73,096,211,456 |
+
+Mean whole-update throughput improves **1.95%**, with the two independent pairs
+improving **1.89%** and **2.00%**. This reproduces the earlier small gain and
+shows no observed throughput regression in the measured four-GPU scope, with
+**41.08% higher peak allocated memory** for ZeRO-2. Checkpoint I/O and tokenizer
+compilation are excluded; content hashing overhead is included. This does not
+establish production-token or 192-GPU throughput/memory behavior.
+
+Raw timings, all rank traces, filtered update/gradient-norm logs and the numeric
+audit are retained as `artifacts/megatron/recheck_20261117_live_*`. The numeric
+audit records the SHA256 of each full local log and both paired gains. Reproduce
+with the live command above using `BENCHMARK_TAG=recheck_20261117_live`, then
+summarize those four tagged run files.
 
 ### Outstanding broader acceptance
 
