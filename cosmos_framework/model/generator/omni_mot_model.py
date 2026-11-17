@@ -8,6 +8,7 @@ import copy
 import dataclasses
 import inspect
 import json
+import os
 import time
 from collections.abc import Sequence
 from contextlib import contextmanager
@@ -298,6 +299,21 @@ class OmniMoTModel(ImaginaireModel):
 
     def build_net(self, dtype: torch.dtype, *, lora_enabled: bool | None = None) -> torch.nn.Module:
         backend = getattr(self.config.parallelism, "backend", "pytorch")
+        meta_initialization = (
+            backend == "megatron" and os.environ.get("COSMOS_MEGATRON_OMNI_META_INITIALIZATION", "0") == "1"
+        )
+        if meta_initialization and (
+            self.config.tower_structure != "two_tower"
+            or self.config.load_vlm_visual
+            or self.config.sound_gen
+            or getattr(self.config, "sound_und", False)
+            or self.config.quantization.method is not None
+            or self.config.quantization.modelopt_fp8_checkpoint_path
+            or self.config.fp8_training.enabled
+        ):
+            raise ValueError(
+                "Omni meta initialization currently supports unquantized two-tower models without visual/audio encoders"
+            )
         if self.config.tower_structure == "three_tower":
             if self.config.parallelism.context_parallel_shard_degree != 1:
                 raise ValueError("three_tower currently requires context_parallel_shard_degree=1")
@@ -403,10 +419,11 @@ class OmniMoTModel(ImaginaireModel):
                 enable_input_bias=self.config.enable_input_bias,
             )
             network_config._attn_implementation_internal = "eager"
-            net = Cosmos3VFMNetwork(
-                language_model=language_model,
-                config=network_config,
-            )
+            with torch.device("cpu" if meta_initialization else "meta"):
+                net = Cosmos3VFMNetwork(
+                    language_model=language_model,
+                    config=network_config,
+                )
             net.pad_for_cuda_graphs = self.config.compile.use_cuda_graphs
 
             # Inject LoRA BEFORE FSDP wrap, while still on meta device. The
@@ -454,8 +471,16 @@ class OmniMoTModel(ImaginaireModel):
             net = net.to(dtype=dtype)
             is_cpu_ema = backend == "megatron" and getattr(self, "_building_megatron_ema", False)
             materialization_device = Device.CPU if is_cpu_ema else DEVICE
-            net.to_empty(device=materialization_device)
-            if DEVICE == Device.CUDA:
+            if meta_initialization:
+                from cosmos_framework.training_backends.omni_meta_init import prepare_omni_meta_initialization
+
+                cleanup = prepare_omni_meta_initialization(net, dtype, ema=is_cpu_ema)
+                if not is_cpu_ema:
+                    net.__dict__["_cosmos_megatron_meta_reset_cleanup"] = cleanup
+                    net.__dict__["_cosmos_megatron_meta_pending"] = True
+            else:
+                net.to_empty(device=materialization_device)
+            if DEVICE == Device.CUDA and not meta_initialization:
                 # Weight initialization is not needed for other devices (cpu,
                 # meta), since they are only for checkpoint conversion and smoke
                 # tests.
@@ -465,12 +490,21 @@ class OmniMoTModel(ImaginaireModel):
 
         if backend == "megatron":
             net._cosmos_megatron_options = {
+                "init_model_with_meta_device": meta_initialization and not is_cpu_ema,
                 "shard_degree": self.parallel_dims.dp_shard,
                 "replicate_degree": self.parallel_dims.dp_replicate,
                 "sharding_strategy": getattr(
                     self.config.parallelism, "megatron_sharding_strategy", "optim_grads_params"
                 ),
             }
+            if meta_initialization and not is_cpu_ema:
+                from functools import partial
+
+                from cosmos_framework.training_backends.omni_meta_init import finish_omni_meta_initialization
+
+                net.__dict__["_cosmos_megatron_after_materialization"] = partial(
+                    finish_omni_meta_initialization, lora=lora_enabled
+                )
         return net
 
     def load_pretrained_model_if_needed(
@@ -739,16 +773,19 @@ class OmniMoTModel(ImaginaireModel):
             self.fixed_step_sampler = None
 
     def to(self, *args, **kwargs):
-        # Do not materialize a complete FP32 EMA on CUDA before the optimizer
-        # has chosen trainable parameters and Megatron has allocated its shards.
-        if getattr(self, "_megatron_ema_pending", False):
+        pending_net = getattr(getattr(self, "net", None), "__dict__", {}).get("_cosmos_megatron_meta_pending", False)
+        if getattr(self, "_megatron_ema_pending", False) or pending_net:
             device, dtype, _, _ = torch._C._nn._parse_to(*args, **kwargs)
             if device is not None and device.type == "cuda" and dtype is None:
-                ema = self._modules.pop("net_ema")
+                held = {}
+                if getattr(self, "_megatron_ema_pending", False):
+                    held["net_ema"] = self._modules.pop("net_ema")
+                if pending_net:
+                    held["net"] = self._modules.pop("net")
                 try:
                     return super().to(*args, **kwargs)
                 finally:
-                    self._modules["net_ema"] = ema
+                    self._modules.update(held)
         return super().to(*args, **kwargs)
 
     def init_optimizer_scheduler(

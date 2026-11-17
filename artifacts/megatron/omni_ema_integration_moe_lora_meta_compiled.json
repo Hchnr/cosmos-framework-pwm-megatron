@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "model": "OmniMoTModel with real moe MoT and Action128 heads",
+  "family": "moe",
+  "meta_initialization": true,
+  "full_rank_adapters_and_replica_initialization_equal": true,
+  "lora": true,
+  "lora_gradient_maxima_A_B": [
+    [
+      0.0,
+      0.00372314453125
+    ],
+    [
+      0.00011301040649414062,
+      0.002838134765625
+    ]
+  ],
+  "output_projection_lora_B_gradient_maxima": [
+    0.0023345947265625,
+    0.002532958984375
+  ],
+  "frozen_base_bitwise_unchanged": true,
+  "steps": 2,
+  "compiled": true,
+  "cp": 1,
+  "sharding_strategy": "optim_grads_params",
+  "cpu_ema_cache": true,
+  "gradient_accumulation": 3,
+  "shards": 2,
+  "replicas": 2,
+  "ema_bitwise_equal": true,
+  "ema_scope_finite": true,
+  "training_weights_restored_bitwise": true,
+  "checkpoint_roundtrip": true,
+  "async_cpu_staging_spawn_queue": true
+}

@@ -137,7 +137,6 @@ def main():
     parser.add_argument("--optimizer", choices=("AdamW", "FusedAdam"), default="AdamW")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
-    assert not args.lora or args.warm_start, "LoRA startup test uses a pretrained generation checkpoint"
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
     torch.manual_seed(42)
@@ -235,6 +234,7 @@ def main():
         passed=True,
         family=args.family,
         actual_startup_hook=True,
+        meta_initialization=os.environ.get("COSMOS_MEGATRON_OMNI_META_INITIALIZATION", "0") == "1",
         optimizer=args.optimizer,
         partial_generation_freeze=args.partial_generation_freeze,
         lora=args.lora,

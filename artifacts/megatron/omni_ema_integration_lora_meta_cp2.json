@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "model": "OmniMoTModel with real qwen MoT and Action128 heads",
+  "family": "qwen",
+  "meta_initialization": true,
+  "full_rank_adapters_and_replica_initialization_equal": true,
+  "lora": true,
+  "lora_gradient_maxima_A_B": [
+    [
+      0.0,
+      0.00457763671875
+    ],
+    [
+      3.409385681152344e-05,
+      0.002288818359375
+    ]
+  ],
+  "output_projection_lora_B_gradient_maxima": [
+    0.0010833740234375,
+    0.0010223388671875
+  ],
+  "frozen_base_bitwise_unchanged": true,
+  "steps": 2,
+  "compiled": true,
+  "cp": 2,
+  "sharding_strategy": "optim_grads_params",
+  "cpu_ema_cache": true,
+  "gradient_accumulation": 3,
+  "shards": 2,
+  "replicas": 2,
+  "ema_bitwise_equal": true,
+  "ema_scope_finite": true,
+  "training_weights_restored_bitwise": true,
+  "checkpoint_roundtrip": true,
+  "async_cpu_staging_spawn_queue": true
+}

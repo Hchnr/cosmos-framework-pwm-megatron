@@ -2373,7 +2373,9 @@ class Qwen3VLTextForCausalLM(Qwen3VLPreTrainedModel):
         """
         state_dict = self.state_dict()
         for name, param in self.named_parameters():
-            if "moe_gen" not in name:
+            # Adapters keep their own Kaiming-A / zero-B initialization;
+            # generation-only adapters have no UND-tower counterpart.
+            if "moe_gen" not in name or ".lora_" in name:
                 continue
             original_name = (
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")
@@ -2532,7 +2534,9 @@ class Qwen3VLMoeTextForCausalLM(Qwen3VLMoePreTrainedModel):
         """
         state_dict = self.state_dict()
         for name, param in self.named_parameters():
-            if "moe_gen" not in name:
+            # Adapters keep their own Kaiming-A / zero-B initialization;
+            # generation-only adapters have no UND-tower counterpart.
+            if "moe_gen" not in name or ".lora_" in name:
                 continue
             original_name = (
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")
@@ -2719,7 +2723,9 @@ class Nemotron3DenseVLTextForCausalLM(Nemotron3DenseVLPreTrainedModel):
         """Copy understanding-pathway weights into the generation-pathway parameters."""
         state_dict = self.state_dict()
         for name, param in self.named_parameters():
-            if "moe_gen" not in name:
+            # Adapters keep their own Kaiming-A / zero-B initialization;
+            # generation-only adapters have no UND-tower counterpart.
+            if "moe_gen" not in name or ".lora_" in name:
                 continue
             original_name = (
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")

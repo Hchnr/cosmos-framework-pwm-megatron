@@ -32,7 +32,8 @@ def shard_ema_model(runtime, ema):
             chunk = chunks()[0]
             slices = tuple(slice(o, o + n) for o, n in zip(chunk.offsets, chunk.sizes, strict=True))
         shadow = reference.detach().to(dtype=torch.float32, copy=True)
-        shadow.to_local().copy_(parameter.detach()[slices])
+        if not parameter.is_meta:
+            shadow.to_local().copy_(parameter.detach()[slices])
         replacement = nn.Parameter(shadow, requires_grad=False)
         replacement._megatron_fsdp_model = runtime.fsdp
         for name in names:

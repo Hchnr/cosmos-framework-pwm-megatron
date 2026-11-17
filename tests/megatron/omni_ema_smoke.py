@@ -2,6 +2,7 @@
 
 import argparse
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -20,6 +21,8 @@ from cosmos_framework.model.generator.mot.action_tower_test import tiny_action12
 from cosmos_framework.model.generator.mot.unified_mot import (
     Nemotron3DenseVLMoTConfig,
     Nemotron3DenseVLTextForCausalLM,
+    Qwen3VLMoeMoTConfig,
+    Qwen3VLMoeTextForCausalLM,
     Qwen3VLMoTConfig,
     Qwen3VLTextForCausalLM,
 )
@@ -67,6 +70,28 @@ def tiny_nemotron_config(**kwargs):
     )
 
 
+def tiny_moe_config(**kwargs):
+    return Qwen3VLMoeMoTConfig(
+        {
+            "text_config": dict(
+                vocab_size=32,
+                hidden_size=64,
+                intermediate_size=128,
+                num_hidden_layers=2,
+                num_attention_heads=4,
+                num_key_value_heads=2,
+                head_dim=16,
+                rms_norm_eps=1e-6,
+                rope_scaling={"rope_type": "default", "mrope_section": [2, 3, 3]},
+                num_experts=4,
+                num_experts_per_tok=2,
+                moe_intermediate_size=64,
+            )
+        },
+        **kwargs,
+    )
+
+
 class TinyOmni(OmniMoTModel):
     def set_up_tokenizers(self):
         self.vlm_config = self.config.vlm_config
@@ -104,7 +129,7 @@ def main():
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--cp", type=int, default=1)
     parser.add_argument("--lora", action="store_true")
-    parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
+    parser.add_argument("--family", choices=("qwen", "nemotron", "moe"), default="qwen")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
@@ -127,17 +152,22 @@ def main():
     config.load_vision_tokenizer = False
     config.load_vlm_visual = False
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
-    model_class, config_factory = (
-        (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config)
-        if args.family == "nemotron"
-        else (Qwen3VLTextForCausalLM, tiny_config)
-    )
+    model_class, config_factory = {
+        "qwen": (Qwen3VLTextForCausalLM, tiny_config),
+        "nemotron": (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config),
+        "moe": (Qwen3VLMoeTextForCausalLM, tiny_moe_config),
+    }[args.family]
     config.vlm_config.model_instance = LazyCall(model_class)(config=LazyCall(config_factory)())
     model = TinyOmni(config)
-    assert all(p.device.type == "cpu" for p in model.net_ema.parameters())
+    meta_initialization = os.environ.get("COSMOS_MEGATRON_OMNI_META_INITIALIZATION", "0") == "1"
+    assert all(
+        p.device.type in (("cpu", "meta") if meta_initialization else ("cpu",)) for p in model.net_ema.parameters()
+    )
     model.to("cuda")
-    assert all(p.device.type == "cpu" for p in model.net_ema.parameters())
-    expected = {n: v.cuda().clone() for n, v in model.net_ema.state_dict().items()}
+    assert all(
+        p.device.type in (("cpu", "meta") if meta_initialization else ("cpu",)) for p in model.net_ema.parameters()
+    )
+    expected = None if meta_initialization else {n: v.cuda().clone() for n, v in model.net_ema.state_dict().items()}
     optimizer = OptimizersContainer(
         model,
         "AdamW",
@@ -151,6 +181,22 @@ def main():
     )
     assert all(p.device.type == "cuda" for p in model.net_ema.parameters())
     runtime = get_runtime(model)
+    if expected is None:
+        expected = {n: materialize_tensor(v).clone() for n, v in model.net_ema.state_dict().items()}
+    replica_initialization_verified = False
+    if meta_initialization and args.lora:
+        digest = hashlib.sha256()
+        for name, parameter in model.net.named_parameters():
+            if "lora_A" not in name:
+                continue
+            full = materialize_tensor(parameter).float()
+            assert torch.linalg.matrix_rank(full).item() == full.shape[0], name
+            digest.update(name.encode())
+            digest.update(full.cpu().contiguous().numpy().tobytes())
+        hashes = [None] * dist.get_world_size()
+        dist.all_gather_object(hashes, digest.hexdigest())
+        assert len(set(hashes)) == 1, hashes
+        replica_initialization_verified = True
     parameter_names = {
         n.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
         for n, _ in model.net_ema.named_parameters()
@@ -249,6 +295,8 @@ def main():
         passed=True,
         model=f"OmniMoTModel with real {args.family} MoT and Action128 heads",
         family=args.family,
+        meta_initialization=meta_initialization,
+        full_rank_adapters_and_replica_initialization_equal=replica_initialization_verified,
         lora=args.lora,
         lora_gradient_maxima_A_B=adapter_gradients,
         output_projection_lora_B_gradient_maxima=output_projection_gradients,
@@ -269,6 +317,8 @@ def main():
     )
     if dist.get_rank() == 0:
         suffix = "_cp2" if args.cp > 1 else "_compiled" if args.compile else ""
+        if meta_initialization:
+            suffix = "_meta" + suffix
         if args.lora:
             suffix = "_lora" + suffix
         if args.family != "qwen":

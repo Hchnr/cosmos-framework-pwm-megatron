@@ -412,6 +412,9 @@ class OptimizersContainer(Stateful):
             reset_cleanup = model.net.__dict__.pop("_cosmos_megatron_meta_reset_cleanup", None)
             if reset_cleanup is not None:
                 reset_cleanup()
+            after_materialization = model.net.__dict__.pop("_cosmos_megatron_after_materialization", None)
+            if after_materialization is not None:
+                after_materialization(self._megatron_runtime)
             deferred_load = model.net.__dict__.pop("_cosmos_megatron_deferred_load", None)
             if deferred_load is not None:
                 deferred_load()

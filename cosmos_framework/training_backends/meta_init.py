@@ -7,7 +7,7 @@ import torch
 from cosmos_framework.configs.base.defaults.parallelism import PRECISION_TO_TORCH_DTYPE
 
 
-def prepare_hf_meta_initialization(model, precision):
+def prepare_hf_meta_initialization(model, precision, *, reset_initializer=None):
     """Keep weights on meta until MCore creates their local CUDA buffers.
 
     HF checkpoint loading runs immediately after wrapping and validates every
@@ -38,8 +38,11 @@ def prepare_hf_meta_initialization(model, precision):
 
     @torch.no_grad()
     def reset_parameters(module):
-        for parameter in module.parameters(recurse=False):
-            parameter.zero_()
+        if reset_initializer is None:
+            for parameter in module.parameters(recurse=False):
+                parameter.zero_()
+        else:
+            reset_initializer(module)
 
     reset_overrides = []
     for module in model.modules():

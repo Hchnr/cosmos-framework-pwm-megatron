@@ -557,6 +557,57 @@ python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/v
   --moe --vision --compile --replicas 2 --sharding-strategy optim_grads
 ```
 
+## Bounded Omni meta initialization and full 60B LoRA execution
+
+`COSMOS_MEGATRON_OMNI_META_INITIALIZATION=1` enables an experimental bounded
+initialization path for unquantized two-tower Omni models without reasoner
+visual/audio encoders. The default remains unchanged. Small non-language heads
+are constructed on CPU so their constant buffers retain real values, then
+initialized on CUDA with the original policies. Language parameters stay on
+meta until MCore materializes one direct owner at a time with the original
+family initializer. RoPE/Fourier and routing buffers are rebuilt correctly.
+Temporary reset methods are restored after wrapping. Quantization, three-tower
+and generation-only noisy/cosine/shared-expert variants remain outside this
+option's qualified scope.
+
+The stock trainer's `.to("cuda")` moves other components while pending model
+parameters remain on meta. EMA language parameters also stay on meta and become
+FP32 local shadows after online sharding, avoiding a complete CPU/GPU EMA.
+LoRA A matrices use full small Kaiming samples sliced by actual local offsets;
+B starts at zero. This avoids applying ordinary DTensor random offsets to
+MCore's uneven ownership. Tests explicitly confirm full-rank adapters and
+identical logical initialization across all ranks/replicas.
+
+Dense and small MoE models pass compiled GA=3 updates, active adapter gradients,
+frozen-base invariance, EMA scope and asynchronous DCP restoration. CP=2 also
+passes the combined dense LoRA/EMA/checkpoint suite. A fresh HF/FusedAdam/LoRA
+comparison has bitwise equal initialized weights, outputs, gradients and updated
+model/EMA versus native FSDP2, with 64 online and 64 EMA tensors independently
+verified. UND→GEN seeding now keeps adapter A/B initialization: generation-only
+adapters have no UND counterpart, so attempting to copy them was invalid.
+
+The actual local Qwen3-VL-30B-A3B text model plus its complete generation tower
+also ran on four H100 80GB devices:
+
+- **60,493,967,424** total parameters; **13,369,344** trainable LoRA parameters
+  (rank 16, alpha 32), ZeRO-3, EMA disabled.
+- Pretrained HF UND loading and full UND→GEN seeding completed in about 54 seconds
+  in this observation, excluding process import time.
+- Every rank independently verified **1,060 UND/GEN base tensors** against the
+  corresponding HF file slices, bitwise equal.
+- A real **GA=3 forward/backward + FusedAdam update** completed with finite loss
+  and global gradient norm 11.49608. Logical LoRA SHA256 matches across all ranks.
+- Peak allocation was **36,667,569,152 bytes per GPU**. A complete unsharded BF16
+  parameter copy alone would require about 121GB, exceeding one device.
+
+This full-size probe uses two text and three action tokens, no live loader/VAE,
+no block compilation and no full-size EMA. It establishes initialization and
+one real update, not production throughput, quality or full-size checkpoint
+qualification. Small tests cover compilation, EMA and asynchronous checkpoints.
+See `omni_meta_60b_lora.json`, `omni_ema_integration_*meta*` and
+`omni_meta_fresh_hf_*` artifacts. Original CPU regressions still report
+116 passed / 2 skipped.
+
 ## Standalone VLM compute performance
 
 The pretrained Qwen3-VL-2B visual/text path was measured in four independent
