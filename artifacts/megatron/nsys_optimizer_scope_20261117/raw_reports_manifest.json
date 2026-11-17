@@ -1,0 +1,50 @@
+[
+  {
+    "path": "raw/pytorch_rank2.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/pytorch/rank2.nsys-rep",
+    "bytes": 13865982,
+    "sha256": "d8280eb68ec170441492e7726db9e4e42b78fd4df0edc26dec78f701ac2f0521"
+  },
+  {
+    "path": "raw/pytorch_rank0.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/pytorch/rank0.nsys-rep",
+    "bytes": 13709580,
+    "sha256": "444a39601aa56891988d348b2139192cd38ec1d1a8253da1520657c584eb6f89"
+  },
+  {
+    "path": "raw/pytorch_rank1.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/pytorch/rank1.nsys-rep",
+    "bytes": 13428942,
+    "sha256": "992532069600ce267354d6fcdba9480c327038c395fc044cf2b79b461c97cee3"
+  },
+  {
+    "path": "raw/pytorch_rank3.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/pytorch/rank3.nsys-rep",
+    "bytes": 14347349,
+    "sha256": "dbdaae0718c09a479d3e5928bbf2383817ae7140557d7e1e2b5236f1cf41a854"
+  },
+  {
+    "path": "raw/megatron_rank1.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/megatron/rank1.nsys-rep",
+    "bytes": 13313270,
+    "sha256": "b2112a51ffa3c1dabcefc514562182b9cee00ec5a90289da00c43c4fb90e96f5"
+  },
+  {
+    "path": "raw/megatron_rank2.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/megatron/rank2.nsys-rep",
+    "bytes": 13349310,
+    "sha256": "f3a4c788ebb86c65b8130f110b75bd0cfa2440666b093d0c820bd9babfa2075d"
+  },
+  {
+    "path": "raw/megatron_rank3.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/megatron/rank3.nsys-rep",
+    "bytes": 13942080,
+    "sha256": "708e287c8c8b1433a9579d660acc902ea18c5b67c77fa7f00592ef08e85453c8"
+  },
+  {
+    "path": "raw/megatron_rank0.nsys-rep",
+    "source": "/opt/cosmos-nsys-optimizer-scope/final/megatron/rank0.nsys-rep",
+    "bytes": 13458710,
+    "sha256": "893093480ef29c1e506b8fad07f8ec9b0bdc03d960ed10c4897ecb9405ba00e9"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "base_commit": "e7dd2b04bc686753e414850ddd10856bc41a0a6f",
+  "capture_root": "/opt/cosmos-nsys-optimizer-scope/final",
+  "scope": "4xH100, original production capacities, GA3, full resume iter1200, 3 warmup + 2 captured updates (1204/1205); broadened NVTX only, no added synchronizations",
+  "sources": {
+    "cosmos_framework/trainer/__init__.py": "b034baec99a390178879b0a3fd42638ec4a33d18c78dcd408b43579e3eeb8375",
+    "cosmos_framework/utils/callback.py": "33b16b275d926a5c5846d20fe3d7f9f9b20a748b707acf7462fecba00a11ef36",
+    "tools/profile_megatron_fsdp.sh": "004dc194d84ba19b724a858c778770556761c66da4fecd65914441b92f9345b2",
+    "tools/profile_megatron_fsdp_rank.py": "f099028442d64dcc5c04870bf07d52297c5767cc7a7dba8e0b50cd382398f577",
+    "tests/megatron/train_real_batch_smoke.py": "16563946fa929d79d80f3febb528dbbb5b665fb8b623139593e3450cfad16bfb"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "ranks": [
+    {
+      "rank": 0,
+      "microbatches": 15,
+      "exact_records_equal": true
+    },
+    {
+      "rank": 1,
+      "microbatches": 15,
+      "exact_records_equal": true
+    },
+    {
+      "rank": 2,
+      "microbatches": 15,
+      "exact_records_equal": true
+    },
+    {
+      "rank": 3,
+      "microbatches": 15,
+      "exact_records_equal": true
+    }
+  ]
+}

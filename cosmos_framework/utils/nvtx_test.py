@@ -211,3 +211,27 @@ def test_operator_profiler_is_delayed_until_nsys_active_window() -> None:
         profiler.__enter__.assert_called_once_with()
         callback.on_train_end(mock.Mock())
         profiler.__exit__.assert_called_once_with(None, None, None)
+
+
+def test_callback_phase_annotations_do_not_nest_around_nvtx_stack_manipulation() -> None:
+    """The NVTX callback must pop backward, never a newly added wrapper range."""
+    from cosmos_framework.utils.callback import Callback, CallBackGroup
+
+    group = CallBackGroup.__new__(CallBackGroup)
+    nvtx = NVTXCallback(granularity="coarse")
+    group._callbacks = [Callback(), nvtx]
+    stack = ["backward"]
+    popped = []
+
+    def pop():
+        popped.append(stack.pop())
+
+    configure_nvtx("phase")
+    with (
+        mock.patch.object(torch.cuda.nvtx, "range_push", side_effect=stack.append),
+        mock.patch.object(torch.cuda.nvtx, "range_pop", side_effect=pop),
+    ):
+        group.on_after_backward(mock.Mock(), iteration=0)
+
+    assert stack == []
+    assert popped == ["cosmos.callbacks.on_after_backward.Callback", "backward"]

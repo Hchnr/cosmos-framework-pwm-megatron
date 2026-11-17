@@ -5,7 +5,7 @@ import functools
 import inspect
 import os
 import signal
-from contextlib import closing, nullcontext
+from contextlib import ExitStack, closing, nullcontext
 from dataclasses import dataclass
 from typing import Any
 
@@ -34,7 +34,7 @@ from cosmos_framework.utils import callback, distributed, ema, log, misc
 from cosmos_framework.utils.checkpointer import Checkpointer
 from cosmos_framework.utils.lazy_config import LazyConfig, instantiate
 from cosmos_framework.utils.misc import StragglerDetectorV2
-from cosmos_framework.utils.nvtx import nvtx_range
+from cosmos_framework.utils.nvtx import nvtx_enabled, nvtx_range
 
 
 @dataclass
@@ -428,50 +428,56 @@ class ImaginaireTrainer:
             output (dict[str, torch.Tensor]): The model output from the training data batch (dictionary of tensors).
             loss (torch.Tensor): The total loss of the training data batch.
         """
-        # Only let DDP sync gradient at the last iteration of the gradient accumulation window
-        with distributed.ddp_sync_grad(model_ddp, grad_accum_iter == self.config.trainer.grad_accum_iter - 1):
-            self.callbacks.on_before_forward(iteration=iteration)
-            with self.training_timer("forward"):
-                with self.straggler_detector.profile_section(
-                    "fwd", self.config.trainer.straggler_detection.analyze_forward
-                ):
-                    output_batch, loss = model_ddp.training_step(data, iteration)
-            self.callbacks.on_after_forward(iteration=iteration)
-            model = model_ddp.module if self.config.trainer.distributed_parallelism == "ddp" else model_ddp
-            self.callbacks.on_before_backward(model, loss, iteration=iteration)
-            with self.training_timer("backward"):
-                with self.straggler_detector.profile_section(
-                    "bwd", self.config.trainer.straggler_detection.analyze_backward
-                ):
-                    with nvtx_range("backward.scale_loss"):
-                        loss_scaled = grad_scaler.scale(loss / self.config.trainer.grad_accum_iter)
-                    with nvtx_range("backward.autograd"):
-                        loss_scaled.backward()
-                    with nvtx_range("backward.model_after_backward"):
-                        model.on_after_backward()
-            self.callbacks.on_after_backward(model, iteration=iteration)
-        grad_accum_iter += 1
-        if grad_accum_iter == self.config.trainer.grad_accum_iter:
-            with self.training_timer("optimizer_step"):
-                with self.straggler_detector.profile_section(
-                    "opt", self.config.trainer.straggler_detection.analyze_optimizer
-                ):
-                    with nvtx_range("optimizer.callbacks_before_step"):
-                        self.callbacks.on_before_optimizer_step(
-                            model, optimizer, scheduler, grad_scaler, iteration=iteration
-                        )
-                    with nvtx_range("optimizer.model_before_step"):
-                        model.on_before_optimizer_step(optimizer, scheduler, iteration=iteration)
-                    with nvtx_range("optimizer.update"):
-                        self._optimizer_step(model, optimizer, scheduler, grad_scaler, iteration=iteration)
-                    with nvtx_range("optimizer.callbacks_before_zero_grad"):
-                        self.callbacks.on_before_zero_grad(model, optimizer, scheduler, iteration=iteration)
-                    with nvtx_range("optimizer.model_before_zero_grad"):
-                        model.on_before_zero_grad(optimizer, scheduler, iteration=iteration)
-                    with nvtx_range("optimizer.zero_grad"):
-                        self._zero_grad(model, optimizer, iteration)
-            grad_accum_iter = 0
-        return output_batch, loss, grad_accum_iter
+        # Keep the update range outside callback ordering and include zero_grad.
+        with ExitStack() as update_ranges:
+            # Only let DDP sync gradient at the last iteration of the gradient accumulation window
+            with distributed.ddp_sync_grad(model_ddp, grad_accum_iter == self.config.trainer.grad_accum_iter - 1):
+                self.callbacks.on_before_forward(iteration=iteration)
+                with self.training_timer("forward"):
+                    with self.straggler_detector.profile_section(
+                        "fwd", self.config.trainer.straggler_detection.analyze_forward
+                    ):
+                        output_batch, loss = model_ddp.training_step(data, iteration)
+                self.callbacks.on_after_forward(iteration=iteration)
+                model = model_ddp.module if self.config.trainer.distributed_parallelism == "ddp" else model_ddp
+                self.callbacks.on_before_backward(model, loss, iteration=iteration)
+                with self.training_timer("backward"):
+                    with self.straggler_detector.profile_section(
+                        "bwd", self.config.trainer.straggler_detection.analyze_backward
+                    ):
+                        with nvtx_range("backward.scale_loss"):
+                            loss_scaled = grad_scaler.scale(loss / self.config.trainer.grad_accum_iter)
+                        with nvtx_range("backward.autograd"):
+                            loss_scaled.backward()
+                        if grad_accum_iter == self.config.trainer.grad_accum_iter - 1 and nvtx_enabled():
+                            # This range crosses existing push/pop callback boundaries.
+                            range_id = torch.cuda.nvtx.range_start("cosmos.optimizer.full_post_autograd")
+                            update_ranges.callback(torch.cuda.nvtx.range_end, range_id)
+                        with nvtx_range("backward.model_after_backward"):
+                            model.on_after_backward()
+                self.callbacks.on_after_backward(model, iteration=iteration)
+            grad_accum_iter += 1
+            if grad_accum_iter == self.config.trainer.grad_accum_iter:
+                with self.training_timer("optimizer_step"):
+                    with self.straggler_detector.profile_section(
+                        "opt", self.config.trainer.straggler_detection.analyze_optimizer
+                    ):
+                        with nvtx_range("optimizer.callbacks_before_step"):
+                            self.callbacks.on_before_optimizer_step(
+                                model, optimizer, scheduler, grad_scaler, iteration=iteration
+                            )
+                        with nvtx_range("optimizer.model_before_step"):
+                            model.on_before_optimizer_step(optimizer, scheduler, iteration=iteration)
+                        with nvtx_range("optimizer.update"):
+                            self._optimizer_step(model, optimizer, scheduler, grad_scaler, iteration=iteration)
+                        with nvtx_range("optimizer.callbacks_before_zero_grad"):
+                            self.callbacks.on_before_zero_grad(model, optimizer, scheduler, iteration=iteration)
+                        with nvtx_range("optimizer.model_before_zero_grad"):
+                            model.on_before_zero_grad(optimizer, scheduler, iteration=iteration)
+                        with nvtx_range("optimizer.zero_grad"):
+                            self._zero_grad(model, optimizer, iteration)
+                grad_accum_iter = 0
+            return output_batch, loss, grad_accum_iter
 
     def _optimizer_step(
         self,

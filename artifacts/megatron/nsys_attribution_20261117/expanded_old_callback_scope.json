@@ -1,0 +1,10 @@
+{
+  "pytorch": {
+    "callbacks_before_step_cpu_mean_seconds": 1.170452485125,
+    "observations": 8
+  },
+  "megatron": {
+    "callbacks_before_step_cpu_mean_seconds": 0.98008992625,
+    "observations": 8
+  }
+}

@@ -1,0 +1,467 @@
+[
+  {
+    "label": "split_copy",
+    "report": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_attribution_20261117/profile/pytorch/rank0.nsys-rep",
+    "rank": 0,
+    "update": 1204,
+    "microbatch": 1,
+    "window_seconds": [
+      5.606,
+      5.619
+    ],
+    "kernels": [
+      {
+        "start_ns": 5183925314,
+        "end_ns": 5612540763,
+        "stream": 24,
+        "name": "ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsStorage<(unsigned long)4096>)"
+      },
+      {
+        "start_ns": 5612544411,
+        "end_ns": 5684929617,
+        "stream": 24,
+        "name": "ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsStorage<(unsigned long)4096>)"
+      },
+      {
+        "start_ns": 5612554267,
+        "end_ns": 5613155043,
+        "stream": 7,
+        "name": "at::native::detail::split_with_sizes_copy_out_contiguous_no_cast_kernel(char **, char **, long *, long *, long *, long, long)"
+      },
+      {
+        "start_ns": 5613156483,
+        "end_ns": 5613198691,
+        "stream": 20,
+        "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)"
+      },
+      {
+        "start_ns": 5613159651,
+        "end_ns": 5613246724,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_0"
+      },
+      {
+        "start_ns": 5613201315,
+        "end_ns": 5613247236,
+        "stream": 20,
+        "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)"
+      },
+      {
+        "start_ns": 5613249060,
+        "end_ns": 5613691401,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_1"
+      },
+      {
+        "start_ns": 5613253380,
+        "end_ns": 5613298917,
+        "stream": 20,
+        "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)"
+      },
+      {
+        "start_ns": 5613302533,
+        "end_ns": 5613349285,
+        "stream": 20,
+        "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)"
+      },
+      {
+        "start_ns": 5613352261,
+        "end_ns": 5613397094,
+        "stream": 20,
+        "name": "void at::native::<unnamed>::multi_tensor_apply_kernel<at::native::<unnamed>::TensorListMetadata<(int)2>, at::native::<unnamed>::UnaryOpFunctor<c10::BFloat16, (int)2, (int)1, (int)1>, at::native::Copy<c10::BFloat16, c10::BFloat16>>(T1, T2, T3...)"
+      },
+      {
+        "start_ns": 5613698729,
+        "end_ns": 5613992717,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5613995085,
+        "end_ns": 5614092878,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5614096366,
+        "end_ns": 5614193616,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5614196656,
+        "end_ns": 5614232752,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_2"
+      },
+      {
+        "start_ns": 5614236368,
+        "end_ns": 5614252976,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_3"
+      },
+      {
+        "start_ns": 5614258128,
+        "end_ns": 5617234069,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5617239669,
+        "end_ns": 5618092639,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5618096927,
+        "end_ns": 5618949514,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5618953258,
+        "end_ns": 5619380431,
+        "stream": 7,
+        "name": "triton_per_fused__flash_attn_forward__to_copy_add_cat_index_mean_mul_neg_pow_rsqrt_split_squeeze_unsqueeze_view_4"
+      }
+    ]
+  },
+  {
+    "label": "prefetch_layer10",
+    "report": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_attribution_20261117/profile/megatron/rank0.nsys-rep",
+    "rank": 0,
+    "update": 1204,
+    "microbatch": 1,
+    "window_seconds": [
+      5.69,
+      5.706
+    ],
+    "kernels": [
+      {
+        "start_ns": 5687780475,
+        "end_ns": 5695940529,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_badd_coopB_TNT"
+      },
+      {
+        "start_ns": 5695943345,
+        "end_ns": 5695973457,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_0"
+      },
+      {
+        "start_ns": 5695971761,
+        "end_ns": 5698403691,
+        "stream": 19,
+        "name": "ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsStorage<(unsigned long)4096>)"
+      },
+      {
+        "start_ns": 5695975282,
+        "end_ns": 5696424054,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_1"
+      },
+      {
+        "start_ns": 5696430742,
+        "end_ns": 5696822714,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5696825562,
+        "end_ns": 5696956124,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5696958108,
+        "end_ns": 5697087421,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5697090845,
+        "end_ns": 5697140510,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_2"
+      },
+      {
+        "start_ns": 5697142366,
+        "end_ns": 5697165726,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_3"
+      },
+      {
+        "start_ns": 5697172798,
+        "end_ns": 5700219550,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5700224350,
+        "end_ns": 5701008103,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5701013735,
+        "end_ns": 5701798255,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5701800751,
+        "end_ns": 5702215187,
+        "stream": 7,
+        "name": "triton_per_fused__flash_attn_forward__to_copy_add_cat_index_mean_mul_neg_pow_rsqrt_split_squeeze_unsqueeze_view_4"
+      },
+      {
+        "start_ns": 5702216787,
+        "end_ns": 5702395605,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_5"
+      },
+      {
+        "start_ns": 5702397205,
+        "end_ns": 5702407381,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_6"
+      },
+      {
+        "start_ns": 5702412053,
+        "end_ns": 5702466134,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_256x128_64x4_1x2_h_bz_coopA_TNT"
+      },
+      {
+        "start_ns": 5702467958,
+        "end_ns": 5702485078,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5702486262,
+        "end_ns": 5702502710,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5702503990,
+        "end_ns": 5702527415,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_7"
+      },
+      {
+        "start_ns": 5702530039,
+        "end_ns": 5702541047,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_8"
+      },
+      {
+        "start_ns": 5702543255,
+        "end_ns": 5702670008,
+        "stream": 7,
+        "name": "triton_tem_fused__to_copy_add_flex_attention_mean_mul_pow_rsqrt_transpose_unsqueeze_view_9"
+      },
+      {
+        "start_ns": 5702671704,
+        "end_ns": 5702854234,
+        "stream": 7,
+        "name": "triton_poi_fused__flash_attn_forward__to_copy_add_cat_index_mean_mul_pow_rsqrt_squeeze_unsqueeze_view_10"
+      },
+      {
+        "start_ns": 5702855930,
+        "end_ns": 5703012060,
+        "stream": 7,
+        "name": "void at::native::vectorized_elementwise_kernel<(int)8, at::native::FillFunctor<c10::BFloat16>, std::array<char *, (unsigned long)1>>(int, T2, T3)"
+      },
+      {
+        "start_ns": 5703013724,
+        "end_ns": 5703017084,
+        "stream": 7,
+        "name": "void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<float>, std::array<char *, (unsigned long)1>>(int, T2, T3)"
+      },
+      {
+        "start_ns": 5703018268,
+        "end_ns": 5703022908,
+        "stream": 7,
+        "name": "void flash::prepare_varlen_num_blocks_kernel<(int)1, (bool)1>(int, int, int, const int *, const int *, const int *, const int *, const int *, const int *, int, int, int, int, int, cutlass::FastDivmod, cutlass::FastDivmod, int *, int *, int *, int *, int *, bool, bool, bool, int)"
+      },
+      {
+        "start_ns": 5703019740,
+        "end_ns": 5719153734,
+        "stream": 7,
+        "name": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<(int)2, cute::tuple<cute::C<(int)1>, cute::C<(int)1>, cute::C<(int)1>>, cute::tuple<cute::C<(int)128>, cute::C<(int)176>, cute::C<(int)128>>, (int)128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)0, (bool)0, (bool)1, (bool)1, (bool)1, (bool)0, (bool)0>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<(int)128>, cute::C<(int)128>, cute::C<(int)176>>, cute::tuple<cute::C<(int)1>, cute::C<(int)1>, cute::C<(int)1>>, cutlass::bfloat16_t, cutlass::arch::Sm90, (int)256, (bool)1, (bool)1, (bool)0, (bool)0>, flash::VarlenDynamicPersistentTileScheduler<(int)128, (int)176, (int)256, (int)128, (bool)0, (bool)1, (bool)1, (bool)0, (bool)1, (bool)1>>>>(T1::Params)"
+      }
+    ]
+  },
+  {
+    "label": "no_prefetch_layer10",
+    "report": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_attribution_20261117/ablation_no_prefetch/megatron/rank0.nsys-rep",
+    "rank": 0,
+    "update": 1204,
+    "microbatch": 1,
+    "window_seconds": [
+      5.729,
+      5.745
+    ],
+    "kernels": [
+      {
+        "start_ns": 5727880510,
+        "end_ns": 5735997588,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_badd_coopB_TNT"
+      },
+      {
+        "start_ns": 5736002580,
+        "end_ns": 5738095650,
+        "stream": 19,
+        "name": "ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsStorage<(unsigned long)4096>)"
+      },
+      {
+        "start_ns": 5738097410,
+        "end_ns": 5738129986,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_0"
+      },
+      {
+        "start_ns": 5738131458,
+        "end_ns": 5738476100,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_1"
+      },
+      {
+        "start_ns": 5738480676,
+        "end_ns": 5738730054,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5738732646,
+        "end_ns": 5738795526,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5738798022,
+        "end_ns": 5738860327,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x160_64x5_2x1_v_bz_TNT"
+      },
+      {
+        "start_ns": 5738862023,
+        "end_ns": 5738898407,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_2"
+      },
+      {
+        "start_ns": 5738899847,
+        "end_ns": 5738916839,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_3"
+      },
+      {
+        "start_ns": 5738921607,
+        "end_ns": 5741705338,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT"
+      },
+      {
+        "start_ns": 5741710010,
+        "end_ns": 5742484703,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5742489439,
+        "end_ns": 5743263684,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_1x2_h_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5743265220,
+        "end_ns": 5743678535,
+        "stream": 7,
+        "name": "triton_per_fused__flash_attn_forward__to_copy_add_cat_index_mean_mul_neg_pow_rsqrt_split_squeeze_unsqueeze_view_4"
+      },
+      {
+        "start_ns": 5743681031,
+        "end_ns": 5743859592,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_5"
+      },
+      {
+        "start_ns": 5743862376,
+        "end_ns": 5743872520,
+        "stream": 7,
+        "name": "triton_red_fused__to_copy_add_mean_mul_pow_rsqrt_6"
+      },
+      {
+        "start_ns": 5743877128,
+        "end_ns": 5743931784,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_256x128_64x4_1x2_h_bz_coopA_TNT"
+      },
+      {
+        "start_ns": 5743933704,
+        "end_ns": 5743950664,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5743951880,
+        "end_ns": 5743968168,
+        "stream": 7,
+        "name": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN"
+      },
+      {
+        "start_ns": 5743969384,
+        "end_ns": 5743992297,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_7"
+      },
+      {
+        "start_ns": 5743993801,
+        "end_ns": 5744004713,
+        "stream": 7,
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_neg_pow_rsqrt_split_unsqueeze_view_8"
+      },
+      {
+        "start_ns": 5744005929,
+        "end_ns": 5744133258,
+        "stream": 7,
+        "name": "triton_tem_fused__to_copy_add_flex_attention_mean_mul_pow_rsqrt_transpose_unsqueeze_view_9"
+      },
+      {
+        "start_ns": 5744135914,
+        "end_ns": 5744319179,
+        "stream": 7,
+        "name": "triton_poi_fused__flash_attn_forward__to_copy_add_cat_index_mean_mul_pow_rsqrt_squeeze_unsqueeze_view_10"
+      },
+      {
+        "start_ns": 5744321547,
+        "end_ns": 5744477612,
+        "stream": 7,
+        "name": "void at::native::vectorized_elementwise_kernel<(int)8, at::native::FillFunctor<c10::BFloat16>, std::array<char *, (unsigned long)1>>(int, T2, T3)"
+      },
+      {
+        "start_ns": 5744479180,
+        "end_ns": 5744482572,
+        "stream": 7,
+        "name": "void at::native::vectorized_elementwise_kernel<(int)4, at::native::FillFunctor<float>, std::array<char *, (unsigned long)1>>(int, T2, T3)"
+      },
+      {
+        "start_ns": 5744483660,
+        "end_ns": 5744488044,
+        "stream": 7,
+        "name": "void flash::prepare_varlen_num_blocks_kernel<(int)1, (bool)1>(int, int, int, const int *, const int *, const int *, const int *, const int *, const int *, int, int, int, int, int, cutlass::FastDivmod, cutlass::FastDivmod, int *, int *, int *, int *, int *, bool, bool, bool, int)"
+      },
+      {
+        "start_ns": 5744484748,
+        "end_ns": 5760350261,
+        "stream": 7,
+        "name": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<(int)2, cute::tuple<cute::C<(int)1>, cute::C<(int)1>, cute::C<(int)1>>, cute::tuple<cute::C<(int)128>, cute::C<(int)176>, cute::C<(int)128>>, (int)128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)0, (bool)0, (bool)1, (bool)1, (bool)1, (bool)0, (bool)0>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<(int)128>, cute::C<(int)128>, cute::C<(int)176>>, cute::tuple<cute::C<(int)1>, cute::C<(int)1>, cute::C<(int)1>>, cutlass::bfloat16_t, cutlass::arch::Sm90, (int)256, (bool)1, (bool)1, (bool)0, (bool)0>, flash::VarlenDynamicPersistentTileScheduler<(int)128, (int)176, (int)256, (int)128, (bool)0, (bool)1, (bool)1, (bool)0, (bool)1, (bool)1>>>>(T1::Params)"
+      }
+    ]
+  }
+]

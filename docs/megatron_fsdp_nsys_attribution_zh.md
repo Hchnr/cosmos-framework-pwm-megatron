@@ -11,7 +11,7 @@
 - 原生 FSDP2 与 Megatron 的 all-gather / reduce-scatter kernel 调用次数接近，Megatron 略多；收益不是简单地少执行了一批 collective。
 - Megatron 的 NCCL 活动时间更短，但其中包含跨卡等待，不能直接解释为网络带宽提升。
 - 原生 FSDP 的部分 all-gather 拆分拷贝、梯度打包 kernel 在 Megatron 路径中消失。
-- 已标注的 `optimizer_step` 范围只节省几十毫秒，无法解释约 1.65 秒/更新的主要差距；该范围不保证包含全部梯度统计与裁剪工作。
+- 扩大更新范围复测后，从最后一次 autograd 返回到相关 GPU 工作完成为 **1.259 → 1.061 s**，差约 **198 ms**。旧标记确实漏计了大段等待；其中大部分是前面排队的反向工作收尾，不能全部归为 Adam / 裁剪计算的收益。
 
 ## 采集条件
 
@@ -23,29 +23,31 @@
 
 以下图片直接截取同版本 Nsight Systems App 的 timeline 区域，保留原生事件、stream 与时间轴；没有用绘图工具重建或修改事件。每张图均可从相应原始 `.nsys-rep` 重现。
 
-### 两个完整更新总览（rank 0）
+### 局部 A：all-gather 后确实有额外拆分拷贝（约 13 ms 窗口）
 
-原生 PyTorch FSDP2：
+原生 FSDP2，rank 0，更新 1204，第 1/3 个微批，时间 **5.606–5.619 s**：
 
-![原生 FSDP2 两个更新的 Nsight timeline](./images/megatron_fsdp_nsys/pytorch_overview.png)
+![FSDP2 all-gather 后 600.776 微秒拆分拷贝的局部原生 timeline](./images/megatron_fsdp_nsys/local_pytorch_split_copy.png)
 
-Megatron ZeRO-3：
+看 `Default stream 7` 中鼠标指向的事件：上一笔 all-gather 在 **5.612541 s** 完成，随即执行 `split_with_sizes_copy_out_contiguous_no_cast_kernel`，**5.612554–5.613155 s，600.776 µs**，随后才是该层的计算 kernel。图中另一笔 all-gather 同时在 stream 24 进行，不要把它误读成同一笔通信尚未完成。
 
-![Megatron ZeRO-3 两个更新的 Nsight timeline](./images/megatron_fsdp_nsys/megatron_overview.png)
+这张图支持“原生路径存在真实的参数拆分拷贝”。Megatron 中该 kernel 的调用数为 0，依据全部四 rank 的 kernel 清单；单张截图不能证明整次运行中某个 kernel 不存在。这组整理开销只是部分收益，不能单独解释整步约 1.65 s 的差距。
 
-每张图的横轴都是实际秒数，总览自动适配各自约 81.5 / 78.2 秒的采集窗口；不能只按图片像素宽度比较耗时。主线程 NVTX 行包含 2 个更新 × GA3 的 6 个微批。
+### 局部 B：同一 decoder block 的参数预取，有无重叠（各约 16 ms 窗口）
 
-### 首个微批反向附近，约 7–14 秒（rank 0）
+两图均来自 **rank 0、更新 1204、第 1/3 个微批、decoder layer_10 的 forward 发射区段**。通过 CPU NVTX layer 范围与 CUDA launch correlation 对齐，比较相同逻辑位置，不按两个运行的绝对时间对齐。
 
-原生 FSDP2：
+默认 Megatron，时间 **5.690–5.706 s**：
 
-![原生 FSDP2 反向区段](./images/megatron_fsdp_nsys/pytorch_backward.png)
+![默认预取下 AllGather 与 GEMM 重叠的毫秒级局部 timeline](./images/megatron_fsdp_nsys/local_megatron_prefetch.png)
 
-Megatron ZeRO-3：
+看 `Stream 19` 的 AllGather：**5.695972–5.698404 s，2.432 ms**。这段时间内，`Default stream 7` 仍在执行 Triton / GEMM，尤其 **5.697173–5.700220 s** 的 GEMM 与它重叠，计算没有等这笔预取完成才开始。
 
-![Megatron ZeRO-3 反向区段](./images/megatron_fsdp_nsys/megatron_backward.png)
+禁止 lookahead prefetch，时间 **5.729–5.745 s**：
 
-原生 FSDP2 的通信 stream 在后半段出现明显的 ReduceScatter 活动块；Megatron 的对应活动更短、更分散。原生微批约 **13.89 s**，Megatron 约 **13.06 s**。这是一个直观例子，整体结论使用下述全部四个 rank 的统计，而非只挑 rank 0 的局部画面。
+![禁止预取后 AllGather 期间计算 stream 等待的毫秒级局部 timeline](./images/megatron_fsdp_nsys/local_megatron_no_prefetch.png)
+
+看相同两行：AllGather 在 **5.736003–5.738096 s，2.093 ms** 执行时，默认计算 stream 出现空档；通信结束后，后续 Triton / GEMM 才继续。这是预取消融实际改变执行依赖的局部例子。它支持“预取可以隐藏部分通信”，整步收益仍以下文全部 rank 的消融统计为准，不能把这里的约 2 ms 直接乘层数当作净收益。
 
 ## GPU 时间差在哪里
 
@@ -86,11 +88,50 @@ GPU 空闲可能来自主机发射间隔、依赖等待和 rank 间节奏；没�
 | 主要 FlashAttention 3 forward kernel | 216 次，2.740 s | 216 次，2.722 s | 相同调用数，时长基本持平 |
 | 主要 FlashAttention 3 backward kernel | 108 次，3.653 s | 108 次，3.657 s | 基本持平 |
 | 代表性 decoder GEMM：`nvjet…192x192…TNN` | 432 次，3.485 s | 432 次，3.455 s | 无大幅计算加速 |
-| optimizer 的 CPU NVTX 阶段 | 0.054 s | 0.024 s | 有收益，但量级较小 |
+| 旧 `optimizer_step` CPU 标记（窄范围） | 0.054 s | 0.024 s | 有收益，但量级较小 |
 
 两端 FA3 forward/backward 调用数相同，未通过少做重计算获得收益。前五行是 kernel 累计服务时间，不是互斥 wall time。消失的两组整理 kernel 共约 0.17 秒，说明缓冲区布局确实减少了实际 GPU 工作；它只解释一部分收益，不能与前面的 1.650 秒分解再相加。
 
 原生 PyTorch FSDP collectives 的拆分与打包调用，与实际 kernel 名对应；Megatron 使用自己的连续 buffer / 参数视图和通信 pipeline。当前 runtime 开启参数聚合与梯度归约重叠，见 [megatron.py:131](../cosmos_framework/training_backends/megatron.py#L131)。两个 backend 都使用相同的 Cosmos 模型计算路径，并非 Megatron 换用了更快的一套 Attention/MLP 模型。
+
+## 扩大更新范围复测：旧标记漏掉了什么
+
+**旧标记范围不足，已扩大并重新采集两端。** 新范围 `cosmos.optimizer.full_post_autograd` 从最后一个微批的 `loss.backward()` 返回开始，覆盖模型反向收尾、反向后 callbacks、梯度同步上下文退出、全部更新前 callbacks、参数更新、scheduler 与清梯度。子标记进一步区分每个 callback。GPU 完成边界根据 CUPTI launch correlation 和实际执行终点计算，包含范围开始前已经发射但尚未完成的工作；没有额外插入同步改变重叠行为。
+
+仍为三次预热、采集更新 1204/1205，四卡共 8 个观测；60 个微批的输入、游标与 RNG 记录逐项一致。完整更新均值 **40.457 → 38.864 s**，差 **1.593 s**，与上一轮方向一致。两端 loss 均有限，本轮 5 个更新的平均 loss 最大相对差约 0.99%；这是归因补测，不增加正确性验收结论。
+
+| 扩大范围后的指标，每卡每更新均值 | 原生 FSDP2 | Megatron ZeRO-3 | 原生减去 Megatron |
+| --- | ---: | ---: | ---: |
+| 完整 post-autograd CPU 范围 | 1.237 s | 1.037 s | 200 ms |
+| 同一起点，计到相关 GPU 工作完成 | **1.259 s** | **1.061 s** | **198 ms** |
+| 范围内，开始前已排队工作的 GPU 活跃并集 | 1.152 s | 0.986 s | 166 ms |
+| `SkipNaNStep` CPU 范围，含等待 | 1.154 s | 0.960 s | 194 ms |
+| `GradClip` CPU 范围，含 norm 与裁剪 | 21.43 ms | 17.67 ms | 3.75 ms |
+| 参数更新及 scheduler CPU 范围 | 59.00 ms | 25.04 ms | 33.96 ms |
+| 清梯度 CPU 范围 | 1.74 ms | 6.08 ms | −4.34 ms |
+| 保留的旧 `optimizer_step` 窄标记 | 59.22 ms | 25.25 ms | 33.97 ms |
+
+**扩大范围后，差距不是只有约 30 ms，而是约 198 ms。** 但扩大范围内的绝大多数 GPU 活动，来自范围开始前已排队的任务；`SkipNaNStep` 内的同步在等这些反向任务完成。因此，这 198 ms 包含反向执行节奏和排队位置的差异，不能全部归到“优化器算法更快”。裁剪与参数更新的独立 CPU 子区间确实缩短，量级为几毫秒、几十毫秒；CPU 范围缩短也不等于对应 GPU kernel 同幅提速。
+
+这些行互相包含、可能重叠，**不能相加**。本轮 198 ms 也不能再加到上一轮 GPU 空闲 / NCCL-only 的时间分解上；它是另一轮 profile、另一种切分角度。相对于本轮完整更新约 1.593 s 的差异，扩大后的更新尾部仍只覆盖其中一部分。
+
+### 局部 C：反向等待结束 → 梯度裁剪 → 参数更新（各约 166 ms）
+
+两图均为 **rank 0、更新 1204、第 3/3 个微批**。下方保留 Nsight 原生 Events View 的 `GradClip` 选中行及开始/结束时间，避免只依靠较粗的 NVTX 父范围判断。表中均值来自全部四 rank，不要求等于这一个局部样本。
+
+原生 FSDP2，约 **40.660–40.826 s**：
+
+![FSDP2 更新尾部 166 毫秒：同步等待、裁剪与参数更新](./images/megatron_fsdp_nsys/local_pytorch_optimizer.png)
+
+看绿色 `cudaStreamSynchronize` 与上方 GPU 行：主线程等待时，GPU 仍在执行前面排队的 GEMM。等待结束后，Events View 显示 `GradClip` 在 **40.704020–40.729350 s，25.330 ms** 执行；之后 `cosmos.optimizer.update` 才开始。这直接说明旧 `optimizer_step` 开始之前还有真实工作和等待。
+
+Megatron，约 **39.000–39.167 s**：
+
+![Megatron 更新尾部 166 毫秒：同步等待、裁剪与参数更新](./images/megatron_fsdp_nsys/local_megatron_optimizer.png)
+
+相同观察顺序：等待结束，`GradClip` 在 **39.048273–39.064327 s，16.054 ms** 执行，再进入旧 `optimizer_step`。扩大后的 CPU 范围在 **39.086474 s** 结束，相关 GPU 工作到 **39.110777 s** 完成；图右侧 **39.113 s 以后**的 AllReduce 属于 benchmark 计时汇总，不能算作优化器工作。
+
+原始补测数据见 [raw 报告目录](../artifacts/megatron/nsys_optimizer_scope_20261117/raw)，8 份 `.nsys-rep` 均用 Git LFS 保留；[逐区间分析](../artifacts/megatron/nsys_optimizer_scope_20261117/optimizer_analysis.json) 保留 CPU 边界、GPU 完成边界和子阶段时间。8 份报告的 GPU 事件均能找到 launch correlation。范围实现见 [trainer:430](../cosmos_framework/trainer/__init__.py#L430)，callback 标记见 [callback:104](../cosmos_framework/utils/callback.py#L104)，分析入口为 [analyze_optimizer_nsys.py](../tools/analyze_optimizer_nsys.py)。GPU 关联口径与 [NVIDIA NVTX GPU projection 定义](https://docs.nvidia.com/nsight-systems/AnalysisGuide/#nvtx-gpu-proj-trace)一致；已排队工作额外计入等待窗口。
 
 ## 参数预取消融
 
@@ -108,9 +149,7 @@ GPU 空闲可能来自主机发射间隔、依赖等待和 rank 间节奏；没�
 
 还可看到一个抵消关系：NCCL-only 增加约 0.917 秒，但非 NCCL 工作活跃时间缩短约 0.707 秒。减少通信与计算并发可能降低资源竞争，但内核选择、显存布局和运行波动也可能参与；本次未进一步隔离。**不能把默认运行的 2.666 秒重叠直接宣称为节省 2.666 秒。**
 
-有效消融的原生 timeline：
-
-![Megatron 禁止 lookahead prefetch 后的反向区段](./images/megatron_fsdp_nsys/megatron_no_prefetch_backward.png)
+有效消融的毫秒级原生 timeline 对比见前文“局部 B”。
 
 可复核统计见 [ablation_comparison.json](../artifacts/megatron/nsys_attribution_20261117/ablation_comparison.json) 与 [消融时间分析](../artifacts/megatron/nsys_attribution_20261117/ablation_no_prefetch_summary.json)。
 
@@ -118,7 +157,7 @@ GPU 空闲可能来自主机发射间隔、依赖等待和 rank 间节奏；没�
 
 ## 原始文件与人工 review
 
-原始报告永久保留在共享工作区；大文件未纳入 Git。路径根目录：
+首轮原始报告保留在共享工作区，大文件未纳入 Git；扩大范围补测的 8 份报告另通过上述 Git LFS 目录保留。首轮路径根目录：
 
 ```text
 /share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_attribution_20261117/
@@ -137,11 +176,13 @@ GPU 空闲可能来自主机发射间隔、依赖等待和 rank 间节奏；没�
 | `profile/<backend>/rank0_stats_*.csv` | 官方 nsys stats 输出 |
 | `profile/<backend>/launch.log` | 启动、训练和 profiler 导出日志 |
 
-人工查看建议：用 Nsight Systems 2026.2.1 或兼容版本分别打开两个 `review/` 报告，展开 `CUDA HW → All Streams` 与通信 stream，查看主线程 NVTX 微批。框选约 7–14 秒，使用 **Shift+Z** 放大；跨 rank 检查请打开对应 `rank1/2/3` 原始文件。原生截图显示的 stream 编号可能不同，应按名称和 NCCL 事件识别，不能假定编号相同。
+人工查看建议：用 Nsight Systems 2026.2.1 或兼容版本分别打开两个 `review/` 报告，展开 `CUDA HW → All Streams` 与通信 stream，查看主线程 NVTX 微批。按前文局部图给出的秒数框选，再用 **Shift+Z** 逐级放大至毫秒级；跨 rank 检查请打开对应 `rank1/2/3` 原始文件。原生截图显示的 stream 编号可能不同，应按名称和 NCCL 事件识别，不能假定编号相同。
 
 原始报告与数据包的校验清单见 [raw_reports_manifest.json](../artifacts/megatron/nsys_attribution_20261117/raw_reports_manifest.json) 和 [archive.json](../artifacts/megatron/nsys_attribution_20261117/archive.json)。
 
 版本化的统计、原始报告 SHA256、输入一致性结果保存在 [artifacts/megatron/nsys_attribution_20261117](../artifacts/megatron/nsys_attribution_20261117)。完整 kernel 名及每卡每更新服务时间可查 [summary.json](../artifacts/megatron/nsys_attribution_20261117/summary.json)，逐 rank / update 的并集统计见 [profile_analysis.json](../artifacts/megatron/nsys_attribution_20261117/profile_analysis.json)。
+
+补测的节点本地完整目录为 `/opt/cosmos-nsys-optimizer-scope/final/`，含两端原始报告、SQLite、启动日志和输入记录。共享盘本轮出现新文件 `ENOSPC`，因此补测输出改存节点本地；Git LFS 中的原始报告提供额外持久副本，统计与输入记录随文档提交。
 
 ## 复现
 

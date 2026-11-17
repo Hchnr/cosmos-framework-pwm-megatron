@@ -23,6 +23,7 @@ from cosmos_framework.utils.nvtx import (
     configure_nvtx,
     disable_nvtx,
     nvtx_mark,
+    nvtx_range,
 )
 
 try:
@@ -103,7 +104,15 @@ class CallBackGroup:
                 assert hasattr(callback, method_name)
                 method = getattr(callback, method_name)
                 assert callable(method)
-                _ = method(*args, **kwargs)
+                if method_name in {
+                    "on_after_backward",
+                    "on_before_optimizer_step",
+                    "on_before_zero_grad",
+                } and not isinstance(callback, NVTXCallback):
+                    with nvtx_range(f"callbacks.{method_name}.{type(callback).__name__}"):
+                        _ = method(*args, **kwargs)
+                else:
+                    _ = method(*args, **kwargs)
 
         return multi_callback_wrapper
 
