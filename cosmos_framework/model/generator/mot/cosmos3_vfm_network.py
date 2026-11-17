@@ -1515,7 +1515,9 @@ class Cosmos3VFMNetwork(PreTrainedModel):
 
         deepstack_und: list[torch.Tensor] = []
         for addition in deepstack_sequence:
-            causal = addition[prepared_sequence_pack_metadata.causal_indices.long()]
+            # The packer also creates this mapping for callers without cached
+            # CPU-prepared metadata (e.g. direct packed multimodal inference).
+            causal = addition[input_pack["_causal_indices"].long()]
             padded = causal.new_zeros(get_und_seq(input_pack).shape)
             padded[: causal.shape[0]] = causal
             if sequence_shard_parallel_dims is not None and sequence_shard_parallel_dims.cp_enabled:

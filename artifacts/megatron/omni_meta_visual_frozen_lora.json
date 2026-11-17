@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "family": "qwen",
+  "actual_startup_hook": true,
+  "meta_initialization": true,
+  "optimizer": "FusedAdam",
+  "partial_generation_freeze": false,
+  "lora": true,
+  "visual": true,
+  "train_visual": false,
+  "different_und_gen_owner_cases_per_rank": [
+    2,
+    2,
+    2,
+    2
+  ],
+  "sharding_strategy": "optim_grads_params",
+  "fresh_und_to_gen_copy": true,
+  "warm_start": false,
+  "independently_verified_language_tensors_online_and_ema": [
+    109,
+    109
+  ],
+  "ema": true,
+  "compile": true,
+  "gradient_accumulation": 3,
+  "initialized_weights_bitwise_equal": true,
+  "optimizer_update": true,
+  "updated_model_and_ema_bitwise_equal": true,
+  "maximum_output_error": 0.0,
+  "maximum_gradient_error": 0.0
+}

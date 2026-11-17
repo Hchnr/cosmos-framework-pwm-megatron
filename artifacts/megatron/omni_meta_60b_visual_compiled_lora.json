@@ -1,0 +1,104 @@
+{
+  "passed": true,
+  "meta_initialization": true,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-30B-A3B-Instruct",
+  "total_parameters": 61032598832,
+  "trainable_parameters": 13369344,
+  "world_size": 4,
+  "sharding_strategy": "optim_grads_params",
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "ema": false,
+  "compile": true,
+  "visual": true,
+  "steps": 2,
+  "start_step": 0,
+  "resume": null,
+  "new_process_full_state_hash_verified": false,
+  "gradient_accumulation": 3,
+  "construction_seconds": 57.20353100448847,
+  "peak_allocated_bytes": 38047115776,
+  "ranks": [
+    {
+      "rank": 0,
+      "peak_allocated_bytes": 38047115776,
+      "independently_verified_hf_tensors": 1411,
+      "lora_sha256": "ad040ef3df82401763adb816c226f44418e0ab9f2ca1609bc0625d8da721a375",
+      "process_peak_rss_bytes": 26790842368,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 4.724324703216553,
+          "gradient_norm": 14.667085647583008
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 3.9628806114196777,
+          "gradient_norm": 12.851670265197754
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 1,
+      "peak_allocated_bytes": 38047115776,
+      "independently_verified_hf_tensors": 1411,
+      "lora_sha256": "ad040ef3df82401763adb816c226f44418e0ab9f2ca1609bc0625d8da721a375",
+      "process_peak_rss_bytes": 21805039616,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 2.9011311531066895,
+          "gradient_norm": 14.667085647583008
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 4.817602157592773,
+          "gradient_norm": 12.851670265197754
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 2,
+      "peak_allocated_bytes": 38047115776,
+      "independently_verified_hf_tensors": 1411,
+      "lora_sha256": "ad040ef3df82401763adb816c226f44418e0ab9f2ca1609bc0625d8da721a375",
+      "process_peak_rss_bytes": 19727966208,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 4.94753360748291,
+          "gradient_norm": 14.667085647583008
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 3.4503231048583984,
+          "gradient_norm": 12.851670265197754
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 3,
+      "peak_allocated_bytes": 38047115776,
+      "independently_verified_hf_tensors": 1411,
+      "lora_sha256": "ad040ef3df82401763adb816c226f44418e0ab9f2ca1609bc0625d8da721a375",
+      "process_peak_rss_bytes": 21220540416,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 4.52923059463501,
+          "gradient_norm": 14.667085647583008
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 3.1870551109313965,
+          "gradient_norm": 12.851670265197754
+        }
+      ],
+      "checkpoint": null
+    }
+  ],
+  "scope": "Full two-tower MoE, pretrained UND\u2192GEN and synthetic small text/action batches with a real ViT image patch input; no live loader/VAE or quality/throughput qualification."
+}

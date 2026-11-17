@@ -124,11 +124,60 @@ def batch():
     )
 
 
+def tiny_visual_config(**kwargs):
+    config = tiny_config(**kwargs)
+    config.config_dict.update(
+        vision_config=dict(
+            hidden_size=64,
+            intermediate_size=128,
+            num_heads=4,
+            depth=2,
+            out_hidden_size=64,
+            deepstack_visual_indexes=[0, 1],
+            num_position_embeddings=64,
+            patch_size=2,
+            temporal_patch_size=2,
+            spatial_merge_size=2,
+        ),
+        image_token_id=4,
+        video_token_id=7,
+        vision_start_token_id=5,
+        vision_end_token_id=6,
+    )
+    return config
+
+
+def visual_batch(config=None):
+    data = batch()
+    data.sample_lens, data.split_lens, data.sequence_length = [6], [3, 3], 6
+    token_ids = (
+        [5, 4, 6]
+        if config is None
+        else [config.vision_start_token_id, config.image_token_id, config.vision_end_token_id]
+    )
+    patch_features = 24
+    if config is not None:
+        vision = config.vision_config
+        patch_features = vision.in_channels * vision.temporal_patch_size * vision.patch_size**2
+    data.text_ids = torch.tensor(token_ids, device="cuda")
+    data.text_indexes = torch.arange(3, device="cuda")
+    data.position_ids = torch.arange(6, device="cuda").expand(3, -1).clone()
+    data.action.sequence_indexes = data.action.sequence_indexes + 1
+    data.action.mse_loss_indexes = data.action.mse_loss_indexes + 1
+    return data, [
+        dict(
+            pixel_values=torch.randn(4, patch_features, device="cuda"),
+            image_grid_thw=torch.tensor([[1, 2, 2]], device="cuda"),
+        )
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--cp", type=int, default=1)
     parser.add_argument("--lora", action="store_true")
+    parser.add_argument("--visual", action="store_true")
     parser.add_argument("--family", choices=("qwen", "nemotron", "moe"), default="qwen")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
@@ -150,13 +199,16 @@ def main():
     config.action128_spec = tiny_action128_spec()
     config.tower_structure = "two_tower"
     config.load_vision_tokenizer = False
-    config.load_vlm_visual = False
+    config.load_vlm_visual = args.visual
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
     model_class, config_factory = {
         "qwen": (Qwen3VLTextForCausalLM, tiny_config),
         "nemotron": (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config),
         "moe": (Qwen3VLMoeTextForCausalLM, tiny_moe_config),
     }[args.family]
+    if args.visual:
+        assert args.family == "qwen"
+        config_factory = tiny_visual_config
     config.vlm_config.model_instance = LazyCall(model_class)(config=LazyCall(config_factory)())
     model = TinyOmni(config)
     meta_initialization = os.environ.get("COSMOS_MEGATRON_OMNI_META_INITIALIZATION", "0") == "1"
@@ -212,12 +264,20 @@ def main():
     )
     adapter_gradients = []
     output_projection_gradients = []
+    metadata_parity_verified = False
     for step in range(2):
         optimizer.zero_grad()
         for micro in range(3):
             torch.manual_seed(step * 100 + micro + dist.get_rank() // args.cp)
             with ddp_sync_grad(model, enabled=micro == 2):
-                output = model.net(batch())
+                data, visual_inputs = visual_batch() if args.visual else (batch(), None)
+                output = model.net(data, vlm_inputs=visual_inputs)
+                if args.visual and step == 0 and micro == 0:
+                    data.prepare_sequence_pack_metadata()
+                    cached_output = model.net(copy.deepcopy(data), vlm_inputs=visual_inputs)
+                    for a, b in zip(output["preds_action"], cached_output["preds_action"], strict=True):
+                        torch.testing.assert_close(a, b, rtol=0, atol=0)
+                    metadata_parity_verified = True
                 loss = sum(t.float().square().mean() for t in output["preds_action"]) / 3
                 assert torch.isfinite(loss)
                 loss.backward()
@@ -252,7 +312,8 @@ def main():
         original = {n: materialize_tensor(v).clone() for n, v in model.net.state_dict().items()}
         torch.manual_seed(999 + dist.get_rank() // args.cp)
         with torch.no_grad(), model.ema_scope(is_cpu=True):
-            evaluation = model.net(batch())
+            data, visual_inputs = visual_batch() if args.visual else (batch(), None)
+            evaluation = model.net(data, vlm_inputs=visual_inputs)
             assert all(torch.isfinite(t).all() for t in evaluation["preds_action"])
         for name, value in model.net.state_dict().items():
             torch.testing.assert_close(materialize_tensor(value), original[name], rtol=0, atol=0)
@@ -295,6 +356,8 @@ def main():
         passed=True,
         model=f"OmniMoTModel with real {args.family} MoT and Action128 heads",
         family=args.family,
+        visual=args.visual,
+        cached_and_uncached_metadata_bitwise_equal=metadata_parity_verified,
         meta_initialization=meta_initialization,
         full_rank_adapters_and_replica_initialization_equal=replica_initialization_verified,
         lora=args.lora,
@@ -321,6 +384,8 @@ def main():
             suffix = "_meta" + suffix
         if args.lora:
             suffix = "_lora" + suffix
+        if args.visual:
+            suffix = "_visual" + suffix
         if args.family != "qwen":
             suffix = "_" + args.family + suffix
         Path(f"artifacts/megatron/omni_ema_integration{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")

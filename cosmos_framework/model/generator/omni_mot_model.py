@@ -11,12 +11,13 @@ import json
 import os
 import time
 from collections.abc import Sequence
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from typing import Any, Callable, Dict, Mapping, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.distributed as dist
+from accelerate import init_empty_weights
 from einops import rearrange
 from omegaconf import DictConfig, open_dict
 from torch.distributed._composable.fsdp import FSDPModule
@@ -304,7 +305,6 @@ class OmniMoTModel(ImaginaireModel):
         )
         if meta_initialization and (
             self.config.tower_structure != "two_tower"
-            or self.config.load_vlm_visual
             or self.config.sound_gen
             or getattr(self.config, "sound_und", False)
             or self.config.quantization.method is not None
@@ -312,7 +312,7 @@ class OmniMoTModel(ImaginaireModel):
             or self.config.fp8_training.enabled
         ):
             raise ValueError(
-                "Omni meta initialization currently supports unquantized two-tower models without visual/audio encoders"
+                "Omni meta initialization currently supports unquantized two-tower models without audio encoders"
             )
         if self.config.tower_structure == "three_tower":
             if self.config.parallelism.context_parallel_shard_degree != 1:
@@ -347,7 +347,16 @@ class OmniMoTModel(ImaginaireModel):
                     f"lbl.method='sample' requires an MoE model; got {getattr(model_cls, '__qualname__', model_cls)}"
                 )
                 lbl_init_kwargs = {"lbl_config": self.config.lbl}
-            language_model = lazy_instantiate(model_instance, **lbl_init_kwargs)
+            if meta_initialization and reasoner_visual_enabled and external_edge_visual:
+                raise ValueError("Omni meta initialization has not qualified external Edge visual construction")
+            # Keep constant ViT buffers real while parameters remain empty.
+            # An outer meta device also makes position/rotary buffers empty;
+            # generic parameter materialization cannot reconstruct those values.
+            with (
+                torch.device("cpu" if meta_initialization else "meta"),
+                init_empty_weights(include_buffers=False) if meta_initialization else nullcontext(),
+            ):
+                language_model = lazy_instantiate(model_instance, **lbl_init_kwargs)
             if reasoner_visual_enabled and external_edge_visual:
                 if not self.vlm_checkpoint_path:
                     raise ValueError("Edge VLM visual construction requires a multimodal processor checkpoint")

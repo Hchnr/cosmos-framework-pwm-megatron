@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import torch
 import torch.distributed as dist
 import torch.distributed.checkpoint as dcp
-from omni_ema_smoke import TinyOmni, batch, tiny_config, tiny_nemotron_config
+from omni_ema_smoke import TinyOmni, batch, tiny_config, tiny_nemotron_config, tiny_visual_config, visual_batch
 from safetensors.torch import load_file, save_file
 
 from cosmos_framework.configs.base.defaults.model_config import OmniMoTModelConfig
@@ -26,6 +26,8 @@ from cosmos_framework.utils.lazy_config import LazyCall
 
 def checkpoint_key(name, family):
     if family == "qwen":
+        if name.startswith("visual."):
+            return "model." + name
         return "model.language_model." + name[6:] if name.startswith("model.") else name
     if name == "model.embed_tokens.weight":
         return "model.language_model.embeddings.weight"
@@ -43,7 +45,9 @@ def checkpoint_key(name, family):
     return f"model.language_model.layers.{block}.mixer.{match[3]}"
 
 
-def construct(backend, family, path, optimizer_type, sharding_strategy, partial_freeze, lora):
+def construct(
+    backend, family, path, optimizer_type, sharding_strategy, partial_freeze, lora, visual=False, train_visual=False
+):
     config = copy.deepcopy(OmniMoTModelConfig())
     config.parallelism.backend = backend
     config.parallelism.data_parallel_shard_degree = 2
@@ -56,12 +60,16 @@ def construct(backend, family, path, optimizer_type, sharding_strategy, partial_
     config.action128_spec = tiny_action128_spec()
     config.tower_structure = "two_tower"
     config.load_vision_tokenizer = config.load_vlm_visual = False
+    config.load_vlm_visual, config.train_vlm_visual = visual, train_visual
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
     model_class, factory = (
         (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config)
         if family == "nemotron"
         else (Qwen3VLTextForCausalLM, tiny_config)
     )
+    if visual:
+        assert family == "qwen"
+        factory = tiny_visual_config
     config.vlm_config.model_instance = LazyCall(model_class)(config=LazyCall(factory)())
     pretrain = config.vlm_config.pretrained_weights
     pretrain.enabled, pretrain.backbone_path, pretrain.credentials_path = True, str(path), ""
@@ -77,19 +85,22 @@ def construct(backend, family, path, optimizer_type, sharding_strategy, partial_
             ["lora_"]
             if lora
             else (
-                [
-                    "q_proj_moe_gen",
-                    "k_proj_moe_gen",
-                    "v_proj_moe_gen",
-                    "mlp_moe_gen",
-                    "norm_moe_gen",
-                    "action_modality_embed",
-                    "action_timestep",
-                    "action2llm",
-                    "llm2action",
-                ]
-                if partial_freeze
-                else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+                (["visual."] if train_visual else [])
+                + (
+                    [
+                        "q_proj_moe_gen",
+                        "k_proj_moe_gen",
+                        "v_proj_moe_gen",
+                        "mlp_moe_gen",
+                        "norm_moe_gen",
+                        "action_modality_embed",
+                        "action_timestep",
+                        "action2llm",
+                        "llm2action",
+                    ]
+                    if partial_freeze
+                    else ["_moe_gen", "action_modality_embed", "action_timestep", "action2llm", "llm2action"]
+                )
             )
         ),
     )
@@ -130,6 +141,8 @@ def verify_hf_loaded(language, before, weights, family, copy_generation):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lora", action="store_true")
+    parser.add_argument("--visual", action="store_true")
+    parser.add_argument("--train-visual", action="store_true")
     parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--partial-generation-freeze", action="store_true")
@@ -147,7 +160,10 @@ def main():
             if args.family == "nemotron"
             else (Qwen3VLTextForCausalLM, tiny_config)
         )
-        template = model_class(factory())
+        if args.visual:
+            assert args.family == "qwen"
+            factory = tiny_visual_config
+        template = model_class(factory(include_visual=args.visual))
         weights = {
             checkpoint_key(name, args.family): torch.rand_like(value.float()) * 0.05 + 0.1
             for name, value in template.state_dict().items()
@@ -157,10 +173,26 @@ def main():
         save_file(weights, path / "model.safetensors")
     dist.barrier()
     source, source_opt = construct(
-        "pytorch", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze, args.lora
+        "pytorch",
+        args.family,
+        path,
+        args.optimizer,
+        args.sharding_strategy,
+        args.partial_generation_freeze,
+        args.lora,
+        args.visual,
+        args.train_visual,
     )
     target, target_opt = construct(
-        "megatron", args.family, path, args.optimizer, args.sharding_strategy, args.partial_generation_freeze, args.lora
+        "megatron",
+        args.family,
+        path,
+        args.optimizer,
+        args.sharding_strategy,
+        args.partial_generation_freeze,
+        args.lora,
+        args.visual,
+        args.train_visual,
     )
     checkpoint = path / "aligned_initial_state"
     dcp.save({"model": source.state_dict()}, checkpoint_id=checkpoint)
@@ -204,10 +236,11 @@ def main():
     maximum_output_error = 0.0
     for micro in range(3):
         torch.manual_seed(100 + micro + dist.get_rank())
-        data, outputs = batch(), []
+        data, visual_inputs = visual_batch() if args.visual else (batch(), None)
+        outputs = []
         for model in (source, target):
             with ddp_sync_grad(model, enabled=micro == 2):
-                output = model.net(copy.deepcopy(data))["preds_action"][0]
+                output = model.net(copy.deepcopy(data), vlm_inputs=visual_inputs)["preds_action"][0]
                 (output.float().square().mean() / 3).backward()
             outputs.append(output.detach())
         torch.testing.assert_close(outputs[0], outputs[1], rtol=2e-4, atol=2e-5)
@@ -221,10 +254,15 @@ def main():
     }
     runtime.prepare_state_dict(gradients)
     maximum_gradient_error = 0.0
+    maximum_visual_gradient = 0.0
     for name, gradient in gradients.items():
         a, b = materialize_tensor(reference[canonical(name)].grad), materialize_tensor(gradient)
         torch.testing.assert_close(a, b, rtol=2e-4, atol=2e-5, msg=name)
         maximum_gradient_error = max(maximum_gradient_error, (a - b).abs().max().item())
+        if "visual." in name:
+            maximum_visual_gradient = max(maximum_visual_gradient, b.abs().max().item())
+    if args.train_visual:
+        assert maximum_visual_gradient > 0, "Real image patches must backpropagate into the ViT"
     source_opt.step()
     target_opt.step()
     for model, optimizer in ((source, source_opt), (target, target_opt)):
@@ -238,6 +276,8 @@ def main():
         optimizer=args.optimizer,
         partial_generation_freeze=args.partial_generation_freeze,
         lora=args.lora,
+        visual=args.visual,
+        train_visual=args.train_visual,
         different_und_gen_owner_cases_per_rank=owner_cases,
         sharding_strategy=args.sharding_strategy,
         fresh_und_to_gen_copy=not args.warm_start,
@@ -251,6 +291,7 @@ def main():
         updated_model_and_ema_bitwise_equal=True,
         maximum_output_error=maximum_output_error,
         maximum_gradient_error=maximum_gradient_error,
+        maximum_visual_gradient=maximum_visual_gradient,
     )
     if dist.get_rank() == 0:
         args.output.write_text(json.dumps(result, indent=2) + "\n")

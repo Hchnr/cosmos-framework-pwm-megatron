@@ -13,7 +13,7 @@ import torch
 import torch.distributed as dist
 import torch.distributed.checkpoint as dcp
 from async_checkpoint_smoke import writer
-from omni_ema_smoke import TinyOmni, batch
+from omni_ema_smoke import TinyOmni, batch, visual_batch
 from safetensors import safe_open
 from torch.distributed._state_dict_utils import _copy_state_dict, _create_cpu_state_dict
 
@@ -62,6 +62,7 @@ def main():
     parser.add_argument("--steps", type=int, default=1)
     parser.add_argument("--verify-hf", action="store_true")
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument("--visual", action="store_true")
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--expected-checkpoint-summary", type=Path)
@@ -84,6 +85,7 @@ def main():
     config.action128_spec = tiny_action128_spec()
     config.tower_structure = "two_tower"
     config.load_vision_tokenizer = config.load_vlm_visual = False
+    config.load_vlm_visual = args.visual
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
     config.vlm_config.model_instance = LazyCall(Qwen3VLMoeTextForCausalLM)(
         config=LazyCall(full_config)(config_path=str(args.model_path / "config.json"))
@@ -140,6 +142,8 @@ def main():
                 continue
             original = name.replace("_moe_gen", "")
             key = "model.language_model." + original[6:] if original.startswith("model.") else original
+            if original.startswith("visual."):
+                key = "model." + original
             chunk = value._local_tensor.__create_chunk_list__()[0]
             slices = tuple(slice(o, o + n) for o, n in zip(chunk.offsets, chunk.sizes, strict=True))
             with safe_open(str(args.model_path / weight_map[key]), framework="pt", device="cpu") as reader:
@@ -154,7 +158,8 @@ def main():
         for micro in range(3):
             torch.manual_seed(42 + step * 100 + micro + dist.get_rank())
             with ddp_sync_grad(model, enabled=micro == 2):
-                output = model.net(batch())["preds_action"][0]
+                data, visual_inputs = visual_batch(model.net.language_model.config) if args.visual else (batch(), None)
+                output = model.net(data, vlm_inputs=visual_inputs)["preds_action"][0]
                 loss = output.float().square().mean() / 3
                 assert torch.isfinite(loss)
                 loss.backward()
@@ -238,6 +243,7 @@ def main():
             lora_alpha=32,
             ema=False,
             compile=args.compile,
+            visual=args.visual,
             steps=args.steps,
             start_step=args.start_step,
             resume=str(args.resume) if args.resume is not None else None,
@@ -246,7 +252,11 @@ def main():
             construction_seconds=construction_seconds,
             peak_allocated_bytes=max(r["peak_allocated_bytes"] for r in ranks),
             ranks=ranks,
-            scope="Full two-tower MoE, pretrained UND→GEN and synthetic 2-text/3-action-token batches; no live loader/VAE or quality/throughput qualification.",
+            scope=(
+                "Full two-tower MoE, pretrained UND→GEN and synthetic small text/action batches"
+                + (" with a real ViT image patch input" if args.visual else "")
+                + "; no live loader/VAE or quality/throughput qualification."
+            ),
         )
         args.output.write_text(json.dumps(result, indent=2) + "\n")
         print(json.dumps(result), flush=True)

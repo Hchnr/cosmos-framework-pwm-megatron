@@ -71,9 +71,8 @@ hooks after the process queue transfer.
 | Async checkpoint staging and background writer | Full 36-layer ~128 GB checkpoint save/load tested; uneven metadata coverage audited |
 
 Two-tower CP=2 is qualified below; the original three-tower CP=1 constraint
-remains. The baseline entry has EMA disabled and CP=1; EMA support is described below. Initialization currently
-materializes the unsharded model before Megatron wrapping; peak initialization
-memory must be measured for each model size.
+remains. The baseline entry has EMA disabled and CP=1; EMA support is described below. Default initialization materializes the unsharded model before Megatron wrapping;
+opt-in bounded initialization and its model-family scope are qualified below.
 
 ## Tests and reproducible commands
 
@@ -560,8 +559,8 @@ python -m torch.distributed.run --standalone --nproc-per-node=4 tests/megatron/v
 ## Bounded Omni meta initialization and full 60B LoRA execution
 
 `COSMOS_MEGATRON_OMNI_META_INITIALIZATION=1` enables an experimental bounded
-initialization path for unquantized two-tower Omni models without reasoner
-visual/audio encoders. The default remains unchanged. Small non-language heads
+initialization path for unquantized two-tower Omni models without audio
+encoders. Native Qwen visual support is qualified below. The default remains unchanged. Small non-language heads
 are constructed on CPU so their constant buffers retain real values, then
 initialized on CUDA with the original policies. Language parameters stay on
 meta until MCore materializes one direct owner at a time with the original
@@ -607,6 +606,41 @@ and EMA. Full-size checkpoint qualification is detailed below.
 See `omni_meta_60b_lora.json`, `omni_ema_integration_*meta*` and
 `omni_meta_fresh_hf_*` artifacts. Original CPU regressions still report
 116 passed / 2 skipped.
+
+## Qwen visual tower with bounded Omni initialization
+
+The opt-in Omni meta path now supports Qwen native ViT in addition to text-only
+conditioning. Parameters stay empty while constant position/rotary buffers are
+created on CPU, then moved to CUDA. External Edge visual construction, audio,
+quantized/FP8 and three-tower meta initialization remain guarded.
+
+Real image patches pass through the native ViT, packed DeepStack conditioning
+and Action128 prediction. Fresh HF loading independently verifies 109 online
+and 109 EMA tensors in the frozen-ViT/LoRA test, or 93 each with trainable ViT.
+Both cases use compiled language blocks, full AC, GA=3, FusedAdam and 2×2 HSDP:
+initialization, outputs, gradients and updated model/EMA are bitwise equal to
+native FSDP2. The trainable-ViT case explicitly checks a nonzero visual gradient.
+Two compiled LoRA updates also pass frozen-base invariance, active A/B learning,
+EMA scope, CPU shared/pinned asynchronous checkpoint staging, zeroing and
+bitwise restoration. Cached versus uncached packing metadata outputs match.
+
+The uncached input exposed an existing DeepStack failure: the packer generated
+indices internally, but the consumer accessed the absent caller metadata.
+DeepStack now uses the actual pack's causal indices. The original related CPU
+regressions report **71 passed**, with **44 passed / 1 skipped** in supplemental
+configuration/statistic/projection tests. See `omni_meta_visual_*` and
+`omni_ema_integration_visual_lora_meta_compiled.json` artifacts.
+
+A full local Qwen3-VL-30B-A3B understanding tower plus its complete generation
+tower and native ViT (**61,032,598,832 parameters**) also passes pretrained
+loading and two compiled GA=3 LoRA/FusedAdam updates on four H100s. Each rank
+independently checks **1,411 base tensors** against HF file slices, bitwise equal.
+Gradient norms are finite (14.66709 and 12.85167); logical adapter hashes match
+all ranks. Peak allocation is **38,047,115,776 bytes per GPU**. EMA is disabled
+for this full-size test. Its synthetic input contains three text/visual tokens,
+one 2×2 patch grid and three action tokens. This establishes bounded
+initialization and compiled training, without a live loader, VAE, quality or
+production-throughput claim. See `omni_meta_60b_visual_compiled_lora.json`.
 
 ## Full-size checkpoint and reasoner entry points
 
