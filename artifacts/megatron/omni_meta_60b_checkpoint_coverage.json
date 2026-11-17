@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checkpoint": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+  "flat_probe_layout": true,
+  "components": {
+    "model": {
+      "tensors": 1461,
+      "elements": 60493967824,
+      "bytes": 120987936016
+    },
+    "optimizer": {
+      "tensors": 1920,
+      "elements": 40108800,
+      "bytes": 160435200
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "passed": true,
+  "meta_initialization": true,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-30B-A3B-Instruct",
+  "total_parameters": 60493967424,
+  "trainable_parameters": 13369344,
+  "world_size": 4,
+  "sharding_strategy": "optim_grads_params",
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "ema": false,
+  "compile": false,
+  "steps": 2,
+  "gradient_accumulation": 3,
+  "construction_seconds": 52.9902979247272,
+  "peak_allocated_bytes": 36707678208,
+  "ranks": [
+    {
+      "rank": 0,
+      "peak_allocated_bytes": 36707678208,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "235a69bc6354d8e31b7ec83dd6d8757fb8725c860177df18e3b464e841cf3e91",
+      "process_peak_rss_bytes": 34302619648,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 5.190071105957031,
+          "gradient_norm": 11.726776123046875
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 5.1110639572143555,
+          "gradient_norm": 14.040386199951172
+        }
+      ],
+      "checkpoint": {
+        "path": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+        "asynchronous_cpu_staging_spawn_queue": true,
+        "zeroed_model_and_optimizer": true,
+        "restored_full_state_sha256": "7d5381bc655506d2ea8401f94f31982503094e81ae5ead4487964ee07916dbfd",
+        "bitwise_equal": true
+      }
+    },
+    {
+      "rank": 1,
+      "peak_allocated_bytes": 36707678208,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "235a69bc6354d8e31b7ec83dd6d8757fb8725c860177df18e3b464e841cf3e91",
+      "process_peak_rss_bytes": 33853931520,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 3.9222218990325928,
+          "gradient_norm": 11.726776123046875
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 4.842803478240967,
+          "gradient_norm": 14.040386199951172
+        }
+      ],
+      "checkpoint": {
+        "path": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+        "asynchronous_cpu_staging_spawn_queue": true,
+        "zeroed_model_and_optimizer": true,
+        "restored_full_state_sha256": "68b175c7530dca8f754625fbca425b209bc8a4bdafa0cdc7619b0962f501456b",
+        "bitwise_equal": true
+      }
+    },
+    {
+      "rank": 2,
+      "peak_allocated_bytes": 36707678208,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "235a69bc6354d8e31b7ec83dd6d8757fb8725c860177df18e3b464e841cf3e91",
+      "process_peak_rss_bytes": 34235035648,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 5.053624153137207,
+          "gradient_norm": 11.726776123046875
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 4.854348182678223,
+          "gradient_norm": 14.040386199951172
+        }
+      ],
+      "checkpoint": {
+        "path": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+        "asynchronous_cpu_staging_spawn_queue": true,
+        "zeroed_model_and_optimizer": true,
+        "restored_full_state_sha256": "ea29b716747227af45b3882ce22badd784a7ecaf837c1e3c95fd5343f4142cd2",
+        "bitwise_equal": true
+      }
+    },
+    {
+      "rank": 3,
+      "peak_allocated_bytes": 36707678208,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "235a69bc6354d8e31b7ec83dd6d8757fb8725c860177df18e3b464e841cf3e91",
+      "process_peak_rss_bytes": 33856761856,
+      "observations": [
+        {
+          "step": 0,
+          "final_microbatch_loss": 4.050534248352051,
+          "gradient_norm": 11.726776123046875
+        },
+        {
+          "step": 1,
+          "final_microbatch_loss": 3.0818049907684326,
+          "gradient_norm": 14.040386199951172
+        }
+      ],
+      "checkpoint": {
+        "path": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+        "asynchronous_cpu_staging_spawn_queue": true,
+        "zeroed_model_and_optimizer": true,
+        "restored_full_state_sha256": "95a6f2a771d70242fc5e519778abb354970cc1768fb3e1b6d8cf990abbab32a8",
+        "bitwise_equal": true
+      }
+    }
+  ],
+  "scope": "Full two-tower MoE, pretrained UND\u2192GEN and synthetic 2-text/3-action-token batches; no live loader/VAE or quality/throughput qualification."
+}

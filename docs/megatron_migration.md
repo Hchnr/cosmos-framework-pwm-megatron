@@ -602,11 +602,40 @@ also ran on four H100 80GB devices:
 
 This full-size probe uses two text and three action tokens, no live loader/VAE,
 no block compilation and no full-size EMA. It establishes initialization and
-one real update, not production throughput, quality or full-size checkpoint
-qualification. Small tests cover compilation, EMA and asynchronous checkpoints.
+real updates, not production throughput or quality. Small tests cover compilation
+and EMA. Full-size checkpoint qualification is detailed below.
 See `omni_meta_60b_lora.json`, `omni_ema_integration_*meta*` and
 `omni_meta_fresh_hf_*` artifacts. Original CPU regressions still report
 116 passed / 2 skipped.
+
+## Full-size checkpoint and reasoner entry points
+
+The actual 60.494B two-tower MoE LoRA probe now completes two GA=3 updates,
+CPU shared/pinned staging and a spawned Gloo writer for its entire model and
+optimizer DCP. After explicitly zeroing model tensors, FP32 optimizer masters,
+moments and scalar states, restoration reproduces every rank's complete local
+state SHA256 exactly. An independent metadata audit finds no missing, overlapping
+or out-of-range tensor chunks: model **120,987,936,016 bytes**, optimizer
+**160,435,200 bytes**. A new process rebuilds the model from meta, skips HF
+initialization, reloads the DCP, independently matches all four saved state hashes
+and completes the next GA=3 update with finite gradient norm 15.17785. Peak
+allocation is **36,707,680,256 bytes per GPU**. Artifacts are
+`omni_meta_60b_lora_checkpoint.json`, `omni_meta_60b_lora_resume.json` and
+`omni_meta_60b_checkpoint_coverage.json`. This direct probe covers model/optimizer;
+the separate full-depth trainer test covers scheduler, RNG and live loader state.
+The flat-layout auditor is opt-in; standard trainer checkpoint completion-marker
+and four-component checks still pass on the original 16.182B qualification.
+
+Cosmos's alternate `generate_reasoner_text` and decoder `reasoner_forward`
+methods now enter through existing module FSDP pre/post hooks. Previously these
+methods bypassed optimizer-to-compute view installation and could fail with a
+Megatron parameter-map KeyError. The adapter restores ordinary and compiled
+forward methods even on exceptions. Qwen ZeRO-2 and Nemotron ZeRO-3 comparisons
+use compiled training blocks, greedy generation, a deliberately modified EMA
+head, EMA restoration and a subsequent GA=3 training update. Generated tokens,
+training outputs, gradients and updated parameters match native FSDP2 bitwise.
+See `reasoner_forward_*` artifacts. This validates Cosmos AR entry points;
+it does not qualify arbitrary third-party generation APIs.
 
 ## Standalone VLM compute performance
 

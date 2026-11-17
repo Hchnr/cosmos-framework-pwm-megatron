@@ -1,0 +1,83 @@
+{
+  "passed": true,
+  "meta_initialization": true,
+  "model_path": "/share-mixed/project/eai_pwm/models/Qwen3-VL-30B-A3B-Instruct",
+  "total_parameters": 60493967424,
+  "trainable_parameters": 13369344,
+  "world_size": 4,
+  "sharding_strategy": "optim_grads_params",
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "ema": false,
+  "compile": false,
+  "steps": 1,
+  "start_step": 2,
+  "resume": "outputs/megatron_validation/omni_60b_meta_lora_checkpoint",
+  "new_process_full_state_hash_verified": true,
+  "gradient_accumulation": 3,
+  "construction_seconds": 105.78015870600939,
+  "peak_allocated_bytes": 36707680256,
+  "ranks": [
+    {
+      "rank": 0,
+      "peak_allocated_bytes": 36707680256,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "17a54139af71a7aeee23e3009f562e06ead5a0131ec9d2d834c040d964d5d794",
+      "process_peak_rss_bytes": 3121602560,
+      "observations": [
+        {
+          "step": 2,
+          "final_microbatch_loss": 4.206851959228516,
+          "gradient_norm": 15.177849769592285
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 1,
+      "peak_allocated_bytes": 36707680256,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "17a54139af71a7aeee23e3009f562e06ead5a0131ec9d2d834c040d964d5d794",
+      "process_peak_rss_bytes": 2740137984,
+      "observations": [
+        {
+          "step": 2,
+          "final_microbatch_loss": 3.795112133026123,
+          "gradient_norm": 15.177849769592285
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 2,
+      "peak_allocated_bytes": 36707680256,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "17a54139af71a7aeee23e3009f562e06ead5a0131ec9d2d834c040d964d5d794",
+      "process_peak_rss_bytes": 2741080064,
+      "observations": [
+        {
+          "step": 2,
+          "final_microbatch_loss": 3.501603126525879,
+          "gradient_norm": 15.177849769592285
+        }
+      ],
+      "checkpoint": null
+    },
+    {
+      "rank": 3,
+      "peak_allocated_bytes": 36707680256,
+      "independently_verified_hf_tensors": 0,
+      "lora_sha256": "17a54139af71a7aeee23e3009f562e06ead5a0131ec9d2d834c040d964d5d794",
+      "process_peak_rss_bytes": 2750636032,
+      "observations": [
+        {
+          "step": 2,
+          "final_microbatch_loss": 3.3143181800842285,
+          "gradient_norm": 15.177849769592285
+        }
+      ],
+      "checkpoint": null
+    }
+  ],
+  "scope": "Full two-tower MoE, pretrained UND\u2192GEN and synthetic 2-text/3-action-token batches; no live loader/VAE or quality/throughput qualification."
+}

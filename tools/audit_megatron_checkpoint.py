@@ -11,15 +11,25 @@ import torch
 from torch.distributed.checkpoint.metadata import TensorStorageMetadata
 
 
-def audit(root):
-    if not (root / ".save_complete").is_file():
-        raise ValueError(f"Checkpoint has no completion marker: {root}")
-    report = {"passed": True, "checkpoint": str(root), "components": {}}
-    for component in ("model", "optim", "scheduler", "trainer"):
-        with (root / component / ".metadata").open("rb") as handle:
+def audit(root, *, flat=False):
+    if flat:
+        with (root / ".metadata").open("rb") as handle:
             metadata = pickle.load(handle)
-        tensors = elements = stored_bytes = 0
+        grouped = {}
         for name, item in metadata.state_dict_metadata.items():
+            grouped.setdefault(name.split(".", 1)[0], {})[name] = item
+        metadata_components = grouped.items()
+    else:
+        if not (root / ".save_complete").is_file():
+            raise ValueError(f"Checkpoint has no completion marker: {root}")
+        metadata_components = []
+        for component in ("model", "optim", "scheduler", "trainer"):
+            with (root / component / ".metadata").open("rb") as handle:
+                metadata_components.append((component, pickle.load(handle).state_dict_metadata))
+    report = {"passed": True, "checkpoint": str(root), "flat_probe_layout": flat, "components": {}}
+    for component, state_metadata in metadata_components:
+        tensors = elements = stored_bytes = 0
+        for name, item in state_metadata.items():
             if not isinstance(item, TensorStorageMetadata):
                 continue
             tensors += 1
@@ -49,8 +59,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("checkpoint", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--flat", action="store_true", help="Audit a flat model/optimizer probe DCP layout")
     args = parser.parse_args()
-    report = audit(args.checkpoint)
+    report = audit(args.checkpoint, flat=args.flat)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))

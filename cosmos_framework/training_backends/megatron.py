@@ -8,6 +8,7 @@ model, so data, loss, parameter selection and checkpoint FQNs stay unchanged.
 from __future__ import annotations
 
 from contextlib import contextmanager
+from functools import wraps
 
 import torch
 import torch.distributed as dist
@@ -64,6 +65,30 @@ def _support_compiled_parameter_casts(fsdp):
             original = getattr(parameter, name)
             if getattr(original, "__name__", "").startswith("override_sharded_param_"):
                 setattr(parameter, name, adapt(parameter, original, getattr(torch.Tensor, name)))
+
+
+def _register_forward_entry(module, name):
+    """Run Cosmos's alternate AR entry through the module's FSDP hooks."""
+    method = getattr(module, name, None)
+    if method is None:
+        return
+
+    @wraps(method)
+    def forward_entry(*args, **kwargs):
+        previous = module.forward
+        compiled = module._compiled_call_impl
+        try:
+            # Cosmos AR methods do not recursively invoke their own forward.
+            # Calling the module preserves all PyTorch/MCore pre/post hooks,
+            # including root optimizer→compute views and unit parameter gather.
+            module.forward = method
+            module._compiled_call_impl = None
+            return module(*args, **kwargs)
+        finally:
+            module.forward = previous
+            module._compiled_call_impl = compiled
+
+    setattr(module, name, forward_entry)
 
 
 class MegatronRuntime:
@@ -149,6 +174,10 @@ class MegatronRuntime:
                         child.register_forward_pre_hook(cast_inputs, with_kwargs=True, prepend=True)
                     )
         module.__dict__["_cosmos_megatron_runtime"] = self
+        _register_forward_entry(module, "generate_reasoner_text")
+        for child in module.modules():
+            if isinstance(child, tuple(unit_types)):
+                _register_forward_entry(child, "reasoner_forward")
 
         self._frozen_masters = {}
         self._frozen_compute_dtypes = {}

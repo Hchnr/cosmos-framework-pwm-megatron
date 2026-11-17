@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "generated_tokens_bitwise_equal": true,
+  "generation": [
+    [
+      1,
+      2,
+      3,
+      18,
+      31,
+      4
+    ]
+  ],
+  "training_after_generation": true,
+  "gradient_accumulation": 3,
+  "compile": true,
+  "sharding_strategy": "optim_grads_params",
+  "maximum_training_output_error": 0.0
+}
