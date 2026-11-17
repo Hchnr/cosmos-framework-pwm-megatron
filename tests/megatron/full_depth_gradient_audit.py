@@ -12,6 +12,7 @@ import dataclasses
 import json
 import os
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 
 import torch
@@ -146,7 +147,10 @@ if __name__ == "__main__":
 
     OmniMoTModel.__init__ = init_with_input_capture
     GradClip.on_before_optimizer_step = capture_then_clip
-    driver.main()
+    from torch.nn.attention import SDPBackend, sdpa_kernel
+
+    with sdpa_kernel(SDPBackend.MATH) if audit_precision == "float32" else nullcontext():
+        driver.main()
     if int(os.environ["RANK"]) == 0:
         report = json.loads(audit_args.benchmark_json.read_text())
         report.update(
@@ -155,6 +159,7 @@ if __name__ == "__main__":
             gradient_capture_enabled=os.environ.get("GRADIENT_AUDIT_INPUTS_ONLY") != "1",
             audit_precision=audit_precision or "recipe",
             fp32_sdpa_reference=audit_precision == "float32",
+            sdpa_math_forced=audit_precision == "float32",
             matmul_allow_tf32=torch.backends.cuda.matmul.allow_tf32,
             cudnn_allow_tf32=torch.backends.cudnn.allow_tf32,
         )

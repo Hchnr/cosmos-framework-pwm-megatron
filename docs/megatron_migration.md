@@ -1056,7 +1056,7 @@ fake Python executable; the numeric run must still complete to qualify throughpu
 
 `tests/megatron/full_depth_gradient_audit.py` accepts
 `GRADIENT_AUDIT_PRECISION=float32` only together with
-`GRADIENT_AUDIT_DETERMINISTIC=1`. It uses SDPA (Flash3 requires half precision),
+`GRADIENT_AUDIT_DETERMINISTIC=1`. It forces the SDPA math backend (Flash3 requires half precision),
 disables TF32 and checks every trainable parameter/gradient dtype before capture.
 The TF32/dtype rejection guards have CPU regression coverage. The comparison
 keeps all 36 layers, GA=3, compilation and activation checkpointing with real-batch
