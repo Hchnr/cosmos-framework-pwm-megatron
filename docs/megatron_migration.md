@@ -942,7 +942,7 @@ are available, but do not replace a distributed production run.
    The initial four-GPU warm-start timings did not qualify original
    production-token training or source-state `extend`. The subsequent
    original-state/full-capacity integration qualification is recorded below;
-   a traced full-configuration ABBA timing run is in progress. The user has
+   the traced full-configuration ABBA timing run also passed on four H100s. The user has
    scoped current resource validation to the available four GPUs.
 2. Extend qualification to remaining model families, large-model initialization,
    optimizers, higher CP degrees and other parallelism paths.
@@ -1066,3 +1066,50 @@ replay at reduced `[512,8192,128]` capacities and fresh optimizer state.
 forward-input equality. This is an independent precision/backend reference;
 its SDPA/reduced-capacity timings are excluded from production BF16/Flash3
 throughput qualification. Numeric success has not been asserted before capture.
+
+
+### Full production configuration, original-state ABBA (2026-11-17)
+
+Four H100s completed **PyTorch / Megatron / Megatron / PyTorch**, eight updates
+per launch from source iteration 1200 through 1208, with the first three updates
+excluded from timing. The 36-layer model retained the original configured
+**[11776,62592,2944]** capacities, short-UND policy, GA=3, FusedAdam, clipping,
+compilation, activation checkpointing, production **16 workers / prefetch 8 /
+packing pool 16 / max 92 samples**, preserved checkpoint Action normalization and
+the checked-in old Bench2Dex State snapshot. Optimizer, scheduler and RNG were
+restored; append-only data-stream reset follows the original `extend` policy.
+
+| Four-H100 backend | Mean whole update, including first data load | p95 whole update | Peak allocated bytes |
+| --- | ---: | ---: | ---: |
+| Native PyTorch | 40.11032 s | 42.15494 s | 81,764,094,976 |
+| Megatron ZeRO-3 | 38.39142 s | 39.91611 s | 81,835,362,304 |
+
+There are **10 steady observations per backend** (five update profiles repeated
+twice). Whole-update mean throughput improved **4.4773%**; the forward/reverse
+pairs independently improved **4.6080%** and **4.3465%**. Peak allocated memory
+increased only **71,267,328 bytes (0.0872%)**. Data wait averaged 0.00469 s and
+0.00444 s respectively. Timings include the same live-content hashing overhead
+on both backends and exclude checkpoint writes and tokenizer compilation.
+
+All four launches have identical per-rank input/content, cursor and resume-RNG
+traces: **24 microbatches per rank**, 96 distinct rank/microbatch records reused
+across launches. The sampled sequence covers **15 of the 58 configured streams**;
+it is not a long-horizon traversal of every source. Logs show no nonfinite loss,
+nonfinite clipping norm, skipped optimizer update, actual media error or OOM.
+
+Across all four loss traces, maximum relative deviation from the first native
+run is **0.43786%**. That maximum is the native/native repeat difference;
+Megatron/Megatron repeat deviation is **0.35769%**. Cross-backend paired maxima
+are **0.23769%** and **0.29355%**. This BF16 loss-level comparison supplements the
+independent precision/gradient checks; it does not claim a uniform 2% BF16
+gradient-error bound across captures.
+
+`source_full_20261117_acceptance_policy.json` was committed before timing
+completed: require exact traces, complete finite updates/no media errors, at most
+1% relative loss-trace deviation, and no greater than 3% whole-update throughput
+regression globally or in either order. All gates passed. Artifacts under
+`artifacts/megatron/source_full_20261117_*` retain the four raw measurement JSONs,
+all 16 rank trace files, per-update JSONL, both paired summaries, the combined
+summary and the qualification report with raw-log hashes. The performance result
+qualifies **four-GPU ZeRO-3 on this finite original-state production-configuration
+profile**. It does not qualify 192 GPUs, checkpoint stalls or all data windows.

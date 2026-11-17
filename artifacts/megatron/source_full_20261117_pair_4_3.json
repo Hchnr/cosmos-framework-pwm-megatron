@@ -1,0 +1,77 @@
+{
+  "scope": "full 36-layer stock trainer; original production token capacities; live data",
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation"
+  ],
+  "token_capacities": [
+    11776,
+    62592,
+    2944
+  ],
+  "gradient_accumulation": 3,
+  "runs": [
+    "artifacts/megatron/source_full_20261117_4_pytorch.json",
+    "artifacts/megatron/source_full_20261117_3_megatron.json"
+  ],
+  "backends": {
+    "pytorch": {
+      "observations": 5,
+      "median_seconds": 40.057061459869146,
+      "mean_seconds": 39.81475384160876,
+      "p95_seconds": 41.648935495316984,
+      "max_seconds": 41.933106280863285,
+      "per_run_median_seconds": [
+        40.057061459869146
+      ],
+      "peak_allocated_bytes": 81764094976,
+      "whole_update_including_first_dataload": {
+        "observations": 5,
+        "median_seconds": 40.30743307992816,
+        "mean_seconds": 40.054289975762366,
+        "p95_seconds": 41.8862763941288,
+        "max_seconds": 42.170216254889965
+      },
+      "data_wait": {
+        "observations": 5,
+        "median_seconds": 0.005087070167064667,
+        "mean_seconds": 0.004761612415313721,
+        "p95_seconds": 0.005099701881408692,
+        "max_seconds": 0.005100756883621216
+      }
+    },
+    "megatron": {
+      "observations": 5,
+      "median_seconds": 38.560212172567844,
+      "mean_seconds": 38.14082871749997,
+      "p95_seconds": 39.45048829913139,
+      "max_seconds": 39.644741248339415,
+      "per_run_median_seconds": [
+        38.560212172567844
+      ],
+      "peak_allocated_bytes": 81835362304,
+      "whole_update_including_first_dataload": {
+        "observations": 5,
+        "median_seconds": 38.82058326900005,
+        "mean_seconds": 38.3858473867178,
+        "p95_seconds": 39.68972443491221,
+        "max_seconds": 39.881207041442394
+      },
+      "data_wait": {
+        "observations": 5,
+        "median_seconds": 0.004842095077037811,
+        "mean_seconds": 0.004466562718153,
+        "p95_seconds": 0.005156051367521286,
+        "max_seconds": 0.005211483687162399
+      }
+    }
+  },
+  "live_input_traces_bitwise_equal": true,
+  "input_trace_microbatches_per_rank": 24,
+  "includes_content_hashing_overhead": true,
+  "throughput_gain_fraction": 0.03881849198864562,
+  "mean_throughput_gain_fraction": 0.04388801136197529,
+  "whole_update_mean_throughput_gain_fraction": 0.04346504513071858,
+  "max_loss_trace_absolute_difference": 0.0005487203598022461,
+  "max_loss_trace_relative_difference": 0.00293551287286461
+}

@@ -1,0 +1,8 @@
+{"benchmark_update": 1201, "seconds": 65.16611459478736, "including_first_dataload_seconds": 84.63250702247024, "data_wait_seconds": 21.96295927464962, "loss": 0.10597952455282211, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1202, "seconds": 43.16884442791343, "including_first_dataload_seconds": 43.41241667419672, "data_wait_seconds": 0.004201691597700119, "loss": 0.21807610988616943, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1203, "seconds": 37.5124598108232, "including_first_dataload_seconds": 37.763715259730816, "data_wait_seconds": 0.005143217742443085, "loss": 0.6456257104873657, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1204, "seconds": 38.705309592187405, "including_first_dataload_seconds": 38.94129801914096, "data_wait_seconds": 0.003406517207622528, "loss": 0.08259908854961395, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1205, "seconds": 38.58393596857786, "including_first_dataload_seconds": 38.84218595176935, "data_wait_seconds": 0.005383692681789398, "loss": 0.12753592431545258, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1206, "seconds": 37.122818522155285, "including_first_dataload_seconds": 37.364332500845194, "data_wait_seconds": 0.004362624138593674, "loss": 0.10293279588222504, "peak_allocated_bytes": 80913564672}
+{"benchmark_update": 1207, "seconds": 36.664055574685335, "including_first_dataload_seconds": 36.89252991229296, "data_wait_seconds": 0.0034331046044826508, "loss": 0.1129937693476677, "peak_allocated_bytes": 81835362304}
+{"benchmark_update": 1208, "seconds": 39.70387104153633, "including_first_dataload_seconds": 39.944664776325226, "data_wait_seconds": 0.005472633987665176, "loss": 0.11890581250190735, "peak_allocated_bytes": 81835362304}

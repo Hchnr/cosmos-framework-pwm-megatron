@@ -1,0 +1,99 @@
+{
+  "passed": true,
+  "scope": "Four H100s, full 36-layer 58-source production-capacity loader, original iter_000001200 optimizer/scheduler/RNG, checkpoint Action/State normalization, Megatron ZeRO-3 versus native PyTorch; checkpoint writes and tokenizer compilation excluded",
+  "gates": {
+    "all_runs_complete": true,
+    "inputs_cursor_rng_bitwise_equal": true,
+    "finite_updates_without_media_errors": true,
+    "loss_trace_within_bound": true,
+    "whole_update_mean_throughput_within_bound": true,
+    "both_orders_within_throughput_bound": true
+  },
+  "policy": "artifacts/megatron/source_full_20261117_acceptance_policy.json",
+  "policy_sha256": "f20b371d29e58b472af5c5c202ecde6db290c08b1b0c037b9964fa19e4a9aed2",
+  "implementation_commit": "864e4ea7b0b1224c20232d5b5c8e8995012a7e2c",
+  "runs": [
+    {
+      "run": 1,
+      "backend": "pytorch",
+      "updates": 8,
+      "initial_iteration": 1200,
+      "final_iteration": 1208,
+      "restored_training_state": true,
+      "nonfinite_or_skipped_update_events": 0,
+      "actual_media_error_events": 0,
+      "raw_log_sha256": "0bc5066aa6df05986002582b70a1bfd9fef6e26a649da259637b85b2c9c072fd",
+      "filtered_updates": "artifacts/megatron/source_full_20261117_1_pytorch_updates.jsonl"
+    },
+    {
+      "run": 2,
+      "backend": "megatron",
+      "updates": 8,
+      "initial_iteration": 1200,
+      "final_iteration": 1208,
+      "restored_training_state": true,
+      "nonfinite_or_skipped_update_events": 0,
+      "actual_media_error_events": 0,
+      "raw_log_sha256": "a60e0a2c13da6a20b11126b54e7c49d90d1a5ddb2bb3299bdf1f2b76f6f6f193",
+      "filtered_updates": "artifacts/megatron/source_full_20261117_2_megatron_updates.jsonl"
+    },
+    {
+      "run": 3,
+      "backend": "megatron",
+      "updates": 8,
+      "initial_iteration": 1200,
+      "final_iteration": 1208,
+      "restored_training_state": true,
+      "nonfinite_or_skipped_update_events": 0,
+      "actual_media_error_events": 0,
+      "raw_log_sha256": "87449ba629f9f62f32a5aa9b6f927e90c9b82e35efd8d36f8b306ac3ccb46eea",
+      "filtered_updates": "artifacts/megatron/source_full_20261117_3_megatron_updates.jsonl"
+    },
+    {
+      "run": 4,
+      "backend": "pytorch",
+      "updates": 8,
+      "initial_iteration": 1200,
+      "final_iteration": 1208,
+      "restored_training_state": true,
+      "nonfinite_or_skipped_update_events": 0,
+      "actual_media_error_events": 0,
+      "raw_log_sha256": "d900d09ea165dfb8edbc1b04562fb318214d15354c0acd70887b6868955806c0",
+      "filtered_updates": "artifacts/megatron/source_full_20261117_4_pytorch_updates.jsonl"
+    }
+  ],
+  "paired_results": [
+    {
+      "runs": [
+        1,
+        2
+      ],
+      "whole_update_mean_throughput_gain_fraction": 0.046080201696418355
+    },
+    {
+      "runs": [
+        4,
+        3
+      ],
+      "whole_update_mean_throughput_gain_fraction": 0.04346504513071858
+    }
+  ],
+  "same_backend_repeatability": {
+    "pytorch": {
+      "max_loss_absolute_difference": 0.00045177340507507324,
+      "max_loss_relative_difference": 0.004378581029528343
+    },
+    "megatron": {
+      "max_loss_absolute_difference": 0.00047576427459716797,
+      "max_loss_relative_difference": 0.003576859359809465
+    }
+  },
+  "max_loss_trace_relative_difference": 0.004378581029528343,
+  "whole_update_mean_throughput_gain_fraction": 0.04477281337569683,
+  "scope_limitations": [
+    "four GPUs, eight updates per launch, five steady update profiles repeated twice per backend",
+    "checkpoint writes and tokenizer compilation excluded",
+    "not a 192-GPU throughput qualification",
+    "loss/input checks supplement independent FP32/gradient tests, not a uniform BF16 gradient-error guarantee"
+  ]
+}
