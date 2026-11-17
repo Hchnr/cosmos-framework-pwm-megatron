@@ -17,7 +17,8 @@ def prepare_uneven_state(state, shard_group):
     Per-tensor collectives are unsafe: Adam initializes no state for empty local
     parameters, so different ranks may have different state keys. One exchange
     per state dictionary also avoids thousands of small object collectives.
-    This backend currently uses TP=CP=1 and a single parameter shard dimension.
+    This backend uses TP=1 and a single parameter shard dimension; attention
+    context parallelism has a separate mesh.
     """
     entries = {}
 

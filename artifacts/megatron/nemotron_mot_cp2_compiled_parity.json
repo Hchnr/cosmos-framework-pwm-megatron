@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "cp": 2,
+  "family": "nemotron",
+  "shards": 2,
+  "replicas": 2,
+  "compile": true,
+  "attention_io_layout": "sequence_sharded",
+  "dtype": "bfloat16",
+  "steps": 2,
+  "gradient_accumulation": 3,
+  "maximum_output_error": 0.0,
+  "maximum_gradient_error": 0.0,
+  "maximum_parameter_error": 0.0
+}

@@ -17,3 +17,23 @@ def materialize_tensor(tensor: torch.Tensor) -> torch.Tensor:
 
         return uneven_dtensor_to_full_tensor(tensor)
     return tensor.full_tensor()
+
+
+@torch.no_grad()
+def copy_model_parameter(destination: torch.Tensor, source: torch.Tensor) -> None:
+    """Copy logical UND→GEN values even when their local owners differ."""
+    owner = getattr(destination, "_megatron_fsdp_model", None)
+    if not isinstance(destination, DTensor) or owner is None:
+        destination.data.copy_(source.data)
+        return
+    from cosmos_framework.training_backends.checkpoint_metadata import prepare_uneven_state
+
+    prepare_uneven_state({"source": source, "destination": destination}, owner.dist_index.get_fsdp_group())
+    full = materialize_tensor(source)
+    chunks = getattr(destination._local_tensor, "__create_chunk_list__", None)
+    if chunks is None:
+        slices = tuple(slice(None) for _ in destination.shape)
+    else:
+        chunk = chunks()[0]
+        slices = tuple(slice(o, o + n) for o, n in zip(chunk.offsets, chunk.sizes, strict=True))
+    destination.to_local().copy_(full[slices])

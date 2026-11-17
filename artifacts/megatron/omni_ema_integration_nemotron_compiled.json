@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "model": "OmniMoTModel with real nemotron MoT and Action128 heads",
+  "family": "nemotron",
+  "steps": 2,
+  "compiled": true,
+  "cp": 1,
+  "sharding_strategy": "optim_grads",
+  "cpu_ema_cache": true,
+  "gradient_accumulation": 3,
+  "shards": 2,
+  "replicas": 2,
+  "ema_bitwise_equal": true,
+  "ema_scope_finite": true,
+  "training_weights_restored_bitwise": true,
+  "checkpoint_roundtrip": true,
+  "async_cpu_staging_spawn_queue": true
+}

@@ -88,6 +88,7 @@ from cosmos_framework.model.generator.utils.load_balancing_stats import (
 )
 from cosmos_framework.model.generator.utils.memory import KVToStore, MemoryState, MemoryValue
 from cosmos_framework.utils import log
+from cosmos_framework.utils.generator.materialize_tensor import copy_model_parameter
 from cosmos_framework.utils.nvtx import NVTXGranularity, nvtx_range
 
 # Torch optimization settings
@@ -2371,7 +2372,7 @@ class Qwen3VLTextForCausalLM(Qwen3VLPreTrainedModel):
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")
             )
             if original_name in state_dict:
-                param.data.copy_(state_dict[original_name].data)
+                copy_model_parameter(param, state_dict[original_name])
             else:
                 raise ValueError(f"Could not find {original_name} in state_dict for initialization of {name}")
 
@@ -2530,7 +2531,7 @@ class Qwen3VLMoeTextForCausalLM(Qwen3VLMoePreTrainedModel):
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")
             )
             if original_name in state_dict:
-                param.data.copy_(state_dict[original_name].data)
+                copy_model_parameter(param, state_dict[original_name])
             elif "gate_noise" in original_name:
                 # Noisy-gating projection is gen-tower only (the und tower has no
                 # gate_noise counterpart), so keep its zero-init rather than copy.
@@ -2717,7 +2718,7 @@ class Nemotron3DenseVLTextForCausalLM(Nemotron3DenseVLPreTrainedModel):
                 name.replace("_moe_gen_action", "").replace("_moe_gen", "").replace("_checkpoint_wrapped_module.", "")
             )
             if original_name in state_dict:
-                param.data.copy_(state_dict[original_name].data)
+                copy_model_parameter(param, state_dict[original_name])
             elif any(norm_key in original_name for norm_key in ("q_norm", "k_norm")):
                 # qk_norm_for_text=False → q_norm/k_norm are nn.Identity() with no parameters;
                 # the moe_gen counterpart (q_norm_moe_gen) is a real RMSNorm, so skip init here.

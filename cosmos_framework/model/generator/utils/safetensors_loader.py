@@ -1062,6 +1062,9 @@ def load_language_model(
     credential_path: str | None,
     parallel_dims: ParallelDims | None,
     checkpoint_format: str | None = None,
+    *,
+    megatron_runtime=None,
+    install_model_weights: bool = True,
 ) -> set[str]:
     """
     Universal language model loading function using SafeTensors (.safetensors) format.
@@ -1077,6 +1080,10 @@ def load_language_model(
         parallel_dims: ParallelDims object to use for parallel loading.
             If None, the loading is done in a single rank.
         checkpoint_format: ``"qwen3"``, ``"nemotron_3_dense_vl"``, ``"nemotron_3_llm"``, or None to auto-detect.
+        megatron_runtime: Parent runtime when model is its language submodule.
+            Supplies actual uneven chunks even when root state hooks are bypassed.
+        install_model_weights: Refresh online compute buffers after loading;
+            False when loading a separate EMA shadow with the same shard layout.
 
     Returns:
         Set of model state-dict keys successfully loaded from the checkpoint.
@@ -1089,11 +1096,21 @@ def load_language_model(
     start_time = time.time()
     log.info(f"load_language_model: loading weights from {checkpoint_path}")
 
+    from cosmos_framework.training_backends.megatron import get_runtime
+
+    runtime = megatron_runtime or get_runtime(model)
+    if runtime is not None:
+        runtime.fsdp.synchronize_param_gather()
+        runtime.fsdp._replace_param_with_distributed_if_needed()
     lm_state_dict = {}
     for name, tensor in model.state_dict().items():
         # Remove the original module (torch compiled module) and checkpoint wrapped module prefixes.
         final_name = name.replace("_orig_mod.", "").replace("_checkpoint_wrapped_module.", "")
         lm_state_dict[final_name] = tensor
+
+    if runtime is not None:
+        # Child state_dict() calls bypass the runtime's root post-hook.
+        runtime.prepare_state_dict(lm_state_dict)
 
     # Initialize multi-rank weight loader
     loader = MultiRankCheckpointLoader(_get_dp_shard_mesh(parallel_dims))
@@ -1258,10 +1275,8 @@ def load_language_model(
             f"First up to 10: {sorted(real_keys_missing)[:10]}"
         )
 
-    from cosmos_framework.training_backends.megatron import get_runtime
-
-    if get_runtime(model) is not None:
-        get_runtime(model).finalize_loaded_state()
+    if runtime is not None and install_model_weights:
+        runtime.finalize_loaded_state()
 
     log.info(
         f"load_language_model: successfully loaded {len(keys_loaded)} tensors "

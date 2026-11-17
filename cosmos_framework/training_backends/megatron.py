@@ -42,6 +42,30 @@ def _support_pytree_backward_hooks(module):
                 child._forward_hooks[key] = adapt(hook)
 
 
+def _support_compiled_parameter_casts(fsdp):
+    """Keep MCore's eager empty-storage guards outside compiled model math.
+
+    ZeRO-3 raw weights have been gathered by forward hooks before the model
+    executes. Their ``to``/``cpu`` storage inspection is unnecessary there and
+    returns a TypedStorage object Dynamo cannot trace (e.g. FP32 RMSNorm weights).
+    Eager callers retain the original safety checks for released raw storage.
+    """
+
+    def adapt(parameter, original, tensor_method):
+        def cast(*args, **kwargs):
+            if torch.compiler.is_compiling():
+                return tensor_method(parameter, *args, **kwargs)
+            return original(*args, **kwargs)
+
+        return cast
+
+    for parameter in {id(p): p for p in fsdp.raw_param.values()}.values():
+        for name in ("to", "cpu"):
+            original = getattr(parameter, name)
+            if getattr(original, "__name__", "").startswith("override_sharded_param_"):
+                setattr(parameter, name, adapt(parameter, original, getattr(torch.Tensor, name)))
+
+
 class MegatronRuntime:
     def __init__(
         self,
@@ -99,6 +123,7 @@ class MegatronRuntime:
             **kwargs,
         )
         _support_pytree_backward_hooks(module)
+        _support_compiled_parameter_casts(self.fsdp)
         # Megatron's forward method only swaps optimizer DTensors to compute
         # parameters. Its communication hooks are installed on `module` itself.
         self._forward_hook = module.register_forward_pre_hook(self._before_forward, prepend=True)

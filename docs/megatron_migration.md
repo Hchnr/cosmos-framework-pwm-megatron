@@ -328,6 +328,26 @@ restoration and asynchronous full-state checkpoint reload after zeroing online
 and EMA parameters. Original padding/static-compile regressions: 21 pass.
 Larger CP degrees, other models and production scaling remain unqualified.
 
+## Nemotron dense backbone and compiled parameter casts
+
+A real two-layer Nemotron dense MoT backbone, using the production-style
+`qk_norm_for_text=False` / generation QK norm split and Action128 heads, passes
+compiled BF16 HSDP tests with CP=1 and CP=2. Both compare two GA=3 AdamW updates
+against native FSDP2: outputs, full gradients and updated weights are bitwise
+equal. A separate actual OmniMoT construction test passes EMA scope, update,
+CPU cache and asynchronous staged checkpoint restoration with bitwise state.
+These qualify the small backbone configuration, not a full pretrained Edge VLM
+or Nemotron throughput.
+
+This exposed a ZeRO-3 compilation failure: MCore overrides raw Parameter `.to()`
+with an empty-storage guard, and its `_typed_storage()` result cannot enter a
+Dynamo full graph. Nemotron RMSNorm explicitly casts its weights to FP32. The
+integration now uses the normal Tensor cast during compilation, after FSDP
+forward hooks gather the weights; eager calls keep the upstream safety check.
+Normalization math is unchanged. The Qwen CP=2 regression also passes with
+bitwise outputs/gradients/weights, and explicitly confirms that eager casts of
+released raw storage still produce the original guard warning.
+
 ## EMA integration
 
 VFM EMA now keeps FP32 shadows with exactly the online Megatron parameter's
@@ -364,6 +384,29 @@ handles different local ownership of embeddings and lm_head. Four-GPU 2×2 HSDP
 checks pass for all three layouts, an odd-sized vocabulary/norm, and both tied
 and untied checkpoints, with bitwise equal weights. Original loader regressions:
 49 passed / 2 skipped.
+
+The actual Omni startup hook also requires parent-runtime metadata: calling
+`language_model.state_dict()` bypasses the root post-hook. Before the fix,
+`lm_head` loading tried a uniform 16-row slice where actual local storage had
+0 or 32 rows. The parent runtime is now supplied explicitly for child loading,
+and online compute buffers refresh after HF values are installed. EMA loading
+uses the same chunk layout without installing EMA values into the online model.
+
+UND→GEN copying now uses logical tensor values and the destination's actual
+slice; plain/native parameters retain their original copy behavior. Existing
+family-specific rules for generation-only norms/routers are preserved. Actual
+Qwen and Nemotron startup-hook tests with compile, GA=3 and EMA have bitwise
+initial states, outputs, gradients, optimizer updates and updated EMA versus
+native FSDP2. FusedAdam/ZeRO-2 also passes. A partial-generation-freeze
+FusedAdam/ZeRO-3 case exercises **four different UND/GEN ownership cases per
+rank**; online and EMA each independently verify 48 language tensors against
+the HF fixture, then update bitwise equally. A separate FusedAdam warm-start
+case verifies all 48 online and EMA language tensors against HF/checkpoint
+values, preserves the checkpoint's GEN weights, and has bitwise equal outputs,
+gradients and updated model/EMA. Original loader/owner/gradient/
+NaN regressions: **116 passed, 2 skipped**. See `omni_hf_initialization_smoke.py`
+and `omni_fresh_hf_*` artifacts. These tests use tiny real model classes and
+synthetic HF weights, not the full production dataset/checkpoint.
 
 ## Standalone VLM and HF consumption
 
@@ -432,6 +475,13 @@ embedding/head also passed direct DCP resume without HF preloading: all losses,
 updated weights and restart weights are bitwise equal. The corresponding MoE
 ZeRO-3/BF16-communication direct-resume test passes with maximum loss relative
 error 0.000110 and final parameter relative L2 0.000229.
+
+The meta path also passes single-GPU and replication-only (three replicas,
+shard degree one) visual-input/compile/GA=3 tests with direct DCP resume. Maximum
+loss relative errors are 0.000117 and 0.000052 respectively; checkpoint restart
+weights and frozen vision remain bitwise equal. The single-GPU native baseline
+uses the source's unsharded precision behavior, so this is tolerance-based
+training parity rather than a bitwise forward claim.
 
 On four H100s, the actual pretrained Qwen3-VL-2B completed three GA=3 AdamW
 updates with real visual-token input, full AC, compile and 2×2 HSDP/ZeRO-2.

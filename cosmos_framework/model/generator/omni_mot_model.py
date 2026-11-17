@@ -535,15 +535,23 @@ class OmniMoTModel(ImaginaireModel):
         if not load_pretrained_weights:
             return
 
+        from cosmos_framework.training_backends.megatron import get_runtime
+
+        runtime = get_runtime(self)
+
         # Load the language_model (understanding/reasoner backbone) safetensors
         # into the given net, respecting the active parallelism layout.
         def _load_language_model(net: torch.nn.Module):
+            runtime_options = (
+                {"megatron_runtime": runtime, "install_model_weights": net is self.net} if runtime is not None else {}
+            )
             load_language_model_safetensors(
                 model=net.language_model,
                 checkpoint_path=pretrained_weights.backbone_path,
                 credential_path=pretrained_weights.credentials_path,
                 parallel_dims=self.parallel_dims,
                 checkpoint_format=pretrained_weights.checkpoint_format,
+                **runtime_options,
             )
 
         log.info(f"Loading reasoner pathway weights from {pretrained_weights.backbone_path}")
@@ -568,7 +576,11 @@ class OmniMoTModel(ImaginaireModel):
         # init_moe() copies the understanding-pathway weights into the generation
         # (diffusion MoE) experts so generation starts from the pretrained backbone.
         log.info("Copying understanding pathway weights to generation pathway.")
+        if runtime is not None:
+            runtime.fsdp._replace_param_with_distributed_if_needed()
         self.net.language_model.init_moe()
+        if runtime is not None:
+            runtime.finalize_loaded_state()
         if self.config.ema.enabled:
             self.net_ema.language_model.init_moe()
         log.info("Successfully copied understanding pathway weights to generation pathway.")

@@ -17,7 +17,12 @@ from cosmos_framework.configs.base.defaults.model_config import OmniMoTModelConf
 from cosmos_framework.data.generator.sequence_packing import PackedSequence
 from cosmos_framework.data.generator.sequence_packing.modality import ModalityData
 from cosmos_framework.model.generator.mot.action_tower_test import tiny_action128_spec
-from cosmos_framework.model.generator.mot.unified_mot import Qwen3VLMoTConfig, Qwen3VLTextForCausalLM
+from cosmos_framework.model.generator.mot.unified_mot import (
+    Nemotron3DenseVLMoTConfig,
+    Nemotron3DenseVLTextForCausalLM,
+    Qwen3VLMoTConfig,
+    Qwen3VLTextForCausalLM,
+)
 from cosmos_framework.model.generator.omni_mot_model import OmniMoTModel
 from cosmos_framework.training_backends.checkpoint_metadata import extract_chunk_metadata
 from cosmos_framework.training_backends.megatron import get_runtime
@@ -41,6 +46,23 @@ def tiny_config(**kwargs):
                 rms_norm_eps=1e-6,
             )
         },
+        **kwargs,
+    )
+
+
+def tiny_nemotron_config(**kwargs):
+    kwargs.setdefault("qk_norm_for_text", False)
+    return Nemotron3DenseVLMoTConfig(
+        dict(
+            vocab_size=32,
+            hidden_size=64,
+            intermediate_size=128,
+            num_hidden_layers=2,
+            num_attention_heads=4,
+            num_key_value_heads=2,
+            head_dim=16,
+            mrope_section=[3, 3, 2],
+        ),
         **kwargs,
     )
 
@@ -81,6 +103,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--cp", type=int, default=1)
+    parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--sharding-strategy", default="optim_grads_params")
     args = parser.parse_args()
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
@@ -101,7 +124,12 @@ def main():
     config.load_vision_tokenizer = False
     config.load_vlm_visual = False
     config.tokenizer = SimpleNamespace(temporal_compression_factor=4)
-    config.vlm_config.model_instance = LazyCall(Qwen3VLTextForCausalLM)(config=LazyCall(tiny_config)())
+    model_class, config_factory = (
+        (Nemotron3DenseVLTextForCausalLM, tiny_nemotron_config)
+        if args.family == "nemotron"
+        else (Qwen3VLTextForCausalLM, tiny_config)
+    )
+    config.vlm_config.model_instance = LazyCall(model_class)(config=LazyCall(config_factory)())
     model = TinyOmni(config)
     assert all(p.device.type == "cpu" for p in model.net_ema.parameters())
     model.to("cuda")
@@ -178,7 +206,8 @@ def main():
     assert runtime is get_runtime(model)
     result = dict(
         passed=True,
-        model="OmniMoTModel with real Qwen MoT and Action128 heads",
+        model=f"OmniMoTModel with real {args.family} MoT and Action128 heads",
+        family=args.family,
         steps=2,
         compiled=args.compile,
         cp=args.cp,
@@ -195,6 +224,8 @@ def main():
     )
     if dist.get_rank() == 0:
         suffix = "_cp2" if args.cp > 1 else "_compiled" if args.compile else ""
+        if args.family != "qwen":
+            suffix = "_" + args.family + suffix
         Path(f"artifacts/megatron/omni_ema_integration{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
         print(json.dumps(result), flush=True)
     dist.destroy_process_group()

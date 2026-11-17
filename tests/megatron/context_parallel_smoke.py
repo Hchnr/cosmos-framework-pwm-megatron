@@ -4,17 +4,20 @@ import argparse
 import copy
 import json
 import os
+import warnings
 from pathlib import Path
 
 import torch
 import torch.distributed as dist
-from omni_ema_smoke import batch
+from omni_ema_smoke import batch, tiny_nemotron_config
 from torch import nn
 
 from cosmos_framework.configs.base.defaults.activation_checkpointing import ActivationCheckpointingConfig
 from cosmos_framework.configs.base.defaults.compile import CompileConfig
-from cosmos_framework.model.generator.mot.action_tower_test import tiny_net
+from cosmos_framework.model.generator.mot.action_tower_test import tiny_action128_spec, tiny_net
+from cosmos_framework.model.generator.mot.cosmos3_vfm_network import Cosmos3VFMNetwork, Cosmos3VFMNetworkConfig
 from cosmos_framework.model.generator.mot.parallelize_vfm_network import parallelize_vfm_network
+from cosmos_framework.model.generator.mot.unified_mot import Nemotron3DenseVLTextForCausalLM
 from cosmos_framework.training_backends.megatron import MegatronRuntime
 from cosmos_framework.utils.distributed import ddp_sync_grad
 from cosmos_framework.utils.generator.materialize_tensor import materialize_tensor
@@ -30,6 +33,8 @@ class Owner(nn.Module):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument("--cp", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--family", choices=("qwen", "nemotron"), default="qwen")
     parser.add_argument("--dtype", choices=("float32", "bfloat16"), default="float32")
     parser.add_argument("--layout", choices=("sequence_sharded", "replicated"), default="sequence_sharded")
     parser.add_argument("--output", type=Path, required=True)
@@ -37,7 +42,22 @@ def main():
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl")
     torch.manual_seed(42)
-    base = tiny_net("two_tower", num_hidden_layers=2).cuda().to(getattr(torch, args.dtype))
+    if args.family == "nemotron":
+        language = Nemotron3DenseVLTextForCausalLM(tiny_nemotron_config())
+        base = Cosmos3VFMNetwork(
+            language,
+            Cosmos3VFMNetworkConfig(
+                vlm_config=language.config,
+                action_gen=True,
+                action_dim=128,
+                num_embodiment_domains=64,
+                action128_spec=tiny_action128_spec(),
+                tower_structure="two_tower",
+            ),
+        )
+    else:
+        base = tiny_net("two_tower", num_hidden_layers=2)
+    base = base.cuda().to(getattr(torch, args.dtype))
     base.init_weights(buffer_device=torch.device("cuda"))
     for name, p in base.named_parameters():
         p.requires_grad_(
@@ -45,7 +65,9 @@ def main():
             or any(k in name for k in ("action_modality_embed", "action_time", "action2llm", "llm2action"))
         )
     target = copy.deepcopy(base)
-    dims = ParallelDims(world_size=dist.get_world_size(), dp_shard=2, dp_replicate=2, cp=2, enable_inference_mode=False)
+    dims = ParallelDims(
+        world_size=dist.get_world_size(), dp_shard=2, dp_replicate=2, cp=args.cp, enable_inference_mode=False
+    )
     dims.build_meshes(device_type="cuda")
     compilation = CompileConfig(enabled=args.compile, compile_dynamic=False)
     ac = ActivationCheckpointingConfig(mode="full")
@@ -61,6 +83,19 @@ def main():
         replicate_degree=2,
         unit_types=tuple({type(layer) for layer in target.net.language_model.model.layers}),
     )
+    # Keep the upstream guard observable outside compiled forwards. Released
+    # raw ZeRO-3 storage must not silently become an ordinary conversion.
+    eager_guard_checked = False
+    for parameter in runtime.fsdp.raw_param.values():
+        if parameter.untyped_storage().nbytes() == 0:
+            with warnings.catch_warnings(record=True) as captured:
+                warnings.simplefilter("always")
+                converted = parameter.to(torch.float32)
+            assert converted.ndim == 0
+            assert any("sharded by Megatron-FSDP" in str(item.message) for item in captured)
+            eager_guard_checked = True
+            break
+    assert eager_guard_checked, "Expected released raw ZeRO-3 storage"
     optimizers = [
         torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-3, fused=True)
         for model in (source, target)
@@ -73,7 +108,7 @@ def main():
             optimizer.zero_grad()
         runtime.zero_grad()
         for micro in range(3):
-            torch.manual_seed(step * 100 + micro + dist.get_rank() // 2)
+            torch.manual_seed(step * 100 + micro + dist.get_rank() // args.cp)
             data = batch()
             outputs = []
             for model in (source, target):
@@ -113,7 +148,9 @@ def main():
                 maximum_parameter_error = max(maximum_parameter_error, (a - b).abs().max().item())
     result = dict(
         passed=True,
-        cp=2,
+        eager_cast_guard_preserved=eager_guard_checked,
+        cp=args.cp,
+        family=args.family,
         shards=2,
         replicas=2,
         compile=args.compile,
