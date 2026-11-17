@@ -1051,3 +1051,18 @@ root-to-snapshot JSON mapping. Every run records per-rank live content/cursor/RN
 hashes. Source-state/production-loader modes reject replay before launching GPUs.
 The shell argument plumbing and incompatible-mode rejection were checked with a
 fake Python executable; the numeric run must still complete to qualify throughput.
+
+### Independent full-depth FP32 reference (prepared, numeric run pending)
+
+`tests/megatron/full_depth_gradient_audit.py` accepts
+`GRADIENT_AUDIT_PRECISION=float32` only together with
+`GRADIENT_AUDIT_DETERMINISTIC=1`. It uses SDPA (Flash3 requires half precision),
+disables TF32 and checks every trainable parameter/gradient dtype before capture.
+The TF32/dtype rejection guards have CPU regression coverage. The comparison
+keeps all 36 layers, GA=3, compilation and activation checkpointing with real-batch
+replay at reduced `[512,8192,128]` capacities and fresh optimizer state.
+`artifacts/megatron/full_depth_fp32_20261117_policy.json` records the planned
+`1e-4` global relative-L2 gradient bound and `0.999999` cosine floor, plus exact
+forward-input equality. This is an independent precision/backend reference;
+its SDPA/reduced-capacity timings are excluded from production BF16/Flash3
+throughput qualification. Numeric success has not been asserted before capture.

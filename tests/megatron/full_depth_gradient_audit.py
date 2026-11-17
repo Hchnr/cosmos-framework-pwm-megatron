@@ -28,6 +28,10 @@ _original_clip = GradClip.on_before_optimizer_step
 def capture_then_clip(self, model, optimizer, scheduler, grad_scaler, iteration=0):
     if os.environ.get("GRADIENT_AUDIT_INPUTS_ONLY") == "1":
         return _original_clip(self, model, optimizer, scheduler, grad_scaler, iteration)
+    if os.environ.get("GRADIENT_AUDIT_PRECISION") == "float32" and (
+        torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32
+    ):
+        raise ValueError("FP32 gradient audit requires TF32 to remain disabled at capture")
     gradients = {}
     for name, parameter in model.net.named_parameters():
         if not parameter.requires_grad:
