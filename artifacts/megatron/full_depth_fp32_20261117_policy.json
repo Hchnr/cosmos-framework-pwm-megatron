@@ -1,0 +1,9 @@
+{
+  "scope": "Independent full 36-layer FP32 backend gradient check, reduced [512,8192,128] capacities, real-batch replay, GA3, compiled full activation checkpointing; math SDPA supports FP32; not a throughput measurement",
+  "input_tensors_required_bitwise_equal": true,
+  "all_trainable_parameters_and_gradients_required_float32": true,
+  "matmul_and_cudnn_tf32_required_disabled": true,
+  "maximum_global_gradient_relative_l2_error": 0.0001,
+  "minimum_global_gradient_cosine": 0.999999,
+  "note": "This distinguishes backend accumulation/sharding errors from BF16 reference variability. It is a temporary precision/attention reference and does not replace the independent production BF16 Flash3 parity and throughput checks."
+}
