@@ -18,6 +18,11 @@ def live_runs(tmp_path):
                     backend=backend,
                     passed=True,
                     optimizer_steps=3,
+                    sharding_strategy="optim_grads",
+                    torch_version="test-torch",
+                    cuda_version="test-cuda",
+                    megatron_core_version="0.20.0",
+                    gpu="test-gpu",
                     scope="test live",
                     excludes=["checkpoint save I/O"],
                     token_capacities=[512, 8192, 128],
@@ -105,6 +110,10 @@ def test_summary_rejects_nonfinite_observations_including_warmup(live_runs, inva
         ("update_data_wait_seconds", [0.1, 0.1, -1]),
         ("world_size", 1),
         ("backend", "unknown"),
+        ("torch_version", "different-torch"),
+        ("cuda_version", "different-cuda"),
+        ("megatron_core_version", "different-megatron"),
+        ("gpu", "different-gpu"),
     ],
 )
 def test_summary_rejects_failed_incomplete_or_incompatible_runs(live_runs, key, value):
@@ -122,6 +131,24 @@ def test_summary_accepts_zero_data_wait(live_runs):
         run["update_data_wait_seconds"] = [0, 0, 0]
         path.write_text(json.dumps(run))
     assert summarize(live_runs)["backends"]["megatron"]["data_wait"]["mean_seconds"] == 0
+
+
+def test_summary_rejects_mixed_megatron_strategies(live_runs):
+    candidate = live_runs[1]
+    path = candidate.with_name("another_megatron.json")
+    run = json.loads(candidate.read_text())
+    run["sharding_strategy"] = "optim_grads_params"
+    path.write_text(json.dumps(run))
+    with pytest.raises(ValueError, match="Incompatible Megatron sharding strategies"):
+        summarize([*live_runs, path])
+
+
+def test_pytorch_ignores_megatron_strategy_metadata(live_runs):
+    path = live_runs[0]
+    run = json.loads(path.read_text())
+    run["sharding_strategy"] = "unused_by_pytorch"
+    path.write_text(json.dumps(run))
+    assert summarize(live_runs)["live_input_traces_bitwise_equal"]
 
 
 @pytest.mark.parametrize("changed", ["loss", "seconds", "rank"])

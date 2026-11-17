@@ -836,8 +836,12 @@ The benchmark summarizer additionally rejects failed runs, unknown backends,
 incomplete optimizer-step/loss/data-wait observations, mismatched world sizes,
 invalid warmup windows and non-finite measurements (including warmup). The VLM
 path checks every rank's losses/timings and rejects duplicate rank identities.
-Zero data-wait time is valid. All 28 summary regression tests pass; reaggregating
+Zero data-wait time is valid. All 34 summary regression tests pass; reaggregating
 the earlier live and VLM evidence reproduces their stored summaries exactly.
+MoT comparisons also require matching Torch/CUDA/Megatron versions and GPU
+models, and refuse to mix different Megatron sharding strategies within one
+backend result. PyTorch's unused Megatron-strategy metadata does not constrain
+which candidate strategy can be compared with that baseline.
 
 The fresh crossed live benchmark also completed all four independent launches,
 12 updates per launch, discarding the first three warmup updates and retaining

@@ -130,6 +130,9 @@ def summarize(paths):
     grouped = {backend: [run for run in runs if run["backend"] == backend] for backend in ("pytorch", "megatron")}
     if any(not values for values in grouped.values()):
         raise ValueError("Need observations for both backends")
+    strategies = {run.get("sharding_strategy") for run in grouped["megatron"]}
+    if len(strategies) != 1:
+        raise ValueError("Incompatible Megatron sharding strategies")
     for key in (
         "token_capacities",
         "gradient_accumulation",
@@ -141,6 +144,10 @@ def summarize(paths):
         "excludes",
         "content_trace_enabled",
         "world_size",
+        "torch_version",
+        "cuda_version",
+        "megatron_core_version",
+        "gpu",
     ):
         if any(run.get(key) != runs[0].get(key) for run in runs):
             raise ValueError(f"Incompatible benchmark setting: {key}")
