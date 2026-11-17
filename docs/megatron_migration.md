@@ -1,5 +1,7 @@
 # Megatron migration: implementation and acceptance ledger
 
+中文总结报告：[Megatron 接入中文总结报告](./megatron_migration_summary_zh.md)。
+
 The independent repository is based on the working-tree snapshot recorded in
 `MIGRATION_SOURCE.json`. The production entry is
 `examples/launch_pretrain_state_h1_58src_192gpu.sh`. Its new default output tree
