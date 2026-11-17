@@ -182,7 +182,7 @@ Megatron，约 **39.000–39.167 s**：
 
 版本化的统计、原始报告 SHA256、输入一致性结果保存在 [artifacts/megatron/nsys_attribution_20261117](../artifacts/megatron/nsys_attribution_20261117)。完整 kernel 名及每卡每更新服务时间可查 [summary.json](../artifacts/megatron/nsys_attribution_20261117/summary.json)，逐 rank / update 的并集统计见 [profile_analysis.json](../artifacts/megatron/nsys_attribution_20261117/profile_analysis.json)。
 
-补测的节点本地完整目录为 `/opt/cosmos-nsys-optimizer-scope/final/`，含两端原始报告、SQLite、启动日志和输入记录。共享盘本轮出现新文件 `ENOSPC`，因此补测输出改存节点本地；Git LFS 中的原始报告提供额外持久副本，统计与输入记录随文档提交。
+补测的 8 份原始报告同时保存在本仓库共享目录 `artifacts/megatron/nsys_optimizer_scope_20261117/raw/` 与 Git LFS，已逐份核对 SHA256。节点本地完整目录为 `/opt/cosmos-nsys-optimizer-scope/final/`，另含 SQLite、启动日志和输入记录。
 
 ## 复现
 

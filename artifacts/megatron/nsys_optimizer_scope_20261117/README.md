@@ -17,4 +17,4 @@ git lfs pull --include='artifacts/megatron/nsys_optimizer_scope_20261117/raw/*.n
 ```
 
 节点本地完整采集目录：`/opt/cosmos-nsys-optimizer-scope/final/`，包括 SQLite 和启动日志。
-共享盘新文件 ENOSPC 后改用节点本地目录，Git LFS 原始报告为额外持久副本。
+原始报告已回填本仓库共享目录并核对 SHA256，Git LFS 提供额外持久副本。
