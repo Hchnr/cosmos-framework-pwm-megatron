@@ -1,0 +1,18 @@
+{
+  "observed/pytorch": {
+    "records": 60,
+    "identical_to_observed_baseline": true
+  },
+  "observed/megatron": {
+    "records": 60,
+    "identical_to_observed_baseline": true
+  },
+  "copy_in_default/pytorch": {
+    "records": 60,
+    "identical_to_observed_baseline": true
+  },
+  "original_gc_observed_v2/pytorch": {
+    "records": 60,
+    "identical_to_observed_baseline": true
+  }
+}

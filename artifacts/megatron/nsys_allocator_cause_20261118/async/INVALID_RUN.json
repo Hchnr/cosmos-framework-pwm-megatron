@@ -1,0 +1,4 @@
+{
+  "valid_for_training_performance": false,
+  "reason": "backend:cudaMallocAsync OOM during warmup before capture; no throughput conclusion"
+}

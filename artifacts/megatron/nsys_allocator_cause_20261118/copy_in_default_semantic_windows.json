@@ -1,0 +1,1654 @@
+{
+  "profiles": [
+    {
+      "database": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank0.sqlite",
+      "updates": [
+        {
+          "update": "attribution.update.001204",
+          "wall_seconds": 41.10564226,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 10016158,
+              "end_ns": 1162317099,
+              "wall_seconds": 1.152300941,
+              "non_nccl_active_seconds": 0.497563671,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.65473727
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 1162317099,
+              "end_ns": 5709090708,
+              "wall_seconds": 4.546773609,
+              "non_nccl_active_seconds": 3.733449916,
+              "nccl_only_seconds": 0.6056024159999995,
+              "gpu_idle_seconds": 0.2077212770000001
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 5709090708,
+              "end_ns": 8055635939,
+              "wall_seconds": 2.346545231,
+              "non_nccl_active_seconds": 2.027957193,
+              "nccl_only_seconds": 0.31385729799999984,
+              "gpu_idle_seconds": 0.0047307399999998445
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 8055635939,
+              "end_ns": 8069100166,
+              "wall_seconds": 0.013464227,
+              "non_nccl_active_seconds": 0.008955789,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004508438
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 8069100166,
+              "end_ns": 14957978837,
+              "wall_seconds": 6.888878671,
+              "non_nccl_active_seconds": 6.208843352,
+              "nccl_only_seconds": 0.539289095,
+              "gpu_idle_seconds": 0.14074622399999992
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 14957978837,
+              "end_ns": 16152629512,
+              "wall_seconds": 1.194650675,
+              "non_nccl_active_seconds": 0.515042721,
+              "nccl_only_seconds": 0.0002325449999999174,
+              "gpu_idle_seconds": 0.6793754090000002
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 16152629512,
+              "end_ns": 20126249410,
+              "wall_seconds": 3.973619898,
+              "non_nccl_active_seconds": 3.75189101,
+              "nccl_only_seconds": 0.009630095999999977,
+              "gpu_idle_seconds": 0.21209879199999992
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 20126249410,
+              "end_ns": 22174165220,
+              "wall_seconds": 2.04791581,
+              "non_nccl_active_seconds": 1.961771323,
+              "nccl_only_seconds": 0.0811871529999999,
+              "gpu_idle_seconds": 0.004957334000000202
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 22174165220,
+              "end_ns": 22189941362,
+              "wall_seconds": 0.015776142,
+              "non_nccl_active_seconds": 0.009987921,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005788221
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 22189941362,
+              "end_ns": 27972942488,
+              "wall_seconds": 5.783001126,
+              "non_nccl_active_seconds": 5.723366523,
+              "nccl_only_seconds": 0.002966672999999531,
+              "gpu_idle_seconds": 0.05666793000000059
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 27972942488,
+              "end_ns": 29047768840,
+              "wall_seconds": 1.074826352,
+              "non_nccl_active_seconds": 0.46247379,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6123525620000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 29047768840,
+              "end_ns": 33076441129,
+              "wall_seconds": 4.028672289,
+              "non_nccl_active_seconds": 3.398628792,
+              "nccl_only_seconds": 0.42331063,
+              "gpu_idle_seconds": 0.20673286700000038
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 33076441129,
+              "end_ns": 35142306501,
+              "wall_seconds": 2.065865372,
+              "non_nccl_active_seconds": 1.971847133,
+              "nccl_only_seconds": 0.089048872,
+              "gpu_idle_seconds": 0.004969367000000169
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 35142306501,
+              "end_ns": 35156130284,
+              "wall_seconds": 0.013823783,
+              "non_nccl_active_seconds": 0.008953581,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004870201999999999
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 35156130284,
+              "end_ns": 40999518638,
+              "wall_seconds": 5.843388354,
+              "non_nccl_active_seconds": 5.750394471,
+              "nccl_only_seconds": 0.0033125940000005016,
+              "gpu_idle_seconds": 0.08968128899999961
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 40999518638,
+              "end_ns": 41115658418,
+              "wall_seconds": 0.11613978,
+              "non_nccl_active_seconds": 0.038041476,
+              "nccl_only_seconds": 0.001978442000000004,
+              "gpu_idle_seconds": 0.076119862
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.703092258
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.843681351
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.724011198
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.2496087
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.372325467
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.656346822
+            }
+          ]
+        },
+        {
+          "update": "attribution.update.001205",
+          "wall_seconds": 39.489627668,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 41119601593,
+              "end_ns": 42307141330,
+              "wall_seconds": 1.187539737,
+              "non_nccl_active_seconds": 0.514202985,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6733367520000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 42307141330,
+              "end_ns": 45691772792,
+              "wall_seconds": 3.384631462,
+              "non_nccl_active_seconds": 3.162468948,
+              "nccl_only_seconds": 0.007504807000000113,
+              "gpu_idle_seconds": 0.2146577070000002
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 45691772792,
+              "end_ns": 47629439651,
+              "wall_seconds": 1.937666859,
+              "non_nccl_active_seconds": 1.855286733,
+              "nccl_only_seconds": 0.07734407500000007,
+              "gpu_idle_seconds": 0.005036050999999819
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 47629439651,
+              "end_ns": 47648760454,
+              "wall_seconds": 0.019320803,
+              "non_nccl_active_seconds": 0.010694968,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.008625835000000002
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 47648760454,
+              "end_ns": 53019741270,
+              "wall_seconds": 5.370980816,
+              "non_nccl_active_seconds": 5.303512195,
+              "nccl_only_seconds": 0.003042796999999986,
+              "gpu_idle_seconds": 0.06442582400000063
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 53019741270,
+              "end_ns": 54189891180,
+              "wall_seconds": 1.17014991,
+              "non_nccl_active_seconds": 0.500002046,
+              "nccl_only_seconds": 0.0002350410000000469,
+              "gpu_idle_seconds": 0.6699128229999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 54189891180,
+              "end_ns": 58158676632,
+              "wall_seconds": 3.968785452,
+              "non_nccl_active_seconds": 3.748514533,
+              "nccl_only_seconds": 0.01124386700000013,
+              "gpu_idle_seconds": 0.20902705200000016
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 58158676632,
+              "end_ns": 60202642350,
+              "wall_seconds": 2.043965718,
+              "non_nccl_active_seconds": 1.955305764,
+              "nccl_only_seconds": 0.08365553800000014,
+              "gpu_idle_seconds": 0.0050044159999997895
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 60202642350,
+              "end_ns": 60218119935,
+              "wall_seconds": 0.015477585,
+              "non_nccl_active_seconds": 0.009747794,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005729791
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 60218119935,
+              "end_ns": 65954226899,
+              "wall_seconds": 5.736106964,
+              "non_nccl_active_seconds": 5.689467167,
+              "nccl_only_seconds": 0.00312996799999965,
+              "gpu_idle_seconds": 0.043509829000000444
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 65954226899,
+              "end_ns": 67135389957,
+              "wall_seconds": 1.181163058,
+              "non_nccl_active_seconds": 0.503370624,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6777924340000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 67135389957,
+              "end_ns": 73326712885,
+              "wall_seconds": 6.191322928,
+              "non_nccl_active_seconds": 3.749845365,
+              "nccl_only_seconds": 2.2162017309999995,
+              "gpu_idle_seconds": 0.22527583200000034
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 73326712885,
+              "end_ns": 75232643971,
+              "wall_seconds": 1.905931086,
+              "non_nccl_active_seconds": 1.814012978,
+              "nccl_only_seconds": 0.08694701299999985,
+              "gpu_idle_seconds": 0.0049710950000001475
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 75232643971,
+              "end_ns": 75252552076,
+              "wall_seconds": 0.019908105,
+              "non_nccl_active_seconds": 0.01078166,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.009126444999999999
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 75252552076,
+              "end_ns": 80501020346,
+              "wall_seconds": 5.24846827,
+              "non_nccl_active_seconds": 5.229144073,
+              "nccl_only_seconds": 0.0036762070000007085,
+              "gpu_idle_seconds": 0.015647989999999723
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 80501020346,
+              "end_ns": 80609229261,
+              "wall_seconds": 0.108208915,
+              "non_nccl_active_seconds": 0.03775009,
+              "nccl_only_seconds": 0.0026326210000000017,
+              "gpu_idle_seconds": 0.067826204
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.136550463
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.248080999
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.720566134
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.248219318
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.735751777
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 2.455571151
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "database": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank1.sqlite",
+      "updates": [
+        {
+          "update": "attribution.update.001204",
+          "wall_seconds": 41.135883104,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 11254421,
+              "end_ns": 1192350723,
+              "wall_seconds": 1.181096302,
+              "non_nccl_active_seconds": 0.519515838,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.661580464
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 1192350723,
+              "end_ns": 5740793713,
+              "wall_seconds": 4.54844299,
+              "non_nccl_active_seconds": 3.717652189,
+              "nccl_only_seconds": 0.6283780800000001,
+              "gpu_idle_seconds": 0.20241272099999996
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 5740793713,
+              "end_ns": 8085052275,
+              "wall_seconds": 2.344258562,
+              "non_nccl_active_seconds": 2.002730294,
+              "nccl_only_seconds": 0.10283218199999977,
+              "gpu_idle_seconds": 0.23869608600000003
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 8085052275,
+              "end_ns": 8098312783,
+              "wall_seconds": 0.013260508,
+              "non_nccl_active_seconds": 0.00869158,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004568928
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 8098312783,
+              "end_ns": 14972866959,
+              "wall_seconds": 6.874554176,
+              "non_nccl_active_seconds": 6.190447003,
+              "nccl_only_seconds": 0.5440302629999998,
+              "gpu_idle_seconds": 0.14007691000000033
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 14972866959,
+              "end_ns": 16178253561,
+              "wall_seconds": 1.205386602,
+              "non_nccl_active_seconds": 0.513592477,
+              "nccl_only_seconds": 0.017028604000000058,
+              "gpu_idle_seconds": 0.6747655209999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 16178253561,
+              "end_ns": 20157939325,
+              "wall_seconds": 3.979685764,
+              "non_nccl_active_seconds": 3.719245247,
+              "nccl_only_seconds": 0.04556488400000003,
+              "gpu_idle_seconds": 0.21487563300000012
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 20157939325,
+              "end_ns": 22203597249,
+              "wall_seconds": 2.045657924,
+              "non_nccl_active_seconds": 1.936103643,
+              "nccl_only_seconds": 0.10435722699999994,
+              "gpu_idle_seconds": 0.005197053999999923
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 22203597249,
+              "end_ns": 22219412094,
+              "wall_seconds": 0.015814845,
+              "non_nccl_active_seconds": 0.009740158,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.0060746870000000005
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 22219412094,
+              "end_ns": 28004629528,
+              "wall_seconds": 5.785217434,
+              "non_nccl_active_seconds": 5.707337351,
+              "nccl_only_seconds": 0.016503870000000198,
+              "gpu_idle_seconds": 0.06137621299999996
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 28004629528,
+              "end_ns": 29088198852,
+              "wall_seconds": 1.083569324,
+              "non_nccl_active_seconds": 0.465188801,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6183805229999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 29088198852,
+              "end_ns": 33108134995,
+              "wall_seconds": 4.019936143,
+              "non_nccl_active_seconds": 3.39766976,
+              "nccl_only_seconds": 0.41616855399999997,
+              "gpu_idle_seconds": 0.20609782899999995
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 33108134995,
+              "end_ns": 35173693465,
+              "wall_seconds": 2.06555847,
+              "non_nccl_active_seconds": 1.950718547,
+              "nccl_only_seconds": 0.10962545899999987,
+              "gpu_idle_seconds": 0.005214464000000252
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 35173693465,
+              "end_ns": 35187767895,
+              "wall_seconds": 0.01407443,
+              "non_nccl_active_seconds": 0.008880511,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005193919
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 35187767895,
+              "end_ns": 41031205179,
+              "wall_seconds": 5.843437284,
+              "non_nccl_active_seconds": 5.814021508,
+              "nccl_only_seconds": 0.01568918400000019,
+              "gpu_idle_seconds": 0.01372659200000026
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 41031205179,
+              "end_ns": 41147137525,
+              "wall_seconds": 0.115932346,
+              "non_nccl_active_seconds": 0.038020768,
+              "nccl_only_seconds": 0.005265983999999994,
+              "gpu_idle_seconds": 0.07264559400000001
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.687270893
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.861172097
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.694341096
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.285344668
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.373791042
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.646145101
+            }
+          ]
+        },
+        {
+          "update": "attribution.update.001205",
+          "wall_seconds": 39.489824852,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 41151063914,
+              "end_ns": 42337583774,
+              "wall_seconds": 1.18651986,
+              "non_nccl_active_seconds": 0.518042614,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.668477246
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 42337583774,
+              "end_ns": 45723483888,
+              "wall_seconds": 3.385900114,
+              "non_nccl_active_seconds": 3.147335155,
+              "nccl_only_seconds": 0.025800767999999863,
+              "gpu_idle_seconds": 0.2127641910000002
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 45723483888,
+              "end_ns": 47661257087,
+              "wall_seconds": 1.937773199,
+              "non_nccl_active_seconds": 1.823435379,
+              "nccl_only_seconds": 0.10900076400000014,
+              "gpu_idle_seconds": 0.005337055999999896
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 47661257087,
+              "end_ns": 47680536510,
+              "wall_seconds": 0.019279423,
+              "non_nccl_active_seconds": 0.010350976,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.008928447
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 47680536510,
+              "end_ns": 53036419193,
+              "wall_seconds": 5.355882683,
+              "non_nccl_active_seconds": 5.336976347,
+              "nccl_only_seconds": 0.003649856000000007,
+              "gpu_idle_seconds": 0.015256479999999684
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 53036419193,
+              "end_ns": 54244530355,
+              "wall_seconds": 1.208111162,
+              "non_nccl_active_seconds": 0.513395609,
+              "nccl_only_seconds": 0.015242239999999962,
+              "gpu_idle_seconds": 0.679473313
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 54244530355,
+              "end_ns": 58190374399,
+              "wall_seconds": 3.945844044,
+              "non_nccl_active_seconds": 3.714233054,
+              "nccl_only_seconds": 0.021023199999999687,
+              "gpu_idle_seconds": 0.21058779000000039
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 58190374399,
+              "end_ns": 60235864513,
+              "wall_seconds": 2.045490114,
+              "non_nccl_active_seconds": 1.920228064,
+              "nccl_only_seconds": 0.11993606599999995,
+              "gpu_idle_seconds": 0.005325984000000172
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 60235864513,
+              "end_ns": 60251222786,
+              "wall_seconds": 0.015358273,
+              "non_nccl_active_seconds": 0.009886465,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005471808
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 60251222786,
+              "end_ns": 65985914881,
+              "wall_seconds": 5.734692095,
+              "non_nccl_active_seconds": 5.702921337,
+              "nccl_only_seconds": 0.017252610999999973,
+              "gpu_idle_seconds": 0.014518146999999537
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 65985914881,
+              "end_ns": 67170980138,
+              "wall_seconds": 1.185065257,
+              "non_nccl_active_seconds": 0.500459987,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6846052699999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 67170980138,
+              "end_ns": 73358408640,
+              "wall_seconds": 6.187428502,
+              "non_nccl_active_seconds": 3.723175331,
+              "nccl_only_seconds": 2.2360690509999994,
+              "gpu_idle_seconds": 0.22818412000000077
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 73358408640,
+              "end_ns": 75262405584,
+              "wall_seconds": 1.903996944,
+              "non_nccl_active_seconds": 1.793781208,
+              "nccl_only_seconds": 0.10493340100000004,
+              "gpu_idle_seconds": 0.005282334999999971
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 75262405584,
+              "end_ns": 75280803983,
+              "wall_seconds": 0.018398399,
+              "non_nccl_active_seconds": 0.010839488,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.007558911
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 75280803983,
+              "end_ns": 80532710677,
+              "wall_seconds": 5.251906694,
+              "non_nccl_active_seconds": 5.221722147,
+              "nccl_only_seconds": 0.015028898999999818,
+              "gpu_idle_seconds": 0.015155647999999466
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 80532710677,
+              "end_ns": 80640888766,
+              "wall_seconds": 0.108178089,
+              "non_nccl_active_seconds": 0.037749221,
+              "nccl_only_seconds": 0.004922913000000001,
+              "gpu_idle_seconds": 0.065505955
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.123876309
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.262023805
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.688908382
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.256935662
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.712939534
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 2.474488968
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "database": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank2.sqlite",
+      "updates": [
+        {
+          "update": "attribution.update.001204",
+          "wall_seconds": 41.097922183,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 10793334,
+              "end_ns": 1197034793,
+              "wall_seconds": 1.186241459,
+              "non_nccl_active_seconds": 0.518539955,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6677015040000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 1197034793,
+              "end_ns": 5702364148,
+              "wall_seconds": 4.505329355,
+              "non_nccl_active_seconds": 3.714893461,
+              "nccl_only_seconds": 0.5926256030000001,
+              "gpu_idle_seconds": 0.1978102909999997
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 5702364148,
+              "end_ns": 8046681816,
+              "wall_seconds": 2.344317668,
+              "non_nccl_active_seconds": 1.979734954,
+              "nccl_only_seconds": 0.3600022869999999,
+              "gpu_idle_seconds": 0.0045804270000000535
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 8046681816,
+              "end_ns": 8059664961,
+              "wall_seconds": 0.012983145,
+              "non_nccl_active_seconds": 0.008938014,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004045131
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 8059664961,
+              "end_ns": 14932621869,
+              "wall_seconds": 6.872956908,
+              "non_nccl_active_seconds": 6.005350021,
+              "nccl_only_seconds": 0.004479056000000092,
+              "gpu_idle_seconds": 0.8631278309999999
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 14932621869,
+              "end_ns": 16140681738,
+              "wall_seconds": 1.208059869,
+              "non_nccl_active_seconds": 0.51758282,
+              "nccl_only_seconds": 0.01882134000000002,
+              "gpu_idle_seconds": 0.6716557089999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 16140681738,
+              "end_ns": 20119508081,
+              "wall_seconds": 3.978826343,
+              "non_nccl_active_seconds": 3.714997833,
+              "nccl_only_seconds": 0.055428339000000104,
+              "gpu_idle_seconds": 0.20840017100000008
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 20119508081,
+              "end_ns": 22163888745,
+              "wall_seconds": 2.044380664,
+              "non_nccl_active_seconds": 1.917799033,
+              "nccl_only_seconds": 0.12178983100000007,
+              "gpu_idle_seconds": 0.004791800000000013
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 22163888745,
+              "end_ns": 22178944730,
+              "wall_seconds": 0.015055985,
+              "non_nccl_active_seconds": 0.009883296,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005172688999999999
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 22178944730,
+              "end_ns": 27966181936,
+              "wall_seconds": 5.787237206,
+              "non_nccl_active_seconds": 5.756172346,
+              "nccl_only_seconds": 0.01836981600000076,
+              "gpu_idle_seconds": 0.012695043999999989
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 27966181936,
+              "end_ns": 29051954061,
+              "wall_seconds": 1.085772125,
+              "non_nccl_active_seconds": 0.47003067,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6157414550000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 29051954061,
+              "end_ns": 33069707053,
+              "wall_seconds": 4.017752992,
+              "non_nccl_active_seconds": 3.382179502,
+              "nccl_only_seconds": 0.43201919600000016,
+              "gpu_idle_seconds": 0.2035542939999999
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 33069707053,
+              "end_ns": 35136931980,
+              "wall_seconds": 2.067224927,
+              "non_nccl_active_seconds": 1.936620743,
+              "nccl_only_seconds": 0.12581436700000004,
+              "gpu_idle_seconds": 0.0047898169999998075
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 35136931980,
+              "end_ns": 35150522616,
+              "wall_seconds": 0.013590636,
+              "non_nccl_active_seconds": 0.009098588,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004492048
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 35150522616,
+              "end_ns": 40992755605,
+              "wall_seconds": 5.842232989,
+              "non_nccl_active_seconds": 5.731863658,
+              "nccl_only_seconds": 0.017391031999999917,
+              "gpu_idle_seconds": 0.09297829900000032
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 40992755605,
+              "end_ns": 41108715517,
+              "wall_seconds": 0.115959912,
+              "non_nccl_active_seconds": 0.038071999,
+              "nccl_only_seconds": 0.012069126,
+              "gpu_idle_seconds": 0.06581878699999999
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.682646922
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.822682433
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.686769036
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.292057307
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.355362438
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.662390554
+            }
+          ]
+        },
+        {
+          "update": "attribution.update.001205",
+          "wall_seconds": 39.488774739,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 41113587359,
+              "end_ns": 42300141713,
+              "wall_seconds": 1.186554354,
+              "non_nccl_active_seconds": 0.516377347,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.670177007
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 42300141713,
+              "end_ns": 45685045221,
+              "wall_seconds": 3.384903508,
+              "non_nccl_active_seconds": 3.146704603,
+              "nccl_only_seconds": 0.028696226000000102,
+              "gpu_idle_seconds": 0.20950267899999986
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 45685045221,
+              "end_ns": 47621313339,
+              "wall_seconds": 1.936268118,
+              "non_nccl_active_seconds": 1.806777157,
+              "nccl_only_seconds": 0.12482144699999997,
+              "gpu_idle_seconds": 0.004669514000000152
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 47621313339,
+              "end_ns": 47639830553,
+              "wall_seconds": 0.018517214,
+              "non_nccl_active_seconds": 0.010494465,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.008022749000000001
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 47639830553,
+              "end_ns": 52999889109,
+              "wall_seconds": 5.360058556,
+              "non_nccl_active_seconds": 5.342408548,
+              "nccl_only_seconds": 0.0035608119999999133,
+              "gpu_idle_seconds": 0.01408919600000047
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 52999889109,
+              "end_ns": 54206662155,
+              "wall_seconds": 1.206773046,
+              "non_nccl_active_seconds": 0.513479241,
+              "nccl_only_seconds": 0.013318700999999988,
+              "gpu_idle_seconds": 0.6799751039999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 54206662155,
+              "end_ns": 58151941848,
+              "wall_seconds": 3.945279693,
+              "non_nccl_active_seconds": 3.715363544,
+              "nccl_only_seconds": 0.02507320699999971,
+              "gpu_idle_seconds": 0.20484294199999997
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 58151941848,
+              "end_ns": 60194899962,
+              "wall_seconds": 2.042958114,
+              "non_nccl_active_seconds": 1.933923765,
+              "nccl_only_seconds": 0.10434400100000008,
+              "gpu_idle_seconds": 0.004690348000000011
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 60194899962,
+              "end_ns": 60209902604,
+              "wall_seconds": 0.015002642,
+              "non_nccl_active_seconds": 0.009647741,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.0053549010000000005
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 60209902604,
+              "end_ns": 65947462062,
+              "wall_seconds": 5.737559458,
+              "non_nccl_active_seconds": 5.66934185,
+              "nccl_only_seconds": 0.015358484000000061,
+              "gpu_idle_seconds": 0.05285912399999937
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 65947462062,
+              "end_ns": 67127811412,
+              "wall_seconds": 1.18034935,
+              "non_nccl_active_seconds": 0.500649072,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.679700278
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 67127811412,
+              "end_ns": 73319980172,
+              "wall_seconds": 6.19216876,
+              "non_nccl_active_seconds": 3.719992428,
+              "nccl_only_seconds": 2.250138072,
+              "gpu_idle_seconds": 0.2220382600000006
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 73319980172,
+              "end_ns": 75223974935,
+              "wall_seconds": 1.903994763,
+              "non_nccl_active_seconds": 1.774259847,
+              "nccl_only_seconds": 0.12494260600000007,
+              "gpu_idle_seconds": 0.004792310000000022
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 75223974935,
+              "end_ns": 75242875160,
+              "wall_seconds": 0.018900225,
+              "non_nccl_active_seconds": 0.010719463,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.008180762
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 75242875160,
+              "end_ns": 80494259769,
+              "wall_seconds": 5.251384609,
+              "non_nccl_active_seconds": 5.170620331,
+              "nccl_only_seconds": 0.027177791999999812,
+              "gpu_idle_seconds": 0.05358648599999949
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 80494259769,
+              "end_ns": 80602362098,
+              "wall_seconds": 0.108102329,
+              "non_nccl_active_seconds": 0.037728675,
+              "nccl_only_seconds": 0.004499021999999998,
+              "gpu_idle_seconds": 0.06587463199999999
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.120105319
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.264798189
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.687142509
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.258137184
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.705255918
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 2.486912842
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "database": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank3.sqlite",
+      "updates": [
+        {
+          "update": "attribution.update.001204",
+          "wall_seconds": 41.109178565,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 11457385,
+              "end_ns": 1193368700,
+              "wall_seconds": 1.181911315,
+              "non_nccl_active_seconds": 0.515412196,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.666499119
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 1193368700,
+              "end_ns": 5714274699,
+              "wall_seconds": 4.520905999,
+              "non_nccl_active_seconds": 3.705923093,
+              "nccl_only_seconds": 0.009428258999999883,
+              "gpu_idle_seconds": 0.8055546470000001
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 5714274699,
+              "end_ns": 8059128358,
+              "wall_seconds": 2.344853659,
+              "non_nccl_active_seconds": 1.988213284,
+              "nccl_only_seconds": 0.35159062500000005,
+              "gpu_idle_seconds": 0.005049749999999964
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 8059128358,
+              "end_ns": 8071961045,
+              "wall_seconds": 0.012832687,
+              "non_nccl_active_seconds": 0.008683775,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.004148912000000001
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 8071961045,
+              "end_ns": 14945493313,
+              "wall_seconds": 6.873532268,
+              "non_nccl_active_seconds": 6.194384517,
+              "nccl_only_seconds": 0.666670549,
+              "gpu_idle_seconds": 0.012477202000000354
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 14945493313,
+              "end_ns": 16159625905,
+              "wall_seconds": 1.214132592,
+              "non_nccl_active_seconds": 0.52201002,
+              "nccl_only_seconds": 0.017888580000000043,
+              "gpu_idle_seconds": 0.6742339919999999
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 16159625905,
+              "end_ns": 20131440745,
+              "wall_seconds": 3.97181484,
+              "non_nccl_active_seconds": 3.710295294,
+              "nccl_only_seconds": 0.019732427000000108,
+              "gpu_idle_seconds": 0.24178711900000005
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 20131440745,
+              "end_ns": 22174491162,
+              "wall_seconds": 2.043050417,
+              "non_nccl_active_seconds": 1.896790086,
+              "nccl_only_seconds": 0.14110619699999982,
+              "gpu_idle_seconds": 0.005154134000000088
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 22174491162,
+              "end_ns": 22189522836,
+              "wall_seconds": 0.015031674,
+              "non_nccl_active_seconds": 0.009741416,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005290258000000001
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 22189522836,
+              "end_ns": 27978115463,
+              "wall_seconds": 5.788592627,
+              "non_nccl_active_seconds": 5.745280706,
+              "nccl_only_seconds": 0.03016664999999996,
+              "gpu_idle_seconds": 0.013145270999999958
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 27978115463,
+              "end_ns": 29158806344,
+              "wall_seconds": 1.180690881,
+              "non_nccl_active_seconds": 0.513098388,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.6675924930000001
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 29158806344,
+              "end_ns": 33081636518,
+              "wall_seconds": 3.922830174,
+              "non_nccl_active_seconds": 3.705062284,
+              "nccl_only_seconds": 0.0077130229999999855,
+              "gpu_idle_seconds": 0.2100548670000002
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 33081636518,
+              "end_ns": 35147157359,
+              "wall_seconds": 2.065520841,
+              "non_nccl_active_seconds": 1.878248268,
+              "nccl_only_seconds": 0.18213617199999987,
+              "gpu_idle_seconds": 0.005136401000000124
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 35147157359,
+              "end_ns": 35161885929,
+              "wall_seconds": 0.01472857,
+              "non_nccl_active_seconds": 0.009660105,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005068464999999999
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 35161885929,
+              "end_ns": 41004686759,
+              "wall_seconds": 5.84280083,
+              "non_nccl_active_seconds": 5.802708153,
+              "nccl_only_seconds": 0.027250447000000122,
+              "gpu_idle_seconds": 0.01284222999999951
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 41004686759,
+              "end_ns": 41120635950,
+              "wall_seconds": 0.115949191,
+              "non_nccl_active_seconds": 0.03806201,
+              "nccl_only_seconds": 0.010987632999999997,
+              "gpu_idle_seconds": 0.066899548
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 4.276534199
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.2443718
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.684607445
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.287207395
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.679324798
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.243505376
+            }
+          ]
+        },
+        {
+          "update": "attribution.update.001205",
+          "wall_seconds": 39.489955857,
+          "windows": [
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 1,
+              "start_ns": 41124318894,
+              "end_ns": 42307735642,
+              "wall_seconds": 1.183416748,
+              "non_nccl_active_seconds": 0.515829969,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.667586779
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 1,
+              "start_ns": 42307735642,
+              "end_ns": 45696953774,
+              "wall_seconds": 3.389218132,
+              "non_nccl_active_seconds": 3.143134728,
+              "nccl_only_seconds": 0.02917573299999976,
+              "gpu_idle_seconds": 0.21690767099999997
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 1,
+              "start_ns": 45696953774,
+              "end_ns": 47631599803,
+              "wall_seconds": 1.934646029,
+              "non_nccl_active_seconds": 1.779890618,
+              "nccl_only_seconds": 0.14977833299999999,
+              "gpu_idle_seconds": 0.004977078000000024
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 1,
+              "start_ns": 47631599803,
+              "end_ns": 47648642016,
+              "wall_seconds": 0.017042213,
+              "non_nccl_active_seconds": 0.010417768,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.006624445
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 1,
+              "start_ns": 47648642016,
+              "end_ns": 53004473560,
+              "wall_seconds": 5.355831544,
+              "non_nccl_active_seconds": 5.337706499,
+              "nccl_only_seconds": 0.0039672179999996615,
+              "gpu_idle_seconds": 0.014157827000000012
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 2,
+              "start_ns": 53004473560,
+              "end_ns": 54211962138,
+              "wall_seconds": 1.207488578,
+              "non_nccl_active_seconds": 0.514065806,
+              "nccl_only_seconds": 0.020668533000000044,
+              "gpu_idle_seconds": 0.672754239
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 2,
+              "start_ns": 54211962138,
+              "end_ns": 58163873024,
+              "wall_seconds": 3.951910886,
+              "non_nccl_active_seconds": 3.708667207,
+              "nccl_only_seconds": 0.028910517999999996,
+              "gpu_idle_seconds": 0.21433316099999988
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 2,
+              "start_ns": 58163873024,
+              "end_ns": 60208838967,
+              "wall_seconds": 2.044965943,
+              "non_nccl_active_seconds": 1.900593517,
+              "nccl_only_seconds": 0.13934549100000027,
+              "gpu_idle_seconds": 0.005026934999999622
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 2,
+              "start_ns": 60208838967,
+              "end_ns": 60223933494,
+              "wall_seconds": 0.015094527,
+              "non_nccl_active_seconds": 0.009860806,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.005233721
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 2,
+              "start_ns": 60223933494,
+              "end_ns": 65959397928,
+              "wall_seconds": 5.735464434,
+              "non_nccl_active_seconds": 5.70126455,
+              "nccl_only_seconds": 0.020931290000000047,
+              "gpu_idle_seconds": 0.013268593999999467
+            },
+            {
+              "phase": "input_and_microbatch_transition",
+              "microbatch": 3,
+              "start_ns": 65959397928,
+              "end_ns": 67146869659,
+              "wall_seconds": 1.187471731,
+              "non_nccl_active_seconds": 0.502558979,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.684912752
+            },
+            {
+              "phase": "forward_prepare_and_first_block_entry",
+              "microbatch": 3,
+              "start_ns": 67146869659,
+              "end_ns": 73332716937,
+              "wall_seconds": 6.185847278,
+              "non_nccl_active_seconds": 4.307321348,
+              "nccl_only_seconds": 0.007810655999999305,
+              "gpu_idle_seconds": 1.8707152740000002
+            },
+            {
+              "phase": "forward_decoder",
+              "microbatch": 3,
+              "start_ns": 73332716937,
+              "end_ns": 75236460289,
+              "wall_seconds": 1.903743352,
+              "non_nccl_active_seconds": 1.799373587,
+              "nccl_only_seconds": 0.09923803600000003,
+              "gpu_idle_seconds": 0.005131728999999918
+            },
+            {
+              "phase": "forward_heads_and_loss",
+              "microbatch": 3,
+              "start_ns": 75236460289,
+              "end_ns": 75255540975,
+              "wall_seconds": 0.019080686,
+              "non_nccl_active_seconds": 0.010835371,
+              "nccl_only_seconds": 0.0,
+              "gpu_idle_seconds": 0.008245315
+            },
+            {
+              "phase": "backward_and_recompute",
+              "microbatch": 3,
+              "start_ns": 75255540975,
+              "end_ns": 80506189921,
+              "wall_seconds": 5.250648946,
+              "non_nccl_active_seconds": 5.201763083,
+              "nccl_only_seconds": 0.027817046000000012,
+              "gpu_idle_seconds": 0.02106881699999974
+            },
+            {
+              "phase": "post_backward_to_update_end",
+              "microbatch": 3,
+              "start_ns": 80506189921,
+              "end_ns": 80614274751,
+              "wall_seconds": 0.10808483,
+              "non_nccl_active_seconds": 0.037761503,
+              "nccl_only_seconds": 0.0026383789999999963,
+              "gpu_idle_seconds": 0.06768494800000001
+            }
+          ],
+          "preparation_breakdown": [
+            {
+              "microbatch": 1,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.119622809
+            },
+            {
+              "microbatch": 1,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.269595323
+            },
+            {
+              "microbatch": 2,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 3.683070931
+            },
+            {
+              "microbatch": 2,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.268839955
+            },
+            {
+              "microbatch": 3,
+              "phase": "through_vae_gpu_completion",
+              "wall_seconds": 5.927811217
+            },
+            {
+              "microbatch": 3,
+              "phase": "after_vae_to_first_decoder_gemm",
+              "wall_seconds": 0.258036061
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "pytorch": {
+      "backward_and_recompute": {
+        "wall_seconds": 17.42685186775,
+        "non_nccl_active_seconds": 16.942127217,
+        "nccl_only_seconds": 0.2538390261250001,
+        "gpu_idle_seconds": 0.23088562462499984
+      },
+      "forward_decoder": {
+        "wall_seconds": 6.170818723,
+        "non_nccl_active_seconds": 5.70067538975,
+        "nccl_only_seconds": 0.425954305125,
+        "gpu_idle_seconds": 0.044189028125
+      },
+      "forward_heads_and_loss": {
+        "wall_seconds": 0.047727090875,
+        "non_nccl_active_seconds": 0.029436462375,
+        "nccl_only_seconds": 0.0,
+        "gpu_idle_seconds": 0.0182906285
+      },
+      "forward_prepare_and_first_block_entry": {
+        "wall_seconds": 13.015978894375,
+        "non_nccl_active_seconds": 10.829830578125,
+        "nccl_only_seconds": 1.2666561678749997,
+        "gpu_idle_seconds": 0.9194921483750004
+      },
+      "input_and_microbatch_transition": {
+        "wall_seconds": 3.5274051535,
+        "non_nccl_active_seconds": 1.51781070325,
+        "nccl_only_seconds": 0.01292944800000001,
+        "gpu_idle_seconds": 1.99666500225
+      },
+      "post_backward_to_update_end": {
+        "wall_seconds": 0.112069424,
+        "non_nccl_active_seconds": 0.037898217750000004,
+        "nccl_only_seconds": 0.005624264999999999,
+        "gpu_idle_seconds": 0.06854694124999999
+      },
+      "preparation_breakdown": {
+        "through_vae_gpu_completion": 11.03520976175,
+        "after_vae_to_first_decoder_gemm": 1.980769132625
+      },
+      "total_seconds": 40.3008511535
+    }
+  },
+  "note": "Disjoint observed wall-time accounting, not independent causal effects. First decoder boundary is the first nvjet GEMM launched within layer_00; includes initial normalization in the preceding window."
+}

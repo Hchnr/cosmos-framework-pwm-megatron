@@ -153,11 +153,20 @@ def main():
     parser.add_argument("--profile-updates", type=int, default=2)
     parser.add_argument("--disable-param-prefetch", action="store_true")
     parser.add_argument("--profile-python-gc", action="store_true")
+    parser.add_argument("--profile-allocator", action="store_true")
+    parser.add_argument("--fsdp-copy-in-default-stream", action="store_true")
     parser.add_argument("--disable-auto-gc-after-warmup", action="store_true")
     parser.add_argument("--und-tokens", type=int, default=512)
     parser.add_argument("--gen-tokens", type=int, default=8192)
     parser.add_argument("--action-tokens", type=int, default=128)
     args = parser.parse_args()
+    changed_copy_in_streams = []
+    if args.fsdp_copy_in_default_stream:
+        if args.backend != "pytorch":
+            parser.error("--fsdp-copy-in-default-stream requires the PyTorch backend")
+        from allocator_trace import use_default_copy_in_stream
+
+        changed_copy_in_streams = use_default_copy_in_stream()
     if args.production_loader and not args.live_data:
         parser.error("--production-loader requires --live-data")
     load_mode = args.checkpoint_load_mode or ("auto" if args.resume_training else "warm_start")
@@ -311,6 +320,16 @@ def main():
         trainer.callbacks._callbacks.append(
             PythonGCTrace(args.benchmark_json.parent / "python_gc.json", disable_iteration)
         )
+    if args.profile_allocator:
+        from allocator_trace import AllocatorTrace
+
+        if args.benchmark_json is None or args.expected_start_iteration is None:
+            parser.error("Allocator observation requires benchmark output and explicit restored iteration")
+        trainer.callbacks._callbacks.append(
+            AllocatorTrace(
+                args.benchmark_json.parent / "allocator.json", args.expected_start_iteration + args.warmup_steps
+            )
+        )
     faulthandler.dump_traceback_later(180, repeat=True)
     loader = instantiate(config.dataloader_train) if args.live_data else ReplayBatch(args.batch)
     if args.live_data:
@@ -327,6 +346,8 @@ def main():
         suppressed_prefetch = runtime.suppressed_prefetch_requests if runtime is not None else 0
         if args.disable_param_prefetch and suppressed_prefetch == 0:
             raise RuntimeError("Prefetch ablation did not suppress any actual prefetch requests")
+        if args.fsdp_copy_in_default_stream and not changed_copy_in_streams:
+            raise RuntimeError("Copy-in stream diagnostic did not modify any initialized FSDP context")
         if measurement is not None and len(measurement.seconds) <= args.warmup_steps:
             raise ValueError("No steady updates after the restored starting iteration")
         report = {
@@ -352,6 +373,9 @@ def main():
             "dataloader_packing_pool_size": int(config.dataloader_train.packing_pool_size),
             "fresh_optimizer_state": not args.resume_training,
             "backend": args.backend,
+            "allocator_config": os.environ.get("PYTORCH_CUDA_ALLOC_CONF"),
+            "allocator_observation": args.profile_allocator,
+            "copy_in_stream_intervention": changed_copy_in_streams,
             "torch_version": torch.__version__,
             "cuda_version": torch.version.cuda,
             "megatron_core_version": importlib.metadata.version("megatron-core"),

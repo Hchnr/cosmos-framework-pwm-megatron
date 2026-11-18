@@ -1,0 +1,105 @@
+{
+  "scope": "allocation-only controlled mechanism experiment, not a training throughput result",
+  "summary": {
+    "expandable": [
+      {
+        "cache_gib": 10,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.267924482,
+        "min_seconds": 0.250494298,
+        "max_seconds": 0.299009672
+      },
+      {
+        "cache_gib": 10,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.5308999999999998e-05,
+        "min_seconds": 2.1439e-05,
+        "max_seconds": 2.8339e-05
+      },
+      {
+        "cache_gib": 20,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.45087236799999997,
+        "min_seconds": 0.434610711,
+        "max_seconds": 0.50169129
+      },
+      {
+        "cache_gib": 20,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.3658499999999997e-05,
+        "min_seconds": 2.1347e-05,
+        "max_seconds": 3.6743e-05
+      },
+      {
+        "cache_gib": 35,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.7174297325,
+        "min_seconds": 0.693359873,
+        "max_seconds": 0.734500038
+      },
+      {
+        "cache_gib": 35,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.45585e-05,
+        "min_seconds": 2.0617e-05,
+        "max_seconds": 2.6014e-05
+      }
+    ],
+    "native": [
+      {
+        "cache_gib": 10,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.232379261,
+        "min_seconds": 0.118682337,
+        "max_seconds": 1.73489779
+      },
+      {
+        "cache_gib": 10,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.25335e-05,
+        "min_seconds": 1.704e-05,
+        "max_seconds": 4.1278e-05
+      },
+      {
+        "cache_gib": 20,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.47332242599999996,
+        "min_seconds": 0.230320491,
+        "max_seconds": 1.69692729
+      },
+      {
+        "cache_gib": 20,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.05395e-05,
+        "min_seconds": 1.8711e-05,
+        "max_seconds": 2.66e-05
+      },
+      {
+        "cache_gib": 35,
+        "same_stream": false,
+        "samples": 12,
+        "median_seconds": 0.8121887050000001,
+        "min_seconds": 0.404439968,
+        "max_seconds": 1.307435879
+      },
+      {
+        "cache_gib": 35,
+        "same_stream": true,
+        "samples": 12,
+        "median_seconds": 2.13325e-05,
+        "min_seconds": 1.7471e-05,
+        "max_seconds": 2.7059e-05
+      }
+    ]
+  }
+}

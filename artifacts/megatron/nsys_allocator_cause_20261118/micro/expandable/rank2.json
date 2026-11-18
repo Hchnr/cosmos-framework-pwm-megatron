@@ -1,0 +1,402 @@
+{
+  "scope": "synthetic allocation-only mechanism test; no training throughput claim",
+  "device": 2,
+  "total_bytes": 84942979072,
+  "budget_bytes": 82124472320,
+  "allocator_config": "expandable_segments:True",
+  "requested_bytes": 4294967296,
+  "rows": [
+    {
+      "cache_gib": 10,
+      "same_stream": false,
+      "repeat": 0,
+      "request_seconds": 0.299009672,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 75686215680
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": false,
+      "repeat": 1,
+      "request_seconds": 0.270131419,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 2,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 75686215680
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": false,
+      "repeat": 2,
+      "request_seconds": 0.262910827,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 2,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 75686215680
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": true,
+      "repeat": 0,
+      "request_seconds": 2.5157e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": true,
+      "repeat": 1,
+      "request_seconds": 2.3569e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": true,
+      "repeat": 2,
+      "request_seconds": 2.4081e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 71387054080,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 75682021376,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": false,
+      "repeat": 0,
+      "request_seconds": 0.459147903,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 3,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 4,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 64948797440
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": false,
+      "repeat": 1,
+      "request_seconds": 0.50169129,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 4,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 5,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 64948797440
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": false,
+      "repeat": 2,
+      "request_seconds": 0.450873639,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 5,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 64948797440
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": true,
+      "repeat": 0,
+      "request_seconds": 3.6743e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": true,
+      "repeat": 1,
+      "request_seconds": 2.2553e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": true,
+      "repeat": 2,
+      "request_seconds": 2.4796e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 60649635840,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 64944603136,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": false,
+      "repeat": 0,
+      "request_seconds": 0.734500038,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 6,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 7,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 48842670080
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": false,
+      "repeat": 1,
+      "request_seconds": 0.721201495,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 7,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 8,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 48842670080
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": false,
+      "repeat": 2,
+      "request_seconds": 0.710865864,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 8,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 48842670080
+      },
+      "retry_delta": 1
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": true,
+      "repeat": 0,
+      "request_seconds": 2.4085e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": true,
+      "repeat": 1,
+      "request_seconds": 2.3306e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": true,
+      "repeat": 2,
+      "request_seconds": 2.5032e-05,
+      "physical_free_before": 2163146752,
+      "before": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 44543508480,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "after": {
+        "num_alloc_retries": 9,
+        "num_ooms": 0,
+        "allocated_bytes.all.current": 48838475776,
+        "reserved_bytes.all.current": 82124472320
+      },
+      "retry_delta": 0
+    }
+  ],
+  "summary": [
+    {
+      "cache_gib": 10,
+      "same_stream": false,
+      "median_request_seconds": 0.270131419
+    },
+    {
+      "cache_gib": 10,
+      "same_stream": true,
+      "median_request_seconds": 2.4081e-05
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": false,
+      "median_request_seconds": 0.459147903
+    },
+    {
+      "cache_gib": 20,
+      "same_stream": true,
+      "median_request_seconds": 2.4796e-05
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": false,
+      "median_request_seconds": 0.721201495
+    },
+    {
+      "cache_gib": 35,
+      "same_stream": true,
+      "median_request_seconds": 2.4085e-05
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+[
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "same-stream cached block lookup",
+    "start_line": 3070,
+    "end_line": 3091,
+    "excerpt": "3070:   bool get_free_block(AllocParams& p) {\n3071:     BlockPool& pool = *p.pool;\n3072: \n3073:     if (C10_UNLIKELY(\n3074:             allowed_memory_maximum.has_value() &&\n3075:             AcceleratorAllocatorConfig::garbage_collection_threshold() > 0.0)) {\n3076:       // Track block reuse interval only when garbage collection is enabled.\n3077:       ++pool.get_free_blocks_call_count;\n3078:     }\n3079:     auto it = pool.blocks.lower_bound(&p.search_key);\n3080:     if (it == pool.blocks.end() || (*it)->stream != p.stream())\n3081:       return false;\n3082: \n3083:     if ((*it)->expandable_segment_) {\n3084:       if (p.is_expandable_segments_active) {\n3085:         // if we are allocated to the part of the block that is expandable\n3086:         // for the purposes of \"best fit\" we consider its size to be the size it\n3087:         // can expand to, not the size it currently is. This means that we\n3088:         // sometimes have to search for blocks with bigger 'size' before\n3089:         // choosing this segment.\n3090:         auto expandable_size = [](Block* b) {\n3091:           return b->size + (b->next && !b->next->mapped ? b->next->size : 0);"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "allocation failure cache release and retry",
+    "start_line": 1435,
+    "end_line": 1451,
+    "excerpt": "1435:         garbage_collect_cached_blocks(context);\n1436:       }\n1437:       // Attempt allocate\n1438:       // WARNING: alloc_block may release the allocator lock when calling\n1439:       // cudaMalloc. So far this function has not modified allocator state, but\n1440:       // keep in mind that any observed allocator state may change across calls\n1441:       // to alloc_block since it may release the lock.\n1442:       block_found = alloc_block(params, false, context, lock)\n1443:           // Free enough available cached blocks to satisfy alloc and retry\n1444:           // alloc.\n1445:           || (release_available_cached_blocks(params, context) &&\n1446:               alloc_block(params, false, context, lock))\n1447:           // Free all non-split cached blocks and retry alloc.\n1448:           || (C10_LIKELY(captures_underway.empty()) &&\n1449:               release_cached_blocks(context, {0, 0}) &&\n1450:               alloc_block(params, true, context, lock));\n1451:     }"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "retry counter",
+    "start_line": 3208,
+    "end_line": 3218,
+    "excerpt": "3208:     // Defensively checks for preexisting CUDA error state.\n3209:     C10_CUDA_CHECK(cudaGetLastError());\n3210: \n3211:     size_t size = p.alloc_size;\n3212:     void* ptr = nullptr;\n3213: \n3214:     if (isRetry) {\n3215:       stats.num_alloc_retries += 1;\n3216:     }\n3217: #ifdef FBCODE_CAFFE2\n3218:     bool in_fbcode = true;"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "release cache including stream synchronization",
+    "start_line": 3364,
+    "end_line": 3379,
+    "excerpt": "3364:   bool release_cached_blocks(\n3365:       const std::shared_ptr<GatheredContext>& context,\n3366:       MempoolId_t mempool_id) {\n3367:     if (mempool_id.first == 0 && mempool_id.second == 0 &&\n3368:         captures_underway.empty()) {\n3369:       // If there is no active mempool, we work on releasing *all* blocks.\n3370: \n3371:       // First ensure that all blocks that can't currently be allocated due to\n3372:       // outstanding events are returned to the pool.\n3373:       synchronize_and_free_events(context);\n3374: \n3375:       // Free all non-split cached blocks to system allocator\n3376:       release_blocks(large_blocks, context);\n3377:       release_blocks(small_blocks, context);\n3378:     }\n3379: "
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "synchronize and unmap/release handles",
+    "start_line": 696,
+    "end_line": 728,
+    "excerpt": "696:   void unmapHandles(size_t begin, size_t end) {\n697:     // note: unlike cudaFree, MemUnmap and MemRelease do\n698:     // not appear to synchronize in all cases, so we have to wait for the\n699:     // stream to finish before this memory is truly free.\n700: \n701:     // cannot call c10::cuda::stream_synchronize because\n702:     // it might grab the GIL which can lead to a deadlock\n703:     // Locking order must be GIL -> Allocator Lock\n704:     if (stream_) {\n705:       C10_CUDA_CHECK(cudaStreamSynchronize(*stream_));\n706:     } else {\n707:       cuda::CUDAGuard device_guard(device_);\n708:       C10_CUDA_CHECK(cudaDeviceSynchronize());\n709:     }\n710:     for (auto i : c10::irange(begin, end)) {\n711:       // NOLINTNEXTLINE(bugprone-unchecked-optional-access)\n712:       Handle h = handles_.at(i).value();\n713:       handles_.at(i) = std::nullopt;\n714:       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemUnmap_(\n715:           ptr_ + segment_size_ * i, segment_size_));\n716:       if (h.shareable_handle) {\n717:         close(std::get<int>(*h.shareable_handle));\n718:       }\n719:       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemRelease_(h.handle));\n720:     }\n721:     trimHandles();\n722:   }\n723:   void trimHandles() {\n724:     while (!handles_.empty() && !handles_.back()) {\n725:       handles_.pop_back();\n726:     }\n727:   }\n728:   void forEachAllocatedRange(const std::function<void(size_t, size_t)>& fn) {"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/source/CUDACachingAllocator.cpp",
+    "source_url": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDACachingAllocator.cpp",
+    "sha256": "ff571c981027b80d8e0990cd2c33efa528d0842c6b9b0bb49dd0e6d1c7070b07",
+    "label": "20 MiB large-pool segment granularity",
+    "start_line": 2770,
+    "end_line": 2787,
+    "excerpt": "2770:       // but there might be a free segment we can also use\n2771:       // right before it\n2772:       if (allocatable(c->prev)) {\n2773:         c = c->prev;\n2774:       }\n2775:       if (has_available_address_space(c)) {\n2776:         return c;\n2777:       }\n2778:     }\n2779:     auto segment_size = pool->is_small ? kSmallBuffer : kLargeBuffer;\n2780:     expandable_segments_.emplace_back(new ExpandableSegment(\n2781:         device, stream, segment_size, devices_with_peer_access_));\n2782: \n2783:     ExpandableSegment* es = expandable_segments_.back();\n2784:     Block* candidate = new Block(device, stream, es->size(), pool, es->ptr());\n2785:     candidate->mapped = false;\n2786:     candidate->expandable_segment_ = es;\n2787:     pool->unmapped.insert(candidate);"
+  },
+  {
+    "file": "/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/fsdp/_fully_shard/_fsdp_collectives.py",
+    "sha256": "f8527a45d7d8ae029e8b2ce78b9fd6fc909b95e4b3cf1be7cfa9ba3da722be31",
+    "label": "FSDP2 copy-in stream allocation and gather",
+    "start_line": 245,
+    "end_line": 276,
+    "excerpt": "245:     world_size, rank = group.size(), group.rank()\n246:     device_handle = _get_device_handle(device.type)\n247:     with device_handle.stream(all_gather_copy_in_stream):\n248:         param_all_gather_inputs = _get_param_all_gather_inputs(fsdp_params)\n249:         (\n250:             param_all_gather_input_dtypes,\n251:             param_all_gather_input_numels,\n252:             dtype,\n253:         ) = _get_all_gather_input_metadatas(param_all_gather_inputs)\n254:         if dtype == torch.uint8:\n255:             all_gather_inputs = [\n256:                 t.view(torch.uint8) for ts in param_all_gather_inputs for t in ts\n257:             ]\n258:         else:\n259:             all_gather_inputs = [*chain.from_iterable(param_all_gather_inputs)]\n260:         inp_split_sizes = [t.numel() for t in all_gather_inputs]\n261:         all_gather_input_numel = sum(inp_split_sizes)\n262:         all_gather_output = all_gather_comm.allocate(\n263:             (all_gather_input_numel * world_size,), dtype=dtype, device=device\n264:         )\n265:         all_gather_input, all_gather_output = torch.ops.fsdp.all_gather_copy_in(\n266:             all_gather_inputs,\n267:             all_gather_output,\n268:             inp_split_sizes,\n269:             all_gather_input_numel,\n270:             rank,\n271:         )\n272:         del param_all_gather_inputs\n273:     all_gather_stream.wait_stream(all_gather_copy_in_stream)\n274:     with device_handle.stream(all_gather_stream):\n275:         all_gather_work = all_gather_comm(\n276:             output_tensor=all_gather_output,"
+  },
+  {
+    "file": "/opt/cosmos-megatron-runtime/8eed42449a654132/torch/distributed/fsdp/_fully_shard/_fsdp_collectives.py",
+    "sha256": "f8527a45d7d8ae029e8b2ce78b9fd6fc909b95e4b3cf1be7cfa9ba3da722be31",
+    "label": "FSDP2 separate parameter output allocation and copy-out",
+    "start_line": 373,
+    "end_line": 421,
+    "excerpt": "373:         force_recreate = compiled_autograd_enabled()\n374:         fsdp_param.init_all_gather_outputs(\n375:             all_gather_input_numels,\n376:             all_gather_input_dtypes,\n377:             world_size,\n378:             device,\n379:             force_recreate=force_recreate,\n380:         )\n381:         if not force_recreate:\n382:             fsdp_param.alloc_all_gather_outputs()\n383:         param_all_gather_outputs = fsdp_param.all_gather_outputs\n384:         if fsdp_param.fsdp_placement.dim != 0:\n385:             # Copy to a temporary and then chunk-cat into the final all-gather\n386:             # output tensors\n387:             param_all_gather_outputs = [\n388:                 torch.empty_like(t) for t in param_all_gather_outputs\n389:             ]\n390:             shard_i_copy_infos.append((fsdp_param, param_all_gather_outputs))\n391:         split_with_sizes_out.extend(param_all_gather_outputs)\n392: \n393:     all_gather_output = all_gather_output.view(world_size, -1)\n394:     if all_gather_output.dtype == torch.uint8:\n395:         out = [t.view(world_size, -1).view(torch.uint8) for t in split_with_sizes_out]\n396:     else:\n397:         out = [t.view(world_size, -1) for t in split_with_sizes_out]\n398: \n399:     # only avoid VC bump if we are not in inference mode\n400:     if torch._dynamo.is_compiling():\n401:         # For torch.compile, we turn off inference_mode for fake tensor\n402:         # propagation, and therefore graph break on is_inference. For `compile`,\n403:         # we don't care about VCs, so just skip the optimization.\n404:         non_inference_outs = []\n405:     else:\n406:         non_inference_outs = [o for o in out if not o.is_inference()]\n407: \n408:     if len(non_inference_outs) > 0:\n409:         with torch.autograd._unsafe_preserve_version_counter(tuple(non_inference_outs)):\n410:             torch.ops.fsdp.split_with_sizes_copy(\n411:                 all_gather_output, all_gather_input_split_sizes, dim=1, out=out\n412:             )\n413:     else:\n414:         torch.ops.fsdp.split_with_sizes_copy(\n415:             all_gather_output, all_gather_input_split_sizes, dim=1, out=out\n416:         )\n417: \n418:     for fsdp_param, param_all_gather_outputs in shard_i_copy_infos:\n419:         # Chunk-cat from the temporary to the final all-gather output tensors\n420:         shard_dim = fsdp_param.fsdp_placement.dim\n421: "
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py",
+    "sha256": "0970a02c832a616d65c3d5ba685f6f8401009510ad978f23ef8d20a13911abbe",
+    "label": "MCore parameter data aliases gathered bucket",
+    "start_line": 1367,
+    "end_line": 1392,
+    "excerpt": "1367:                 ]\n1368:             )\n1369:         else:\n1370:             # Sharded or dtype-custom buffers require un-sharded bucket allocation.\n1371:             bucket = self.allocate_bucket_storage(\n1372:                 dtype=dtype, device=self.device, strict_assignments=strict_assignments\n1373:             )\n1374: \n1375:         # Need to set parameter data after resize model weight buffer data-storage.\n1376:         if set_param_data:\n1377:             for p in self.params:\n1378:                 item_id = self.param_idx[p]\n1379:                 p = to_local_if_dtensor(p)\n1380:                 data = self.get_item_from_bucket(bucket, item_id).view(p.shape)\n1381:                 if is_float8tensor(p):\n1382:                     fp8_set_raw_data(p, data, self.is_transpose_buffer)\n1383:                 else:\n1384:                     p.data = data\n1385:         return bucket\n1386: \n1387:     def allocate_bucket_storage(\n1388:         self,\n1389:         shard: bool = False,\n1390:         dtype: Optional[torch.dtype] = None,\n1391:         device: Optional[torch.device] = None,\n1392:         init_values: Optional[torch.Tensor] = None,"
+  },
+  {
+    "file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/lib/python3.13/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/param_and_grad_buffer.py",
+    "sha256": "0970a02c832a616d65c3d5ba685f6f8401009510ad978f23ef8d20a13911abbe",
+    "label": "MCore gathers directly from persistent shard into parameter bucket",
+    "start_line": 5047,
+    "end_line": 5065,
+    "excerpt": "5047:         wbuf = self.get_fsdp_buffer(bucket_id, bwd)\n5048: \n5049:         # Lazy release the unused buckets.\n5050:         self.recycle_unused_buckets()\n5051: \n5052:         # Allocate an empty bucket to store the module weights.\n5053:         bucket = wbuf.fetch_bucket(set_param_data=True)\n5054: \n5055:         _assert_shard_index_matches_group(wbuf, \"parameter all-gather\")\n5056: \n5057:         # All-gather the module weights in each buffer shard into the allocated bucket.\n5058:         # Now each rank will have a copy of this FSDP unit module's weights.\n5059:         param_gather_event = torch.distributed.all_gather_into_tensor(\n5060:             output_tensor=bucket.data,\n5061:             input_tensor=wbuf.get_shard_from_local_buffer(),\n5062:             group=wbuf.data_parallel_group,\n5063:             async_op=True,\n5064:         )\n5065: "
+  }
+]

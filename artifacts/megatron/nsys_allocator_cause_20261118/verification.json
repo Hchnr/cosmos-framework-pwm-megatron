@@ -1,0 +1,15 @@
+{
+  "observed_profile_count": 8,
+  "observed_partitions_close": true,
+  "observed_two_updates_per_rank": true,
+  "copy_in_default_profile_count": 4,
+  "copy_in_default_partitions_close": true,
+  "copy_in_default_two_updates_per_rank": true,
+  "all_60_input_records_equal": true,
+  "micro_144_observations": true,
+  "micro_retry_assertions": true,
+  "valid_raw_reports": true,
+  "megatron_fsdp_allocator_cause_zh.md_links_resolve": true,
+  "megatron_fsdp_nsys_attribution_zh.md_links_resolve": true,
+  "archived_report_sha256_verified": 22
+}

@@ -1,0 +1,23 @@
+{
+  "image": "docs/images/megatron_fsdp_nsys/multiview_allocator_reclaim.png",
+  "source_capture": "20261117/gc_observed_v2",
+  "update": 1204,
+  "microbatch": 1,
+  "rank": 1,
+  "reports": [
+    {
+      "backend": "pytorch",
+      "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_full_attribution_20261117/gc_observed_v2/pytorch/rank1.nsys-rep",
+      "archive_path": "figure_reference/baseline_pytorch_rank1.nsys-rep",
+      "sha256": "b4e3cb1016cee2d1f4260e213850156e8f903968c06970ffee6130b09b81082c",
+      "bytes": 18639452
+    },
+    {
+      "backend": "megatron",
+      "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_full_attribution_20261117/gc_observed_v2/megatron/rank1.nsys-rep",
+      "archive_path": "figure_reference/megatron_rank1.nsys-rep",
+      "sha256": "10c6724d71b785fea8296bfd3ffa300bb9d7ce660851d8e85126142b68ffe2f3",
+      "bytes": 18375649
+    }
+  ]
+}

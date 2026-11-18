@@ -1,0 +1,73 @@
+[
+  {
+    "config": "expandable",
+    "nvtx": "reclaim.cache_35GiB.other_stream.repeat_1",
+    "start_ns": 36838308263,
+    "end_ns": 37552889367,
+    "apis": [
+      {
+        "api": "cuMemUnmap",
+        "calls": 1792,
+        "total_ms": 320.752508
+      },
+      {
+        "api": "cuMemRelease",
+        "calls": 1895,
+        "total_ms": 299.907984
+      },
+      {
+        "api": "cuMemSetAccess",
+        "calls": 1,
+        "total_ms": 44.514359
+      },
+      {
+        "api": "cuMemCreate",
+        "calls": 309,
+        "total_ms": 31.210692
+      },
+      {
+        "api": "cuMemMap",
+        "calls": 205,
+        "total_ms": 16.875754
+      },
+      {
+        "api": "cuMemAddressReserve",
+        "calls": 1,
+        "total_ms": 0.011641
+      },
+      {
+        "api": "cudaStreamSynchronize_v3020",
+        "calls": 1,
+        "total_ms": 0.008222
+      },
+      {
+        "api": "cudaGetDeviceProperties_v12000",
+        "calls": 1,
+        "total_ms": 0.000574
+      }
+    ]
+  },
+  {
+    "config": "native",
+    "nvtx": "reclaim.cache_35GiB.other_stream.repeat_1",
+    "start_ns": 30093672307,
+    "end_ns": 30592898949,
+    "apis": [
+      {
+        "api": "cudaMalloc_v3020",
+        "calls": 2,
+        "total_ms": 480.486949
+      },
+      {
+        "api": "cudaFree_v3020",
+        "calls": 1,
+        "total_ms": 18.683696
+      },
+      {
+        "api": "cudaStreamIsCapturing_v10000",
+        "calls": 2,
+        "total_ms": 0.002662
+      }
+    ]
+  }
+]

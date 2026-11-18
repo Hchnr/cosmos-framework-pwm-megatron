@@ -1,0 +1,11 @@
+{
+  "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/nsys_allocator_cause_raw.tar",
+  "bytes": 248586240,
+  "sha256": "3df3e6e82bb3dedaa6fe812fd2eda4179719df4faf7fb310d49035d0fe96160c",
+  "new_valid_reports": 20,
+  "new_training_reports": 12,
+  "new_allocation_only_reports": 8,
+  "figure_reference_reports": 2,
+  "total_nsys_reports": 22,
+  "includes_failed_training_logs": true
+}

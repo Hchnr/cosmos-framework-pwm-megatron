@@ -8,6 +8,8 @@
 
 首轮 profile 的完整更新差值 **1.650 s** 中，**0.905 s 在 VAE 完成后至首个 decoder GEMM 之间，0.574 s 在反向及重计算阶段**。补采 Python 栈后，两处都找到了具体的分配停顿；GPU 拆分/打包拷贝也有减少。参数预取消融另测得约 **0.242 s** 的整步影响。它们存在重叠，不能直接相加成独立优化贡献。
 
+**2026-11-18 根因补测：**完整训练中只把 FSDP2 参数打包移到计算 stream，分配重试从 **4.250 → 1.375 次/卡/更新**，VAE 后入口窗口缩短约 **1.026 秒**，整步净缩短约 **0.834 秒**，验证了跨 stream 缓存复用限制和失败回收的因果作用。受控分配实验进一步确认，关键是避免回收重分配，不能仅归因于 expandable segments 的 API 次数。完整解释、局部 multi-view 和原始文件见[根因补充报告](megatron_fsdp_allocator_cause_zh.md)。
+
 关闭自动 Python GC 的四卡对照仍保留 **1.435 s/更新**的后端差距，GC 不是主要解释。此前无 profiler 的短程 ABBA 测试吞吐提升为 **4.48%**；本报告分析该训练路径的来源，不把两个采样更新当作长期或 192 卡性能结论。
 
 ## 1. 先把 1.650 秒完整对账
@@ -77,7 +79,7 @@ rank 2、3 同一入口也有约 **440 ms** 的连续分配采样。这形成了
 
 右列按每个逻辑入口取最长的一段，只统计 VAE GPU 完成之后、首个 decoder GEMM 之前，不跨 rank 累加。它与左列量级接近，支持分配停顿是前向入口差距的主要来源；二者仍不是可以直接相减或相加的独立优化量。补采的 891 ms 与首轮的 905 ms 来自不同运行，不能混作同一组精确计时。逐入口记录见 [forward_entry_allocation.json](../artifacts/megatron/nsys_full_attribution_20261117/forward_entry_allocation.json)。
 
-跨卡时间见 [first_allgather_cross_rank.json](../artifacts/megatron/nsys_full_attribution_20261117/first_allgather_cross_rank.json)；采样栈和长驻留区间见 [python_samples.json](../artifacts/megatron/nsys_full_attribution_20261117/python_samples.json)。采样区间不是精确函数入口/出口计时，不能把每个 rank 的驻留时间相加。这里确认了“分配位置发生停顿”，尚未隔离 C++ allocator 内部的具体慢路径，因此不进一步断言全部由碎片化、驱动分配或某个回收操作造成。
+跨卡时间见 [first_allgather_cross_rank.json](../artifacts/megatron/nsys_full_attribution_20261117/first_allgather_cross_rank.json)；采样栈和长驻留区间见 [python_samples.json](../artifacts/megatron/nsys_full_attribution_20261117/python_samples.json)。采样区间不是精确函数入口/出口计时，不能把每个 rank 的驻留时间相加。后续已通过 allocator 计数器、CUDA 显存管理 API、源码和改变分配 stream 的完整训练对照，确认失败回收与跨 stream 缓存复用限制，见[根因补充报告](megatron_fsdp_allocator_cause_zh.md)。
 
 ## 3. 反向：分配停顿使 GPU 队列耗尽
 

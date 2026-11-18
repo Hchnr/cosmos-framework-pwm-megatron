@@ -1,0 +1,69 @@
+{
+  "scope": "4 H100 full-capacity 36-layer resumed-training counterfactual; allocator observation enabled; 2 measured updates after 3 warmup",
+  "arms": {
+    "observed/pytorch": {
+      "steady_step_seconds": [
+        41.507609751075506,
+        40.296004083007574
+      ],
+      "median_step_seconds": 40.90180691704154,
+      "mean_rank_nvtx_seconds": 41.125777578,
+      "after_vae_to_first_decoder_gemm_seconds": 3.00662172625,
+      "allocator_update_counters": {
+        "num_alloc_retries": 4.25,
+        "num_sync_all_streams": 8.5,
+        "num_device_alloc": 169.125,
+        "num_device_free": 80
+      },
+      "memory_api_cpu_seconds": 1.2364686885,
+      "slow_allocations": 23,
+      "peak_allocated_bytes": 80584488448
+    },
+    "observed/megatron": {
+      "steady_step_seconds": [
+        38.845690827816725,
+        38.88015757501125
+      ],
+      "median_step_seconds": 38.86292420141399,
+      "mean_rank_nvtx_seconds": 39.099552316125,
+      "after_vae_to_first_decoder_gemm_seconds": 1.7231296015,
+      "allocator_update_counters": {
+        "num_alloc_retries": 0,
+        "num_sync_all_streams": 4.25,
+        "num_device_alloc": 17.375,
+        "num_device_free": 8.625
+      },
+      "memory_api_cpu_seconds": 0.06066700675000001,
+      "slow_allocations": 0,
+      "peak_allocated_bytes": 80913564672
+    },
+    "copy_in_default/pytorch": {
+      "steady_step_seconds": [
+        40.891798101365566,
+        39.24464412406087
+      ],
+      "median_step_seconds": 40.06822111271322,
+      "mean_rank_nvtx_seconds": 40.3008511535,
+      "after_vae_to_first_decoder_gemm_seconds": 1.980769132625,
+      "allocator_update_counters": {
+        "num_alloc_retries": 1.375,
+        "num_sync_all_streams": 5.625,
+        "num_device_alloc": 45,
+        "num_device_free": 40.625
+      },
+      "memory_api_cpu_seconds": 0.22695862337500006,
+      "slow_allocations": 0,
+      "peak_allocated_bytes": 80584488448
+    }
+  },
+  "copy_in_intervention": {
+    "step_saving_seconds": 0.8335858043283224,
+    "entry_saving_seconds": 1.025852593625
+  },
+  "limitations": [
+    "CPU API service times overlap GPU work and are not additive wall-time effects",
+    "This diagnostic round differs from the original 1.650 second attribution round",
+    "Native and cudaMallocAsync full-training runs failed during warmup and are excluded",
+    "Synthetic allocation benchmark measures only allocation/reclaim mechanics"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "scope": "full 36-layer stock trainer; original production token capacities; live data",
+  "sharding_strategy": "optim_grads_params",
+  "param_prefetch": true,
+  "suppressed_prefetch_requests": 0,
+  "effective_overlap_param_gather": true,
+  "gradient_accumulation": 3,
+  "optimizer_steps": 5,
+  "checkpoint": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "token_capacities": [
+    11776,
+    62592,
+    2944
+  ],
+  "short_und_capacity": 5120,
+  "checkpoint_load_mode": "extend",
+  "preserve_source_normalization": true,
+  "state_normalization_paths": {
+    "/share-mixed/projset/eai_pwm/datasets/action_tactile_pretraining_20261026/bench2dex": "examples/normalization/bench2dex_state_prephysical_20261102.json"
+  },
+  "dataloader_max_samples_per_batch": 92,
+  "dataloader_packing_pool_size": 16,
+  "fresh_optimizer_state": false,
+  "backend": "megatron",
+  "allocator_config": "expandable_segments:True",
+  "allocator_observation": true,
+  "copy_in_stream_intervention": [],
+  "torch_version": "2.10.0+cu130",
+  "cuda_version": "13.0",
+  "megatron_core_version": "0.20.0",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "world_size": 4,
+  "live_data": true,
+  "output_root": "outputs/megatron_validation/nsys_allocator_cause_20261118/observed/megatron/training",
+  "step_seconds": [
+    65.4666886664927,
+    43.14617906138301,
+    37.53413923457265,
+    38.845690827816725,
+    38.88015757501125
+  ],
+  "update_including_first_dataload_seconds": [
+    86.07296275347471,
+    43.46893687546253,
+    37.78337472677231,
+    39.08674982190132,
+    39.12650753557682
+  ],
+  "update_data_wait_seconds": [
+    21.90359751880169,
+    0.0060417912900447845,
+    0.005499530583620071,
+    0.012176908552646637,
+    0.012981507927179337
+  ],
+  "content_trace_enabled": true,
+  "mean_final_microbatch_losses": [
+    0.10597121715545654,
+    0.21801702678203583,
+    0.6449366807937622,
+    0.08300481736660004,
+    0.1278098076581955
+  ],
+  "seed_reset_after_initialization": null,
+  "initial_iteration": 1200,
+  "requested_final_iteration": 1205,
+  "warmup_steps": 3,
+  "median_seconds": 38.86292420141399,
+  "peak_allocated_bytes": 80913564672,
+  "initialization_peak_allocated_bytes": 37478559232,
+  "excludes": [
+    "checkpoint save I/O",
+    "tokenizer compilation"
+  ]
+}

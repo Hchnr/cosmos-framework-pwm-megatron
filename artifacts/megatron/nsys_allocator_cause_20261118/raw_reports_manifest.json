@@ -1,0 +1,142 @@
+[
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank0.nsys-rep",
+    "relative_path": "copy_in_default/pytorch/rank0.nsys-rep",
+    "bytes": 13458833,
+    "sha256": "525919dfafb4921b737e495b388919a73897ec72df5d4ec113412c18ae87ee86",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank1.nsys-rep",
+    "relative_path": "copy_in_default/pytorch/rank1.nsys-rep",
+    "bytes": 13164484,
+    "sha256": "a41b682a3c5af75fd07b4b2ba659cf727879ad34f2a0389e01eb225a5802b690",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank2.nsys-rep",
+    "relative_path": "copy_in_default/pytorch/rank2.nsys-rep",
+    "bytes": 13310525,
+    "sha256": "f64d055b5d67ee91bb8daf51450980bd85bc9eb808d0088236d4ed0f33ec356c",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/copy_in_default/pytorch/rank3.nsys-rep",
+    "relative_path": "copy_in_default/pytorch/rank3.nsys-rep",
+    "bytes": 13838294,
+    "sha256": "64b0d05c13126d7d5f15b3c3f96a3115fe100dc82460dee500bb08a825cdce5a",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/expandable/rank0.nsys-rep",
+    "relative_path": "micro/expandable/rank0.nsys-rep",
+    "bytes": 5891107,
+    "sha256": "7f145d02fb20ac9acb96d2b47cadee332bb4b67be7c019171aa654047d576a54",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/expandable/rank1.nsys-rep",
+    "relative_path": "micro/expandable/rank1.nsys-rep",
+    "bytes": 5886171,
+    "sha256": "50eb9ebd61fe87cacb78e03bf24ba93e428d4049376b2c9fd92f266b0e240510",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/expandable/rank2.nsys-rep",
+    "relative_path": "micro/expandable/rank2.nsys-rep",
+    "bytes": 5889072,
+    "sha256": "9f7fea3a56256c9222163c71eab9d425c9f84c114e6783e78370c2be321f1f04",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/expandable/rank3.nsys-rep",
+    "relative_path": "micro/expandable/rank3.nsys-rep",
+    "bytes": 5888009,
+    "sha256": "86d5c2b524a2336c0a6e503af5767f4d671ae778abc8e7c39a5ea529a7cf466f",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/native/rank0.nsys-rep",
+    "relative_path": "micro/native/rank0.nsys-rep",
+    "bytes": 268113,
+    "sha256": "a0192a00a93f3e2885c9291b8aca9e8ef98193f73858018ae2d2e719f4e563aa",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/native/rank1.nsys-rep",
+    "relative_path": "micro/native/rank1.nsys-rep",
+    "bytes": 264638,
+    "sha256": "a637731220193179100fa43dcc837d56d7257431e25c2e07016741a7434f00d5",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/native/rank2.nsys-rep",
+    "relative_path": "micro/native/rank2.nsys-rep",
+    "bytes": 265039,
+    "sha256": "9d8c982fe17c937705e36aca44b710398c7f1c47046d54b1545864fbb0128c1e",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/micro/native/rank3.nsys-rep",
+    "relative_path": "micro/native/rank3.nsys-rep",
+    "bytes": 268280,
+    "sha256": "1dc3bb7e2c661bd3b8a624282b2e2eb88fca02567e69c90ea7c4202a0b3297f8",
+    "scope": "allocation-only microbenchmark"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/megatron/rank0.nsys-rep",
+    "relative_path": "observed/megatron/rank0.nsys-rep",
+    "bytes": 13528742,
+    "sha256": "ca4e3697c363ff768b5ef47da3a6078950090514dfd3dbad518df7f0d078c343",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/megatron/rank1.nsys-rep",
+    "relative_path": "observed/megatron/rank1.nsys-rep",
+    "bytes": 13414809,
+    "sha256": "705847914f34db1b8ba77b9d231597f70c423d63c88038a4393916b0d497ba28",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/megatron/rank2.nsys-rep",
+    "relative_path": "observed/megatron/rank2.nsys-rep",
+    "bytes": 13421576,
+    "sha256": "c1aea0f6a708c199777a5f3418271ed2b918fce8d64e7a0b98775ec124126e6d",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/megatron/rank3.nsys-rep",
+    "relative_path": "observed/megatron/rank3.nsys-rep",
+    "bytes": 14011493,
+    "sha256": "a5fa7daba80a558ca34c437ea388a5e34f77584cebe7f2883ddd9fd03e5fac50",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/pytorch/rank0.nsys-rep",
+    "relative_path": "observed/pytorch/rank0.nsys-rep",
+    "bytes": 13773584,
+    "sha256": "e0b611159217d708a4d25b896007b05675f69ab6893223d2010db7a6ee1a6856",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/pytorch/rank1.nsys-rep",
+    "relative_path": "observed/pytorch/rank1.nsys-rep",
+    "bytes": 13553118,
+    "sha256": "ddcbba95aab669ff58698bef4a4eae77245507d510f82ec6922799bb62b0ab4c",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/pytorch/rank2.nsys-rep",
+    "relative_path": "observed/pytorch/rank2.nsys-rep",
+    "bytes": 13961290,
+    "sha256": "49bca69b47b8a184549cfe3d4c40fe3671ffa0f3c30b253aa8bc4076b78184fe",
+    "scope": "complete training capture"
+  },
+  {
+    "path": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_validation/nsys_allocator_cause_20261118/observed/pytorch/rank3.nsys-rep",
+    "relative_path": "observed/pytorch/rank3.nsys-rep",
+    "bytes": 14564622,
+    "sha256": "fbb068d1dd9f9ddc867de11b6433047531e1bd4d3a7108a632ea712925bdb0a6",
+    "scope": "complete training capture"
+  }
+]

@@ -1,0 +1,4 @@
+{
+  "valid_for_training_performance": false,
+  "reason": "expandable_segments=False OOM during warmup, before CUDA profiler capture; no throughput conclusion"
+}

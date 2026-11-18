@@ -7,7 +7,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 export LD_LIBRARY_PATH='' PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
 export OMP_NUM_THREADS=1 TORCHINDUCTOR_COMPILE_THREADS=1 TOKENIZERS_PARALLELISM=false
 export NUMPY_MADVISE_HUGEPAGE=0 MIMALLOC_ALLOW_LARGE_OS_PAGES=0
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export PYTORCH_CUDA_ALLOC_CONF="${PROFILE_ALLOCATOR_CONF:-expandable_segments:True}"
 PYTHON_BIN="${COSMOS_MEGATRON_PYTHON:-$PWD/.venv/bin/python}"
 export NSYS_CAPTURE="${NSYS_CAPTURE:-1}"
 case "$NSYS_CAPTURE:${PROFILE_PARAM_PREFETCH:-1}" in
@@ -34,6 +34,12 @@ for backend in ${PROFILE_BACKENDS:-pytorch megatron}; do
     fi
     if [[ "${PROFILE_PYTHON_GC:-0}" == "1" ]]; then
         profile_args+=(--profile-python-gc)
+    fi
+    if [[ "${PROFILE_ALLOCATOR:-0}" == "1" ]]; then
+        profile_args+=(--profile-allocator)
+    fi
+    if [[ "${PROFILE_COPY_IN_DEFAULT_STREAM:-0}" == "1" ]]; then
+        profile_args+=(--fsdp-copy-in-default-stream)
     fi
     if [[ "${PROFILE_DISABLE_AUTO_GC:-0}" == "1" ]]; then
         profile_args+=(--disable-auto-gc-after-warmup)
