@@ -10,6 +10,7 @@ the backward includes recomputation under the real flat outer checkpoint.
 """
 
 import argparse
+import gc
 import json
 from pathlib import Path
 
@@ -82,6 +83,10 @@ def run_comparison(*, tokens, width, intermediate, chunk_tokens, device):
     inputs = torch.randn(tokens, width)
     upstream = torch.randn_like(inputs)
     plain, plain_values = measure_case(initial, inputs, upstream, chunk_tokens, False, device)
+    # Release any checkpoint graph cycles before measuring the next case.
+    gc.collect()
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     nested, nested_values = measure_case(initial, inputs, upstream, chunk_tokens, True, device)
     for name in ("output", "input_grad"):
         torch.testing.assert_close(nested_values[name], plain_values[name], rtol=1e-5, atol=1e-6)
