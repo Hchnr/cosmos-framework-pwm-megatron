@@ -522,6 +522,11 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 包含原生VAE/noising的第二轮TP4/FSDP4性能测试正在运行，仍对齐每micro_step/rank的9/11/13样本、双方7更新排除前2。媒体解码在本轮外；VAE启用相同的全部空间bucket AOT编译，冷启动编译仍进行中，暂时没有可报告的稳态结果。已完成的prepared计算性能结果不受影响。
 
 
+2026-11-19即时集成补充：独立worktree修正CPU planning测试漏mock的 `torch.tensor(device="cuda")`，GPU完全隐藏后101项通过、1项跳过，Ruff通过。原生完整block对照使用逐参数原生FP32 norm和独立meta模型参数顺序后，四rank连续三更新的固定门槛全部通过；这仍是汇集权重的诊断，不代表正式分片TP已通过。正式FP32数值和完整576槽容量限制继续有效。
+
+PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 `.pre-commit-config.yaml` 原有锁定的 `rumdl==0.1.62` 时失败（没有可安装发行包），尚未执行后续完整检查。本次按用户明确要求立即集成当前进度，不扩展修改无关Markdown、脚本权限或CI规则，也不将该CI状态记录为通过。
+
+
 ### 2026-11-19：追加的正确性证据和性能候选
 
 用户进一步明确，性能完成门槛为同每rank/microstep batch下四卡整机samples/s打平FSDP4，而不是仅比较每更新秒数。当前prepared计算TP4/FSDP4吞吐比0.677209，仍未达标。含VAE/noising的首轮完整7更新已结束，TP约18.7710秒/更新、FSDP约34.2760秒/更新，吞吐比0.45650；其中FSDP窗口遭遇并发CPU测试误触CUDA初始化，已在原始JSON中明确provisional及clean_repeat_required，不作为性能验收证据。

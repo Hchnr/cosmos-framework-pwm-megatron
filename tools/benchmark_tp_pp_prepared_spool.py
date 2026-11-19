@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Measure CPU serialization/readback of one immutable real prepared payload.
 
 Uses the production buffered temporary-file/link publication protocol. Excludes

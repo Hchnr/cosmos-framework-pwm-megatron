@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Read full-capacity logical streams without constructing a decoder or VAE.
 
 The resulting first-update manifest is consumed by the independent native
