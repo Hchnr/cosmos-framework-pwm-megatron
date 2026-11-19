@@ -17,6 +17,7 @@ def test_fp32_requires_all_updates_and_profiled_rank_counts(tmp_path):
             "mode": "candidate",
             "tp": 2,
             "full_ac_compile": True,
+            "shared_input_reduction": True,
             "full_model_acceptance": False,
             "functional_all_reduce_calls_per_update": [70, 70, 70, 70],
             "peak_cuda_allocated_bytes": 123,

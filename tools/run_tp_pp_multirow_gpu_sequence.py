@@ -44,6 +44,7 @@ def load_fp32_case(output, world, mode):
             and sidecar.get("mode") == mode
             and sidecar.get("tp") == world
             and sidecar.get("full_ac_compile") is True
+            and sidecar.get("shared_input_reduction") is True
             and sidecar.get("full_model_acceptance") is False
             and isinstance(counts, list)
             and len(counts) == 4
