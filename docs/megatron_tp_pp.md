@@ -651,6 +651,12 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个真实 fixture 做四卡零容差输出和 RNG 检查，各 rank 均执行 9 次候选调用；这不替代完整模型正确性验证。同口径重复性能组完成 7 更新、2 预热、5 测量，候选 TP4 的同步窗口为 **2.259224 样本/秒**，FSDP4 为 **3.835746 样本/秒**，吞吐比 **58.90%**。此前原 TP4 的一次测量为 2.282668 样本/秒，而对应 FSDP4 为 3.858637 样本/秒；两次实验非同时，约 1% 差异不足以证明稳定变慢或存在收益。两次 TP 测量中的 PyTorch allocated 峰值均约 65.1 GiB/卡，此指标不包含首次 tokenizer AOT 初始化峰值，也不等于设备总占用。当前证据不支持将批量 P2P 作为性能优化启用；报告及四 rank 合同副本在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_batched_p2p_results_20261120/`。
 
+### 2026-11-20：Q/K norm 上游梯度布局与 FP32 三步诊断
+
+对已保存的 4 层、4 个训练态 Q/K norm、2 个 microstep 的真实捕获，TP 四 rank 重组后的完整输入和上游梯度与 native 的 64 个对应张量逐元素一致，但上游梯度 stride 不同。真实 CUDA 同输入重放中，native stride 的 16 个两 microstep 累计权重梯度均与 native 参考逐位一致；将其重建成 contiguous 时 16 个张量共 1,379/2,048 个元素不同；恢复 native stride 后 16/16 再次逐位一致。这验证的是已捕获模块的布局影响，并非所有模型配置的通用证明。
+
+在原组合全宽 QKV、attention、MLP 和 row 诊断中，加入受控逐层 checkpoint，并将全 head Q/K norm 权重梯度计算的上游梯度恢复为已观察的 native stride 后，TP4/PP1 的 36 层裁剪输入 FP32 诊断连续三更新通过完整 gate：四 rank 各 2,433 条梯度比较、7,299 条 master/Adam moments 比较及输出比较的最大绝对误差均为 0，目标布局每 rank 命中 864 次且无回退。来源、逐 rank 报告和校验清单位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/qk_native_stride_diagnostic_20261120/`。原始容量、576-slot、其他并行拓扑以及生产数值/性能尚未通过验收；该诊断使用全宽计算和限定形状的布局恢复，不能作为生产实现或吞吐结论。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
