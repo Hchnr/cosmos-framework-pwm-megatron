@@ -237,6 +237,8 @@ def validate_reports(root):
                 raise ValueError("Missing 21 runtime microbatch samples")
             if sum(row["phase"] == "microbatch_after_prepare" for row in report["events"]) != 21:
                 raise ValueError("Missing 21 post-prepare runtime samples")
+            if sum(row["phase"] == "update_after_optimizer" for row in report["events"]) != 7:
+                raise ValueError("Missing 7 post-optimizer runtime samples")
             reports.append(report)
     settings = reports[0]["compile_settings"]
     vae = reports[0]["vae_compile"]

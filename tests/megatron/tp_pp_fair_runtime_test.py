@@ -2,11 +2,78 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 import json
+from types import SimpleNamespace
 
 import pytest
 import torch
 
 from tools.tp_pp_fair_runtime import EXPECTED, RuntimeAudit, runtime_flags, validate_reports
+
+
+def test_tp_and_fsdp_installers_audit_the_same_each_microbatch():
+    from collections import Counter
+
+    from tools.run_tp4_fsdp4_raw_microbatch_benchmark import install_fsdp_runtime_audit, install_tp_runtime_audit
+
+    class Audit:
+        def __init__(self):
+            self.calls = []
+
+        def check(self, phase):
+            self.calls.append(phase)
+
+        def modules(self, model):
+            self.calls.append("modules")
+
+        def begin_update(self, iteration):
+            self.calls.append(("begin", iteration))
+
+        def end_update(self, iteration):
+            self.calls.append(("end", iteration))
+
+    class Driver:
+        def __init__(self):
+            self.iteration, self.microbatches, self.stage = 1200, 3, object()
+
+        def forward_backward(self, batches):
+            return list(batches)
+
+        def step(self):
+            self.iteration += 1
+            return True
+
+    class Raw:
+        def prepare(self, loader, slot):
+            return slot.micro_step
+
+    native = SimpleNamespace(prepared_step=lambda model, batch: batch)
+
+    class Trainer:
+        def training_step(self, batch, *, iteration, grad_accum_iter):
+            native.prepared_step(self, batch)
+            return None, None, (grad_accum_iter + 1) % 3
+
+    tp, fsdp = Audit(), Audit()
+    install_tp_runtime_audit(Driver, tp)
+    install_fsdp_runtime_audit(Raw, Trainer, native, fsdp)
+    driver, raw, trainer = Driver(), Raw(), Trainer()
+    for iteration in range(1200, 1207):
+        assert driver.forward_backward(iter(range(3))) == [0, 1, 2]
+        assert driver.step()
+        accumulation = 0
+        for micro_step in range(3):
+            slot = SimpleNamespace(update=iteration, micro_step=micro_step)
+            batch = raw.prepare(None, slot)
+            _, _, accumulation = trainer.training_step(batch, iteration=iteration, grad_accum_iter=accumulation)
+        assert accumulation == 0
+    expected = Counter(
+        {"modules": 21, "microbatch_before": 21, "microbatch_after_prepare": 21, "update_after_optimizer": 7}
+    )
+    assert Counter(call for call in tp.calls if isinstance(call, str)) == expected
+    assert Counter(call for call in fsdp.calls if isinstance(call, str)) == expected
+    boundaries = [(phase, iteration) for iteration in range(1200, 1207) for phase in ("begin", "end")]
+    assert [call for call in tp.calls if isinstance(call, tuple)] == boundaries
+    assert [call for call in fsdp.calls if isinstance(call, tuple)] == boundaries
 
 
 def write_reports(root):
@@ -26,6 +93,14 @@ def write_reports(root):
                     }
                     for _ in range(21)
                     for phase in ("microbatch_before", "microbatch_after_prepare")
+                ]
+                + [
+                    {
+                        "phase": "update_after_optimizer",
+                        "flags": EXPECTED,
+                        "compiler_runtime": {"recompile_limit": 128, "use_duck_shape": False},
+                    }
+                    for _ in range(7)
                 ],
                 "compiled_module_count": 36,
                 "compiled_layer_indices": list(range(36)),
@@ -103,6 +178,16 @@ def test_window_uses_earliest_rank_start_and_latest_rank_end(tmp_path):
     assert window["start_ns"] == 41
     assert window["end_ns"] == 600
     assert window["seconds"] == 559 / 1e9
+
+
+def test_post_optimizer_runtime_sample_is_required(tmp_path):
+    write_reports(tmp_path)
+    path = tmp_path / "tp/runtime_fairness.rank3.json"
+    report = json.loads(path.read_text())
+    report["events"] = [row for row in report["events"] if row["phase"] != "update_after_optimizer"]
+    path.write_text(json.dumps(report))
+    with pytest.raises(ValueError, match="post-optimizer"):
+        validate_reports(tmp_path)
 
 
 def test_window_synchronizes_only_at_measured_boundaries(monkeypatch):

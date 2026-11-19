@@ -81,6 +81,68 @@ class RawMicrosteps:
         return batch
 
 
+def install_tp_runtime_audit(driver_class, audit):
+    """Measure the production TP loop with one identical check pair per slot."""
+    original_forward_backward = driver_class.forward_backward
+
+    def forward_backward(driver, batches, *positional, **keywords):
+        audit.begin_update(driver.iteration)
+
+        def checked_batches():
+            for _ in range(driver.microbatches):
+                audit.modules(driver.stage)
+                audit.check("microbatch_before")
+                batch = next(iterator)
+                audit.check("microbatch_after_prepare")
+                yield batch
+
+        iterator = iter(batches)
+        return original_forward_backward(driver, checked_batches(), *positional, **keywords)
+
+    driver_class.forward_backward = forward_backward
+    original_step = driver_class.step
+
+    def step(driver, *positional, **keywords):
+        iteration = driver.iteration
+        result = original_step(driver, *positional, **keywords)
+        audit.check("update_after_optimizer")
+        audit.end_update(iteration)
+        return result
+
+    driver_class.step = step
+
+
+def install_fsdp_runtime_audit(raw_class, trainer_class, native, audit):
+    """Measure the native loop with the same per-slot audit as TP."""
+    original_prepared_step = native.prepared_step
+    original_prepare = raw_class.prepare
+    original_training_step = trainer_class.training_step
+
+    def prepare(*positional, **keywords):
+        slot = positional[2]
+        if slot.micro_step == 0:
+            audit.begin_update(slot.update)
+        audit.check("microbatch_before")
+        result = original_prepare(*positional, **keywords)
+        audit.check("microbatch_after_prepare")
+        return result
+
+    def prepared_step(model, *positional, **keywords):
+        audit.modules(model)
+        return original_prepared_step(model, *positional, **keywords)
+
+    def training_step(trainer, *positional, **keywords):
+        result = original_training_step(trainer, *positional, **keywords)
+        if result[2] == 0:
+            audit.check("update_after_optimizer")
+            audit.end_update(keywords["iteration"])
+        return result
+
+    raw_class.prepare = prepare
+    native.prepared_step = prepared_step
+    trainer_class.training_step = training_step
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--raw-fixture", type=Path, required=True)
@@ -95,34 +157,7 @@ def main():
     if backend == "tp":
         from cosmos_framework.training_backends.megatron_tp_pp.driver import ModelParallelDriver
 
-        original_forward_backward = ModelParallelDriver.forward_backward
-
-        def forward_backward(driver, batches, *positional, **keywords):
-            audit.begin_update(driver.iteration)
-
-            def checked_batches():
-                for _ in range(driver.microbatches):
-                    audit.modules(driver.stage)
-                    audit.check("microbatch_before")
-                    batch = next(iterator)
-                    audit.check("microbatch_after_prepare")
-                    yield batch
-
-            iterator = iter(batches)
-            result = original_forward_backward(driver, checked_batches(), *positional, **keywords)
-            audit.check("update_after_forward_backward")
-            return result
-
-        ModelParallelDriver.forward_backward = forward_backward
-        original_step = ModelParallelDriver.step
-
-        def step(driver, *positional, **keywords):
-            iteration = driver.iteration
-            result = original_step(driver, *positional, **keywords)
-            audit.end_update(iteration)
-            return result
-
-        ModelParallelDriver.step = step
+        install_tp_runtime_audit(ModelParallelDriver, audit)
     elif backend != "fsdp":
         raise ValueError(f"Unknown backend: {backend}")
     RawMicrosteps.directory = args.raw_fixture
@@ -159,36 +194,7 @@ def main():
         from cosmos_framework.trainer import ImaginaireTrainer
         from tools import run_tp_pp_native_reference as native
 
-        original_prepared_step = native.prepared_step
-        original_prepare = RawMicrosteps.prepare
-        original_training_step = ImaginaireTrainer.training_step
-
-        def prepare(*positional, **keywords):
-            slot = positional[2]
-            if slot.micro_step == 0:
-                audit.begin_update(slot.update)
-            audit.check("microbatch_before")
-            result = original_prepare(*positional, **keywords)
-            audit.check("microbatch_after_prepare")
-            return result
-
-        def prepared_step(model, *positional, **keywords):
-            audit.modules(model)
-            audit.check("model_forward_before")
-            result = original_prepared_step(model, *positional, **keywords)
-            audit.check("model_forward_after")
-            return result
-
-        RawMicrosteps.prepare = prepare
-        native.prepared_step = prepared_step
-
-        def training_step(trainer, *positional, **keywords):
-            result = original_training_step(trainer, *positional, **keywords)
-            if result[2] == 0:
-                audit.end_update(keywords["iteration"])
-            return result
-
-        ImaginaireTrainer.training_step = training_step
+        install_fsdp_runtime_audit(RawMicrosteps, ImaginaireTrainer, native, audit)
     sys.argv = [sys.argv[0], *remainder]
     try:
         benchmark.main()
