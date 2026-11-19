@@ -84,22 +84,25 @@ def test_state_witness_checks_master_moments_step_and_compute_before_forward(tmp
         "exp_avg_sq": torch.tensor([5.0, 6.0]),
         "step": torch.tensor(7),
     }
-    entry = SimpleNamespace(
-        name="local",
-        master=master,
-        model_parameter=master.clone(),
-        state={"exp_avg": saved["exp_avg"].clone(), "exp_avg_sq": saved["exp_avg_sq"].clone()},
-        step=7,
-        select=lambda tensor: tensor,
-    )
+    entries = [
+        SimpleNamespace(
+            name=f"local{i}",
+            master=master,
+            model_parameter=master.clone(),
+            state={"exp_avg": saved["exp_avg"].clone(), "exp_avg_sq": saved["exp_avg_sq"].clone()},
+            step=7,
+            select=lambda tensor: tensor,
+        )
+        for i in range(811)
+    ]
     if corrupt_moment:
-        entry.state["exp_avg"][0] += 1
-    spec = SimpleNamespace(canonical_name="net.p0", select=lambda tensor: tensor)
+        entries[0].state["exp_avg"][0] += 1
+    specs = {f"local{i}": SimpleNamespace(canonical_name=f"net.p{i}", select=lambda tensor: tensor) for i in range(811)}
     calls = []
     monkeypatch.setattr(torch.distributed, "get_rank", lambda: 0)
     monkeypatch.setattr(torch, "load", lambda *args, **kwargs: saved)
-    monkeypatch.setattr(optimizer, "adam_parameter_states", lambda *args: [entry])
-    monkeypatch.setattr(parameter_map, "stage_parameter_manifest", lambda *args: {"local": spec})
+    monkeypatch.setattr(optimizer, "adam_parameter_states", lambda *args: entries)
+    monkeypatch.setattr(parameter_map, "stage_parameter_manifest", lambda *args: specs)
     monkeypatch.setattr(driver.ModelParallelDriver, "forward_backward", lambda *args, **kwargs: calls.append("forward"))
     install_state_witness(reference, tmp_path / "witness")
     instance = SimpleNamespace(iteration=1, stage=object(), optimizer=object())
@@ -112,7 +115,7 @@ def test_state_witness_checks_master_moments_step_and_compute_before_forward(tmp
         driver.ModelParallelDriver.forward_backward(instance, (), None)
         assert calls == ["forward"]
         evidence = json.loads((tmp_path / "witness/replay_state.update1.rank0.json").read_text())
-        assert evidence["verified_shards"] == 1 and evidence["master_moments_step_compute_exact"]
+        assert evidence["verified_shards"] == 811 and evidence["master_moments_step_compute_exact"]
 
 
 def test_expected_diagnostic_exit_is_recognized_only_after_all_witnesses(tmp_path, monkeypatch):
@@ -137,7 +140,7 @@ def test_expected_diagnostic_exit_is_recognized_only_after_all_witnesses(tmp_pat
     witness.mkdir()
     for update in (1, 2):
         (witness / f"replay_state.update{update}.rank0.json").write_text(
-            json.dumps({"verified_shards": 1, "master_moments_step_compute_exact": True})
+            json.dumps({"verified_shards": 811, "master_moments_step_compute_exact": True})
         )
     monkeypatch.setenv("RANK", "0")
     monkeypatch.setattr(wrapper, "install_state_witness", lambda *unused: None)
