@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""Opt-in UND-token-selective mm checkpoint policy; not a validated optimization.
+"""Opt-in row-count heuristic for checkpointing selected mm outputs.
 
-Only static fixed-capacity three-stream models with distinct token counts are
-eligible. The checkpoint policy saves mm outputs whose first input dimension is
-one of the declared UND buckets. Stage construction and compile policy remain
-otherwise unchanged. Actual compiler decisions and memory use require profiling.
+An mm is tagged for saving when its first input has the same row count as a
+declared UND bucket. This is a shape heuristic, not proof of tensor provenance:
+other streams or intermediates may have the same row count. Only static
+fixed-capacity three-stream models with distinct declared capacities are
+eligible. Actual compiler decisions and memory use require profiling.
 """
 
 import argparse
@@ -57,12 +58,16 @@ class Observation:
         self.data = {
             "rank": int(rank),
             "scope": "checkpoint policy tracing; saved kernel behavior requires profiling",
+            "classification": "mm_input_row_count_heuristic",
+            "provenance_verified": False,
+            "matching_non_und_ops_possible": True,
             "stage_count": 0,
             "selected_blocks": 0,
             "token_counts": None,
             "saved_mm_by_tokens": {},
             "saved_mm_by_shape": {},
             "seen_mm_by_shape": {},
+            "saved_mm_by_shape_and_requires_grad": {},
             "completed": False,
             "failure": None,
         }
@@ -77,11 +82,11 @@ class Observation:
 
     def finish(self, error=None):
         if error is None and not self.data["saved_mm_by_tokens"]:
-            error = "No UND mm save was observed; compilation cache or unsupported capture path"
+            error = "No row-matched mm save was observed; compilation cache or unsupported capture path"
         self.data["completed"] = error is None
         self.data["failure"] = error
         self.save()
-        if error is not None and error.startswith("No UND mm save"):
+        if error is not None and error.startswith("No row-matched mm save"):
             raise RuntimeError(error)
 
 
@@ -100,6 +105,10 @@ def make_policy(lengths, observation):
             counts[tokens] = counts.get(tokens, 0) + 1
             shapes = observation.data["saved_mm_by_shape"]
             shapes[key] = shapes.get(key, 0) + 1
+            flags = tuple(bool(arg.requires_grad) for arg in args[:2])
+            annotated = f"{key}; input_requires_grad={flags}"
+            details = observation.data["saved_mm_by_shape_and_requires_grad"]
+            details[annotated] = details.get(annotated, 0) + 1
             return CheckpointPolicy.MUST_SAVE
         return CheckpointPolicy.MUST_RECOMPUTE
 
@@ -162,7 +171,14 @@ def main():
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--selective-layers", type=int, required=True)
     parser.add_argument("--shared-input-reduction", action="store_true")
+    parser.add_argument(
+        "--allow-row-count-heuristic",
+        action="store_true",
+        help="Acknowledge that matching mm rows do not prove UND provenance",
+    )
     args, remainder = parser.parse_known_args()
+    if not args.allow_row_count_heuristic:
+        parser.error("This candidate requires --allow-row-count-heuristic; mm provenance is not verified")
     observation = Observation(args.report_dir, os.environ.get("RANK", ""))
     try:
         if args.shared_input_reduction:

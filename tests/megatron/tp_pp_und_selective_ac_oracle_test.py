@@ -15,7 +15,14 @@ from tools.qualify_tp_pp_und_selective_ac import configure_native_buckets, valid
 
 
 def valid_inputs():
-    observation = SimpleNamespace(data={"stage_count": 1, "selected_blocks": 2, "saved_mm_by_tokens": {"4": 1, "8": 1}})
+    observation = SimpleNamespace(
+        data={
+            "stage_count": 1,
+            "selected_blocks": 2,
+            "saved_mm_by_tokens": {"4": 1, "8": 1},
+            "provenance_verified": False,
+        }
+    )
     exercise = {"missing_action": 1, "missing_noisy_targets": 1, "actual_und_tokens": {"4": 1, "8": 1}}
     smoke = {
         "passed": True,
@@ -34,7 +41,7 @@ def test_oracle_requires_two_actual_buckets_and_both_policies():
         validate(observation, exercise, smoke)
     observation, exercise, smoke = valid_inputs()
     del observation.data["saved_mm_by_tokens"]["4"]
-    with pytest.raises(ValueError, match="bucket 4 did not trigger"):
+    with pytest.raises(ValueError, match="row count 4"):
         validate(observation, exercise, smoke)
 
 
@@ -57,6 +64,13 @@ def test_oracle_rejects_missing_fourth_update_or_unselected_stage():
         validate(observation, exercise, smoke)
 
 
+def test_oracle_refuses_to_claim_verified_provenance():
+    observation, exercise, smoke = valid_inputs()
+    observation.data["provenance_verified"] = True
+    with pytest.raises(ValueError, match="provenance is unverified"):
+        validate(observation, exercise, smoke)
+
+
 def test_qualification_entry_is_executable_without_gpu_or_pythonpath(tmp_path):
     script = Path(__file__).resolve().parents[2] / "tools/qualify_tp_pp_und_selective_ac.py"
     result = subprocess.run(
@@ -69,6 +83,28 @@ def test_qualification_entry_is_executable_without_gpu_or_pythonpath(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert "--shared-input-reduction" in result.stdout
+    assert "--allow-row-count-heuristic" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "script,arguments",
+    [
+        ("run_tp_pp_und_selective_ac.py", ["--entry", "unused", "--report-dir", "unused", "--selective-layers", "1"]),
+        ("qualify_tp_pp_und_selective_ac.py", ["--output", "unused", "--report-dir", "unused"]),
+    ],
+)
+def test_both_entries_require_explicit_row_heuristic_acknowledgement(tmp_path, script, arguments):
+    target = Path(__file__).resolve().parents[2] / "tools" / script
+    result = subprocess.run(
+        [sys.executable, str(target), *arguments],
+        cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": "", "LD_LIBRARY_PATH": ""},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode != 0
+    assert "mm provenance is not verified" in result.stderr
 
 
 def test_tiny_fixed_buckets_keep_native_and_stage_predictions_equal():
