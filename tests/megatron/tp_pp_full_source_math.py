@@ -499,6 +499,7 @@ def tp(args, config, language, network, inputs):
     errors = []
     summaries = []
     gate_failures, compute_parameter_checks = [], []
+    norm_checks, step_checks = [], []
     parameter_errors = []
     state_errors = []
     output_errors = []
@@ -552,7 +553,7 @@ def tp(args, config, language, network, inputs):
         def loss_fn(output, batch):
             expected = records[update]["outputs"][batch["slot_id"][2]]
             for key in expected:
-                for actual, target in zip(output[key], expected[key], strict=True):
+                for sample_index, (actual, target) in enumerate(zip(output[key], expected[key], strict=True)):
                     difference = tensor_difference(
                         target,
                         actual.cpu(),
@@ -561,7 +562,15 @@ def tp(args, config, language, network, inputs):
                         exact=False,
                         local_windows=False,
                     )
-                    output_errors.append({"update": update, "slot": batch["slot_id"], "field": key, **difference})
+                    output_errors.append(
+                        {
+                            "update": update,
+                            "slot": batch["slot_id"],
+                            "field": key,
+                            "sample_index": sample_index,
+                            **difference,
+                        }
+                    )
             value = loss_module(output, batch)[0] if loss_module is not None else objective(output)
             return value, {"loss": value.detach()}
 
@@ -593,6 +602,10 @@ def tp(args, config, language, network, inputs):
                     "name": spec.canonical_name,
                     "relative_l2": rel.item(),
                     "maximum_absolute_error": absolute.item(),
+                    "comparison_relative_l2": difference.get("relative_l2"),
+                    "comparison_maximum_absolute_error": difference.get("maximum_absolute_error"),
+                    "reference_squared_l2": difference.get("reference_squared_l2"),
+                    "nonfinite": difference.get("nonfinite", False),
                     "passed": difference["passed"],
                 }
             )
@@ -650,6 +663,14 @@ def tp(args, config, language, network, inputs):
         norm_passed = bool(
             torch.isclose(torch.tensor(norm), torch.tensor(records[update]["norm"]), rtol=1e-4, atol=2e-6)
         )
+        norm_checks.append(
+            {
+                "update": update,
+                "actual": float(torch.tensor(norm).item()),
+                "reference": float(torch.tensor(records[update]["norm"]).item()),
+                "passed": norm_passed,
+            }
+        )
         if not norm_passed:
             gate_failures.append(f"update{update}.norm")
         if not args.observe_all_updates:
@@ -684,6 +705,15 @@ def tp(args, config, language, network, inputs):
                     assert difference["passed"], (update, entry.name, key, difference)
                 state_errors.append({"update": update, "name": spec.canonical_name, "field": key, **difference})
             step_passed = entry.step == int(saved["step"].item())
+            step_checks.append(
+                {
+                    "update": update,
+                    "name": spec.canonical_name,
+                    "actual": int(entry.step),
+                    "reference": int(saved["step"].item()),
+                    "passed": step_passed,
+                }
+            )
             if not step_passed:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.step")
             if not args.observe_all_updates:
@@ -705,6 +735,7 @@ def tp(args, config, language, network, inputs):
         json.dumps(
             {
                 "passed": passed,
+                "rank": dist.get_rank(),
                 "scope": reference["scope"],
                 "objective": args.objective,
                 "retain_full_text": args.retain_full_text,
@@ -715,12 +746,14 @@ def tp(args, config, language, network, inputs):
                 "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
                 "updates": 3,
                 "tensor_parallel_size": args.tp,
-                "pipeline_parallel_size": 2,
+                "pipeline_parallel_size": topology.pipeline_model_parallel_size,
                 "maximum_parameter_gradient_relative_l2": max(errors),
                 "gradient_summary": summaries,
                 "parameter_gradient_errors": parameter_errors,
                 "parameter_state_errors": state_errors,
                 "compute_parameter_checks": compute_parameter_checks,
+                "norm_checks": norm_checks,
+                "step_checks": step_checks,
                 "observe_all_updates": args.observe_all_updates,
                 "replay_native_state": args.replay_native_state,
                 "native_adam_arithmetic": args.native_adam_arithmetic,

@@ -62,6 +62,8 @@ def fingerprints(snapshot):
         ROOT / "tools/run_tp_pp_original_capacity_reference_coordinator.py",
         ROOT / "tools/run_tp_pp_untraced_capacity_math.py",
         ROOT / "tools/run_tp_pp_checkpointed_chunked_mlp_math.py",
+        ROOT / "tools/build_tp_pp_capacity_telemetry.py",
+        ROOT / "tools/tp_pp_capacity_gate.py",
     ]
     assets += [INPUTS / f"rank{rank}.micro0{suffix}.pt" for rank in (0, 1) for suffix in ("", ".loss")]
     return {str(path): digest(path) for path in [*files, *assets]}
@@ -103,6 +105,11 @@ def snapshot_copy(snapshot):
     for name in overlays:
         if digest(ROOT / "tools" / name) != digest(snapshot / "tools" / name):
             raise ValueError(f"Snapshot overlay differs from reviewed source: {name}")
+
+    # Instrument only the isolated math diagnostic; do not change training code.
+    from tools.build_tp_pp_capacity_telemetry import apply as add_comparison_telemetry
+
+    add_comparison_telemetry(snapshot)
 
 
 def common(reference):
@@ -200,36 +207,10 @@ def reference_gate(reference, result):
     return {"passed": True, "updates": updates, "parameters": 811, "parameter_files": len(files)}
 
 
-def tp_gate(output, tp, result):
-    reports = []
-    for rank in range(4):
-        report = json.loads(output.with_name(f"{output.stem}.rank{rank}.json").read_text())
-        if not (
-            report["updates"] == 3
-            and report["original_capacity"] is True
-            and report["attention_backend"] == "flex"
-            and report["objective"] == "native_rf"
-            and report["tensor_parallel_size"] == tp
-            and report["pipeline_parallel_size"] == 4 // tp
-            and report["continuous_trajectory"] is True
-            and report["replay_native_state"] is False
-            and report["native_adam_arithmetic"] is True
-            and report["deterministic_algorithms"] is True
-            and report["activation_cpu_offload"] is True
-            and report["production_capacity_576_slot_acceptance"] is False
-            and len(report["gradient_summary"]) == 3
-            and {item["update"] for item in report["parameter_gradient_errors"]} == {0, 1, 2}
-            and {item["update"] for item in report["parameter_state_errors"]} == {0, 1, 2}
-            and {item["update"] for item in report["compute_parameter_checks"]} == {0, 1, 2}
-            and report["passed"] == report["pointwise_gates_passed"]
-        ):
-            raise ValueError(f"Incomplete TP{tp} observation on rank {rank}")
-        reports.append({"rank": rank, "passed": report["passed"], "gate_failures": len(report["gate_failures"])})
-    passed = all(item["passed"] is True for item in reports)
-    if (result["returncode"] == 0) != passed:
-        # torchrun returns nonzero for a completed observation with failed math gates.
-        raise ValueError(f"TP{tp} return code disagrees with rank reports")
-    return {"passed": passed, "complete_observation": True, "ranks": reports}
+def tp_gate(output, tp, result, reference):
+    from tools.tp_pp_capacity_gate import tp_gate as validate_tp_gate
+
+    return validate_tp_gate(output, tp, result, reference, TP4 if tp == 4 else TP2)
 
 
 def run_case(label, args, snapshot, directory, gpu_count):
@@ -370,7 +351,11 @@ def main():
                 if after != before:
                     raise RuntimeError("Snapshot, canonical metadata or real input changed during diagnostics")
                 case["source_and_input_sha256_unchanged"] = True
-                case["gate"] = reference_gate(args.reference, case) if mode == "native" else tp_gate(output, tp, case)
+                case["gate"] = (
+                    reference_gate(args.reference, case)
+                    if mode == "native"
+                    else tp_gate(output, tp, case, args.reference)
+                )
                 guard.save(result_path, result)
             result["completed"] = True
             result["source_and_input_sha256_after"] = after
