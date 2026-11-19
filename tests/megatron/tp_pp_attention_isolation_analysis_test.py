@@ -105,4 +105,42 @@ def test_reads_actual_recorder_files_when_only_native_requires_sampling(tmp_path
     rows = analyze(native, tp)["rows"]
     assert len(rows) == 2
     assert all(row["scope"] == {"first_last_dim0": 3} for row in rows)
+    assert all(row["native_event_order"] == row["tp_event_order"] == 0 for row in rows)
+    assert all(row["maximum_absolute_error"] == 0 for row in rows)
+
+
+def test_pipeline_layer_on_second_stage_uses_tp_rank_not_global_rank(tmp_path):
+    class Layer(torch.nn.Module):
+        def __init__(self, weights):
+            super().__init__()
+            self.self_attn = torch.nn.Module()
+            self.self_attn.q_proj_moe_gen = torch.nn.Linear(4, weights.shape[0], bias=False)
+            with torch.no_grad():
+                self.self_attn.q_proj_moe_gen.weight.copy_(weights)
+
+        def forward(self, value):
+            return self.self_attn.q_proj_moe_gen(value)
+
+    class Stage(torch.nn.Module):
+        def __init__(self, layer):
+            super().__init__()
+            self.layer = layer
+
+        def forward(self, value):
+            return self.layer(value)
+
+    value = torch.arange(20, dtype=torch.float32).reshape(5, 4)
+    weights = torch.arange(16, dtype=torch.float32).reshape(4, 4)
+    native, tp = tmp_path / "native", tmp_path / "tp"
+    layer = Layer(weights)
+    model = Stage(layer)
+    Recorder(native, rank=0, tp_rank=0, tp_size=1, target_forward=0).attach(model, [(30, layer)])
+    model(value)
+    for tp_rank in range(2):
+        layer = Layer(weights[2 * tp_rank : 2 * (tp_rank + 1)])
+        stage = Stage(layer)
+        Recorder(tp, rank=tp_rank + 2, tp_rank=tp_rank, tp_size=2, target_forward=0).attach(stage, [(30, layer)])
+        stage(value)
+    rows = analyze(native, tp)["rows"]
+    assert {row["rank"] for row in rows} == {2, 3}
     assert all(row["maximum_absolute_error"] == 0 for row in rows)
