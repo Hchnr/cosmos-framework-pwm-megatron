@@ -639,6 +639,16 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 以 prepared 输入的独立五步均值估算，TP4 要从 **7.902 秒/更新**降至约 **5.716 秒/更新**，才能达到当时 FSDP4 的 **5.773 样本/秒**。profile 和计时并非同一次运行，但二者说明通信重叠与计算、重算优化均值得验证，不能仅凭异步通信的合成测试宣称达到目标。上述吞吐不含 VAE/noising，且原对比的运行时设置不完全一致，不是最终端到端验收。
 
+### 2026-11-20：包含 VAE 的 TP4/FSDP4 同微批对比
+
+修正 VAE 子组广播的 root rank 及 AOT 审计的模型访问路径后，四卡 raw fixture 比较已完成，双方均 BF16、full AC、36 层编译、32 个 VAE AOT 变体；每 rank 的三个 microstep 分别处理 9、11、13 个样本，各运行 7 个更新，前 2 个预热、后 5 个测量。双方的 runtime flags 和编译设置一致，TP 四 rank 的 VAE bridge 均记录 21 个 slot 和 21 次调用。FSDP 四个 rank 重复使用 fixture，以下样本数表示处理次数而非不同样本数。
+
+以五次更新前后的 CUDA synchronize 与四 rank barrier 窗口为主指标：TP4 处理 165 个样本、用时 **72.283833 秒**，为 **2.282668 样本/秒**；FSDP4 处理 660 个样本、用时 **171.044864 秒**，为 **3.858637 样本/秒**；TP4 为 FSDP4 的 **59.16%**。每步平均耗时分别约 14.457 秒和 34.209 秒。该结果尚未达到整机吞吐打平目标，也不代表数值正确性通过。
+
+测量包括 fixture 复制、H2D、VAE/noising、训练、通信和优化器，排除媒体解码与 checkpoint 写入。合作锁和采样未发现 GPU 干扰、OOM 或计时窗口内的明显内存压力，但受限的 PID 监控不能绑定主机 GPU 用户身份或排除采样间干扰。为避免重复扫描大型 checkpoint，本轮复用既有 1,214 参数转换验证，并以文件清单、大小、少量 metadata 哈希及运行前后 stat 检查追踪大文件；这些检查不能认证历史全部文件字节或捕获所有变化。报告及四 rank 合同的共享副本在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_aot_fixed_fair_results_20261120/`，结果应按上述范围使用。
+
+在该次测量的 host 计时中，TP rank0 三个 microstep 的 `prepare_enqueue` 均值合计约 **6.315 秒/更新**，FSDP 各 rank 约 **12.57–12.76 秒/更新**。该区间包含输入准备、VAE 分片通信及编码、noising 和异步 GPU 等待，不等同纯 VAE kernel 时间；它指出数据准备值得继续分析，但不能直接将其全部归为可消除开销。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
