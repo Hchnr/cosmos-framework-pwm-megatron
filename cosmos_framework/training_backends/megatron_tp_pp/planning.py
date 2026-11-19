@@ -21,7 +21,7 @@ import torch.distributed as dist
 from cosmos_framework.utils import log
 from cosmos_framework.utils.nvtx import nvtx_range
 
-from .batch import reference_loss_weight
+from .batch import native_sample_level_loss, reference_loss_weight
 from .logical_loader import LogicalDataLoader
 
 _TIMING = {
@@ -84,6 +84,9 @@ def _raw_record(loader, raw, slot, preparation, *, hash_raw=True):
         "slot": (slot.update, slot.micro_step, slot.logical_rank),
         "source": raw["dataset_name"],
         "samples": count,
+        "loss_samples": (
+            _native_vision_prediction_count(packed) if native_sample_level_loss(preparation.config) else count
+        ),
         "image": preparation.is_image_batch(raw),
         "sha256": batch_fingerprint(loader.fingerprint_batch(raw)) if hash_raw else None,
         "tokens": {
@@ -92,6 +95,22 @@ def _raw_record(loader, raw, slot, preparation, *, hash_raw=True):
             "action": packed.action.sequence_indexes.numel() if packed.action is not None else 0,
         },
     }
+
+
+def _native_vision_prediction_count(packed):
+    """Match the length of native ``preds_vision`` used to scale batch loss.
+
+    The static packed payload has one token entry per vision item, which can
+    differ from the number of samples in image editing. When there is no
+    vision payload, native decoding emits one dummy prediction for its graph.
+    """
+    vision = packed.vision
+    if vision is None or vision.tokens is None:
+        return 1
+    count = len(vision.tokens)
+    if count == 0:
+        raise ValueError("An empty vision payload cannot produce native dummy predictions")
+    return count
 
 
 def completed_sample_totals(records, topology, *, owner, model_group, source_rank, dp_group):
@@ -108,10 +127,10 @@ def completed_sample_totals(records, topology, *, owner, model_group, source_ran
 
 
 def preflight_update(loader, slots, topology, preparation, *, owner, model_group, source_rank, dp_group):
-    """All model-parallel ranks participate in bounded per-batch progress P2P."""
+    """Collect sample reporting counts and native loss counts in one preflight."""
     snapshot = loader.logical_state_dict() if owner else None
     records = []
-    totals = torch.zeros(topology.reference_micro_steps_per_update, 2, dtype=torch.float64, device="cuda")
+    totals = torch.zeros(topology.reference_micro_steps_per_update, 2, 2, dtype=torch.float64, device="cuda")
     try:
         for slot in slots:
             progress = torch.empty(2, dtype=torch.int64, device="cuda")
@@ -127,7 +146,8 @@ def preflight_update(loader, slots, topology, preparation, *, owner, model_group
                 record["host_seconds"] = {"preflight_load": load_seconds, "preflight_hash": hash_seconds}
                 records.append(record)
                 count, image = record["samples"], record["image"]
-                totals[slot.micro_step, 0 if image else 1] += count
+                totals[slot.micro_step, 0 if image else 1, 0] += count
+                totals[slot.micro_step, 0 if image else 1, 1] += record["loss_samples"]
                 progress.copy_(torch.tensor([count, image], dtype=torch.int64, device="cuda"))
                 loader.commit_batch(batch)
                 del batch
@@ -152,13 +172,21 @@ def preflight_update(loader, slots, topology, preparation, *, owner, model_group
         )
     else:
         replacement = None
-    return replacement, records, totals.cpu().tolist()
+    totals_cpu = totals.cpu().tolist()
+    return (
+        replacement,
+        records,
+        {
+            "samples": [[cell[0] for cell in row] for row in totals_cpu],
+            "loss_samples": [[cell[1] for cell in row] for row in totals_cpu],
+        },
+    )
 
 
 def prepare_slot(
     loader, slot, record, totals, topology, preparation, rng, *, trace_prepared=False, capture_dir=None, hash_raw=True
 ):
-    if totals is None and preparation.config.rectified_flow_training_config.sample_level_loss_averaging:
+    if totals is None and native_sample_level_loss(preparation.config):
         raise ValueError("Sample-level averaging requires preflight denominators")
     started = time.monotonic()
     with nvtx_range("tp_pp.replay_load"):
@@ -199,11 +227,13 @@ def prepare_slot(
     record["host_seconds"]["acceptance_trace"] = time.monotonic() - prepared
     if batch["sample_count"] != record["samples"] or batch["loss_inputs"]["is_image_batch"] != record["image"]:
         raise ValueError("Prepared sample/modality counts differ from the native static pack")
-    if preparation.config.rectified_flow_training_config.sample_level_loss_averaging:
+    if native_sample_level_loss(preparation.config):
+        if _native_vision_prediction_count(batch["packed_sequence"]) != record["loss_samples"]:
+            raise ValueError("Prepared native prediction count differs from the preflight static pack")
         batch["weight"] = reference_loss_weight(
             topology,
-            local_samples=record["samples"],
-            reference_modality_samples=totals[slot.micro_step][0 if record["image"] else 1],
+            local_samples=record["loss_samples"],
+            reference_modality_samples=totals["loss_samples"][slot.micro_step][0 if record["image"] else 1],
         )
     batch["slot_id"] = (slot.update, slot.micro_step, slot.logical_rank)
     if capture_dir is not None:

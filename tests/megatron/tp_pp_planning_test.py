@@ -52,7 +52,9 @@ def test_preflight_then_replay_keeps_samples_augmentations_and_weights(monkeypat
     slots = logical_slots(topology, update=1200, data_parallel_size=1, data_parallel_rank=0)
     preparation = SimpleNamespace(
         is_image_batch=lambda raw: raw["dataset_name"] == "source_0",
-        config=SimpleNamespace(rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)),
+        config=SimpleNamespace(
+            vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
+        ),
     )
     preparation.prepare = lambda raw, iteration: {
         "sample_count": len(raw["packed_sequence"].sample_lens),
@@ -70,7 +72,7 @@ def test_preflight_then_replay_keeps_samples_augmentations_and_weights(monkeypat
         loader, slots, topology, preparation, owner=True, model_group=None, source_rank=0, dp_group=None
     )
     try:
-        assert sum(sum(row) for row in totals) == sum(record["samples"] for record in records)
+        assert sum(sum(row) for row in totals["samples"]) == sum(record["samples"] for record in records)
         for slot, record in zip(slots, records, strict=True):
             result = planning.prepare_slot(
                 replay,
@@ -113,7 +115,9 @@ def test_single_pass_matches_double_pass_inputs_and_committed_loader_rng(monkeyp
     slots = logical_slots(topology, update=1200, data_parallel_size=1, data_parallel_rank=0)
     preparation = SimpleNamespace(
         is_image_batch=lambda raw: raw["dataset_name"] == "source_0",
-        config=SimpleNamespace(rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=False)),
+        config=SimpleNamespace(
+            vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=False)
+        ),
     )
     preparation.prepare = lambda raw, step: {
         "sample_count": len(raw["packed_sequence"].sample_lens),
@@ -164,7 +168,7 @@ def test_single_pass_matches_double_pass_inputs_and_committed_loader_rng(monkeyp
                     records, topology, owner=True, model_group=None, source_rank=0, dp_group=None
                 )
                 if totals is not None:
-                    assert actual_totals == totals
+                    assert actual_totals == totals["samples"]
                 updates.append(
                     (
                         [

@@ -8,6 +8,8 @@ from torch import nn
 
 from cosmos_framework.model.generator.omni_mot_model import OmniMoTModel
 
+from .batch import native_sample_level_loss
+
 
 class GenerationPreparation(OmniMoTModel):
     """Construct tokenizers only on the first-stage TP data owner.
@@ -60,7 +62,7 @@ class GenerationLoss(OmniMoTModel):
 
     def forward(self, outputs, batch):
         weight = batch.get("weight")
-        if self.config.rectified_flow_training_config.sample_level_loss_averaging and weight is None:
+        if native_sample_level_loss(self.config) and weight is None:
             raise ValueError("Prepare logical micro-step sample weights before the pipeline schedule")
         if weight is not None:
             weight = torch.as_tensor(weight, **self.tensor_kwargs_fp32)
