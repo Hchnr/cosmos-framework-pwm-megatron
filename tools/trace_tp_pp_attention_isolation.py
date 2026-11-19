@@ -52,6 +52,7 @@ class Recorder:
         self.attention_call = 0
         self.seen_layers = set()
         self.seen_modules = set()
+        self.event_order = 0
 
     def begin(self, module, inputs):
         self.sequence += 1
@@ -88,8 +89,10 @@ class Recorder:
             "stride": stride,
             "scope": scope,
             "stored_sha256": digest,
+            "event_order": self.event_order,
             "value": selected,
         }
+        self.event_order += 1
         path = self.directory / f"layer{layer:02d}.{tag}.{kind}.rank{self.rank}.pt"
         with path.open("xb") as handle:
             torch.save(record, handle)
