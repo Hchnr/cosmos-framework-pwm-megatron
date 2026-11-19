@@ -531,3 +531,8 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 性能候选 `tools/tp_pp_shared_input_reduction.py` 保留独立MCore GEMM与canonical参数，将共享输入的Q/K/V或gate/up本地dgrad先累积再做一次TP SUM。CPU覆盖全使用/部分断开/全部断开三种情况，未使用参数保持grad=None，输入梯度归约次数从活跃分支数降为1或0。真实TP2/PP1两层生产I/O、compile/full AC、12微批×四次非零Adam资格检查通过，最大逐参数梯度相对L2=7.4872e-7；不是完整模型验收。最初一次GPU资格失败于Dynamo不支持bool(tuple)，已将eligibility移至构建阶段，保留失败日志并用v2重新通过。真实TP4七更新和预热后完整更新Nsight对照等待当前数学窗口结束后串行运行。画像入口的三项边界测试通过，画像不用于稳态吞吐结论。
 
 原始未裁剪FP32/Flex/full-AC参考也已排队，目标保留原始每个sample/token/target，再做TP4和TP2三步对照。旧原容量参考因内存压力未完成，本次利用已资格通过的full AC重试；仍未取得完整输入参考或验收结果。全部新命令和进程身份记录于 `outputs/megatron_tp4_fsdp4_microbatch_20261119`。上述原始JSON报告也位于该目录。
+
+
+同输入的真实TP4 prepared计算性能已取得：共享输入归约候选前2次预热、后5次测量，平均7.913418秒/更新、4.170132样本/秒，相比原TP4的3.916505样本/秒提升约6.48%；原生FSDP4为5.783304样本/秒，候选仅达到72.11%，尚未达标。双方每microstep按rank分别处理相同9/11/13样本，global batch不同；本轮不含VAE/noising和媒体解码。原始合同及逐rank计时见 `shared_input_tp4_comparison.json`。两卡四更新和未使用梯度资格已通过，但该候选尚未通过完整模型正确性验收，默认后端没有启用它。
+
+标准FP32三步仍失败。线性FP64中间累积诊断的TP4三步梯度相对L2为2.940852e-4/1.966250e-3/0.1288971，仍失败；逐层采样显示第二输入的VIDEO反向误差在30–32层明显放大。新增独立attention/QK norm录制入口，仅用于固定输入、定位算子及梯度，不作为正确性验收。新增Inductor通信重排及选择性AC两个隔离候选；CPU配置与录制检查共17项通过，但还没有真实GPU资格和性能结论。全原始packed输入的FP32/Flex/full AC参考正在排队，不得以裁剪样例代替。
