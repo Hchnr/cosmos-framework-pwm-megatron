@@ -4,8 +4,8 @@
 """Opt-in attention/QK-norm trace for one real forward; never an acceptance test.
 
 The wrapper instruments native or TP eager execution without editing model code.
-It records layer 30--32 module/attention tensors and cotangents, on every TP
-rank, for forward index 1 by default. Full tensors up to the element limit are
+It records selected layer module/attention tensors and cotangents, on every TP
+rank, for forward index 1 and layers 30--32 by default. Full tensors up to the element limit are
 saved; larger tensors retain the first/last rows along dimension 0 when that
 axis is long enough, otherwise the full tensor is kept. Each record
 contains its original dtype, shape, strides, sample scope and SHA256 of the
@@ -42,9 +42,27 @@ MODULE_NAMES = (
 
 
 class Recorder:
-    def __init__(self, directory, *, rank, tp_rank, tp_size, target_forward=1, max_elements=4_000_000, rows=32):
+    def __init__(
+        self,
+        directory,
+        *,
+        rank,
+        tp_rank,
+        tp_size,
+        target_forward=1,
+        max_elements=4_000_000,
+        rows=32,
+        layers=(30, 31, 32),
+    ):
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
+        if (
+            not layers
+            or len(set(layers)) != len(layers)
+            or any(not isinstance(index, int) or index < 0 for index in layers)
+        ):
+            raise ValueError("Layer indices must be nonnegative and unique")
+        self.layers = frozenset(layers)
         self.rank, self.tp_rank, self.tp_size = rank, tp_rank, tp_size
         self.target_forward, self.max_elements, self.rows = target_forward, max_elements, rows
         self.sequence = -1
@@ -110,7 +128,7 @@ class Recorder:
         root.register_forward_pre_hook(self.begin)
         for index, layer in layers:
             index = int(index)
-            if index not in (30, 31, 32):
+            if index not in self.layers:
                 continue
 
             def enter(module, inputs, layer_index=index):
@@ -183,7 +201,40 @@ class Recorder:
         return output
 
 
-def install(directory, *, target_forward, max_elements, rows):
+def attach_recorders(
+    root,
+    layers,
+    directory,
+    kind,
+    *,
+    rank,
+    tp_rank,
+    tp_size,
+    target_forwards,
+    split_by_forward,
+    max_elements,
+    rows,
+    selected_layers,
+):
+    recorders = []
+    for target_forward in target_forwards:
+        base = Path(directory) / f"forward{target_forward:03d}" if split_by_forward else Path(directory)
+        recorder = Recorder(
+            base / kind,
+            rank=rank,
+            tp_rank=tp_rank,
+            tp_size=tp_size,
+            target_forward=target_forward,
+            max_elements=max_elements,
+            rows=rows,
+            layers=selected_layers,
+        )
+        recorder.attach(root, layers)
+        recorders.append(recorder)
+    return recorders
+
+
+def install(directory, *, target_forwards, split_by_forward, max_elements, rows, layers=(30, 31, 32)):
     import torch.distributed as dist
 
     from cosmos_framework.model.generator.megatron_tp_pp.stage import PipelineStage
@@ -196,17 +247,22 @@ def install(directory, *, target_forward, max_elements, rows):
         from megatron.core import parallel_state as ps
 
         original_stage(stage, *args, **kwargs)
-        recorder = Recorder(
-            Path(directory) / "tp",
-            rank=dist.get_rank(),
-            tp_rank=ps.get_tensor_model_parallel_rank(),
-            tp_size=ps.get_tensor_model_parallel_world_size(),
-            target_forward=target_forward,
-            max_elements=max_elements,
-            rows=rows,
+        recorders.extend(
+            attach_recorders(
+                stage,
+                list(stage.layers.items()),
+                directory,
+                "tp",
+                rank=dist.get_rank(),
+                tp_rank=ps.get_tensor_model_parallel_rank(),
+                tp_size=ps.get_tensor_model_parallel_world_size(),
+                target_forwards=target_forwards,
+                split_by_forward=split_by_forward,
+                max_elements=max_elements,
+                rows=rows,
+                selected_layers=layers,
+            )
         )
-        recorder.attach(stage, list(stage.layers.items()))
-        recorders.append(recorder)
 
     PipelineStage.__init__ = initialize
     import tp_pp_gpu_leaf_reference as reference
@@ -215,17 +271,22 @@ def install(directory, *, target_forward, max_elements, rows):
 
     def place(model):
         handles = original_place(model)
-        recorder = Recorder(
-            Path(directory) / "native",
-            rank=0,
-            tp_rank=0,
-            tp_size=1,
-            target_forward=target_forward,
-            max_elements=max_elements,
-            rows=rows,
+        recorders.extend(
+            attach_recorders(
+                model,
+                list(enumerate(model.language_model.model.layers)),
+                directory,
+                "native",
+                rank=0,
+                tp_rank=0,
+                tp_size=1,
+                target_forwards=target_forwards,
+                split_by_forward=split_by_forward,
+                max_elements=max_elements,
+                rows=rows,
+                selected_layers=layers,
+            )
         )
-        recorder.attach(model, list(enumerate(model.language_model.model.layers)))
-        recorders.append(recorder)
         return handles
 
     reference.place_gpu_trainables = place
@@ -248,16 +309,42 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--entry", choices=("standard", "wide"), required=True)
     parser.add_argument("--capture-dir", type=Path, required=True)
-    parser.add_argument("--forward-index", type=int, default=1)
+    forward = parser.add_mutually_exclusive_group()
+    forward.add_argument("--forward-index", type=int, default=None)
+    forward.add_argument("--forward-indices", help="Comma-separated forward indices, captured in separate directories")
     parser.add_argument("--max-elements", type=int, default=4_000_000)
     parser.add_argument("--rows", type=int, default=32)
+    parser.add_argument("--layers", default="30,31,32", help="Comma-separated global layer indices")
     args, remainder = parser.parse_known_args()
-    if args.forward_index < 0 or args.max_elements < 1 or args.rows < 1:
-        parser.error("Forward index must be nonnegative and sample limits positive")
+    if args.max_elements < 1 or args.rows < 1:
+        parser.error("Sample limits must be positive")
+    try:
+        forwards = (
+            tuple(int(index) for index in args.forward_indices.split(","))
+            if args.forward_indices is not None
+            else (1 if args.forward_index is None else args.forward_index,)
+        )
+    except ValueError:
+        parser.error("Forward indices must be comma-separated integers")
+    if not forwards or len(set(forwards)) != len(forwards) or any(index < 0 for index in forwards):
+        parser.error("Forward indices must be nonnegative and unique")
+    try:
+        layers = tuple(int(index) for index in args.layers.split(","))
+    except ValueError:
+        parser.error("Layers must be comma-separated integer indices")
+    if not layers or len(set(layers)) != len(layers) or any(index < 0 for index in layers):
+        parser.error("Layer indices must be nonnegative and unique")
     if remainder and remainder[0] == "--":
         remainder = remainder[1:]
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests/megatron"))
-    install(args.capture_dir, target_forward=args.forward_index, max_elements=args.max_elements, rows=args.rows)
+    install(
+        args.capture_dir,
+        target_forwards=forwards,
+        split_by_forward=args.forward_indices is not None,
+        max_elements=args.max_elements,
+        rows=args.rows,
+        layers=layers,
+    )
     sys.argv = [sys.argv[0], *remainder]
     if args.entry == "wide":
         from tools.run_tp_pp_wide_linear_math import main as run
