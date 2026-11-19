@@ -171,6 +171,8 @@ class ParallelPreparation:
                 source_rank=dist.get_rank(),
                 dp_group=dist.group.WORLD,
             )
+        else:
+            totals = totals["samples"]
         gathered = [None] * len(self.members)
         dist.all_gather_object(gathered, records, group=self.cpu_group)
         ordered = sorted((row for part in gathered for row in part), key=lambda row: tuple(row["slot"]))

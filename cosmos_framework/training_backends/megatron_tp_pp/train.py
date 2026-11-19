@@ -18,7 +18,7 @@ from cosmos_framework.utils.generator.rand_state import get_rand_state_dict, set
 from cosmos_framework.utils.lazy_config import LazyConfig, instantiate
 
 from . import checkpoint
-from .batch import logical_slots
+from .batch import logical_slots, native_sample_level_loss
 from .bundle import CanonicalBundle
 from .config import ModelParallelConfig
 from .data_state import import_logical_state
@@ -142,8 +142,7 @@ def run(config, args=None, *, initialized_callback=None):
     logical_ranks = tuple(range(dp_rank, topology.logical_data_parallel_size, dp_size))
     trace_prepared = os.environ.get("COSMOS_TP_PP_TRACE_PREPARED", "0") == "1"
     preflight_required = (
-        config.model.config.rectified_flow_training_config.sample_level_loss_averaging
-        or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
+        native_sample_level_loss(config.model.config) or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
     )
     capture_dir = os.environ.get("COSMOS_TP_PP_CAPTURE_PREPARED_DIR")
     capture_iteration_value = os.environ.get("COSMOS_TP_PP_CAPTURE_ITERATION")
@@ -449,6 +448,8 @@ def run(config, args=None, *, initialized_callback=None):
                     source_rank=source_rank,
                     dp_group=data_group,
                 )
+            elif isinstance(totals, dict):
+                totals = totals["samples"]
             report = {
                 "iteration": driver.iteration,
                 "rank": dist.get_rank(),

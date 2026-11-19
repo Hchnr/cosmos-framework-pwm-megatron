@@ -44,7 +44,9 @@ def test_owner_preparation_reuses_native_helper_without_trainable_graph():
 def test_pipeline_loss_cannot_fall_back_to_physical_world_count_collective():
     loss = GenerationLoss.__new__(GenerationLoss)
     nn.Module.__init__(loss)
-    loss.config = SimpleNamespace(rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True))
+    loss.config = SimpleNamespace(
+        vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
+    )
     with pytest.raises(ValueError, match="logical micro-step"):
         loss({}, {})
 
