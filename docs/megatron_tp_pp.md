@@ -536,3 +536,8 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 同输入的真实TP4 prepared计算性能已取得：共享输入归约候选前2次预热、后5次测量，平均7.913418秒/更新、4.170132样本/秒，相比原TP4的3.916505样本/秒提升约6.48%；原生FSDP4为5.783304样本/秒，候选仅达到72.11%，尚未达标。双方每microstep按rank分别处理相同9/11/13样本，global batch不同；本轮不含VAE/noising和媒体解码。原始合同及逐rank计时见 `shared_input_tp4_comparison.json`。两卡四更新和未使用梯度资格已通过，但该候选尚未通过完整模型正确性验收，默认后端没有启用它。
 
 标准FP32三步仍失败。线性FP64中间累积诊断的TP4三步梯度相对L2为2.940852e-4/1.966250e-3/0.1288971，仍失败；逐层采样显示第二输入的VIDEO反向误差在30–32层明显放大。新增独立attention/QK norm录制入口，仅用于固定输入、定位算子及梯度，不作为正确性验收。新增Inductor通信重排及选择性AC两个隔离候选；CPU配置与录制检查共17项通过，但还没有真实GPU资格和性能结论。全原始packed输入的FP32/Flex/full AC参考正在排队，不得以裁剪样例代替。
+
+
+选择性AC和通信调度重排候选现已在实际TP2/PP1生产I/O小网络通过compile/full-AC四次非零Adam更新；调度候选使用各rank独立全新缓存，两个rank均观察到含collective的scheduler调用，逐参数梯度最大相对L2约8.05e-7。它们仍是opt-in，尚未通过完整模型数学和性能验收。首次调度资格测试因向 `torch.compile(options=...)` 传入不受支持的缓存选项失败；改为Torch支持的环境变量后用全新目录重试，失败记录保留。组合真实TP4七更新将共享输入归约与通信重排叠加，使用每rank新缓存但保持正常稳态缓存策略，等待原生参考释放全部四卡。
+
+原始容量FP32验证入口的初始PP fallback布局此前沿用裁剪用的12/6 token占位。现有训练实际通过metadata传输动态layout；隔离数学验证副本的fallback已修成原始配置11776/59648/2944，实际短UND仍以metadata为准。可用 `tools/build_tp_pp_original_capacity_helper.py` 基于原始验证脚本生成隔离副本；本机变更补丁与SHA保存在 `artifacts/megatron_tp_pp/`。这不表示已在共享训练核心部署或完成原始容量验收。

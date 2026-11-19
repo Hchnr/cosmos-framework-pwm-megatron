@@ -115,11 +115,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--run-path", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--fresh-cache-root", type=Path)
     parser.add_argument("--allow-unobserved", action="store_true")
     args, remainder = parser.parse_known_args()
     rank = os.environ.get("RANK", "standalone")
     if not rank.isdecimal() and rank != "standalone":
         parser.error("RANK must be numeric")
+    if args.fresh_cache_root is not None:
+        if not rank.isdecimal():
+            parser.error("Fresh per-rank caches require torchrun's numeric RANK")
+        from tools.qualify_tp_pp_inductor_overlap import create_rank_cache
+
+        # A fresh cache proves that this benchmark actually compiled the
+        # candidate, without changing normal steady-state cache policy.
+        create_rank_cache(args.fresh_cache_root, rank, os.environ, disable_caches=False)
     observation = Observation(args.report_dir / f"inductor_overlap.rank{rank}.json")
     try:
         install(observation)
