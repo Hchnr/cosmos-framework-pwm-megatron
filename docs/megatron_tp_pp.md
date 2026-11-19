@@ -622,3 +622,11 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention 调用及四个 rank：Q/K/V 与 mask 相同，完整 heads 和 TP 局部 heads 各自的前向都逐位复现对应原捕获，但两种布局间前向最大相对 L2 为 **3.5758e-7**。对共同原生上游梯度的反向，dq 最大相对 L2 为 **2.5358e-6**，dk/dv 均约 **1.60e-6**。这证实了分片计算中一个微小差异来源，并不证明它单独造成 36 层训练漂移；原 storage offset 没有独立捕获。报告为 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sdpa_captured_replay_20261119T1045/sdpa_replay.json`。
 
 36 层裁剪输入、eager FP32 的 full-QKV/full-head SDPA 候选已完成三次连续更新观察：四 rank 梯度整体相对 L2 分别为 **4.36076e-4、2.79956e-3、1.74387e-1**，全部超过 1e-4；虽然小模型资格通过，真实模型数值门槛未通过。rank0 各步的失败参数集合与前述全宽 K/V 候选分别完全相同，数量为 **629、810、811**；这次组合没有纠正漂移，但不能由此断定 SDPA 差异与最终结果无关。队列执行完成不等于数学门槛通过，汇总见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/full_head_after_sdpa_20261119T1057/sequence/summary.json`。
+
+### 2026-11-19：异步归约与 VAE 分片资格
+
+异步 row 归约候选完成 TP2/TP4 的小模型 GPU 数值检查：FP32 eager、FP32 Inductor/full AC 与 BF16 Inductor/full AC 各阶段均通过，记录的最大相对 L2 为 **5.72e-7**。四卡 BF16 真实形状的合成前向 profiler 显示，baseline 无可测重叠，延迟等待候选平均每卡有约 **0.177–0.204 毫秒**计算与 NCCL 重叠。该测试不是端到端训练性能或完整 36 层正确性验收；实际收益仍需同设置吞吐对照。报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/async_row_queue_20261119T1152/sequence/`。
+
+绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
+
+多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
