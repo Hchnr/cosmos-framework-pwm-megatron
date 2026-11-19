@@ -159,6 +159,7 @@ def tensor_difference(left, right, *, relative_tolerance, absolute_tolerance, ex
     return {
         "passed": passed,
         "relative_l2": relative_l2,
+        "reference_squared_l2": aa,
         "cosine": dot / math.sqrt(aa * bb) if aa * bb else 1.0,
         "maximum_absolute_error": maximum,
         "worst_chunk_relative_l2": worst_chunk,
