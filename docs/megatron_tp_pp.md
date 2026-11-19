@@ -588,3 +588,9 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 四卡固定捕获输入及共同原生上游梯度的 K/V 投影受控回放中，全宽前向、输入梯度和权重梯度在四个 rank 均逐位匹配原生；实际 TP 捕获的上游梯度与原生并不相同，因此不能将共同梯度的受控结果当作实际轨迹相等。TP2 小模型 full-AC 四次更新也通过，最大逐参数梯度相对 L2 为 **5.934e-7**。报告为 `full_vjp_after_streamed_20261119T100421_568913/summary.json`。
 
 真正的 TP4 36 层裁剪输入连续三步应用全宽 K/V 前向及反向后，梯度相对 L2 为 **4.31973e-4、2.65568e-3、1.69782e-1**，三步均超过原有 1e-4 门槛，且大于标准 TP4 的对应数值；该候选没有修复模型轨迹。四 rank 的完整输出、状态比较和源码记录在 `full_vjp_real36_20261119T100656_574178/`；接下来应按共同输入及上游梯度继续定位其他算子，不降低门槛。目录均位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/`。
+
+### 2026-11-19：原始容量参考完成及性能合同补充
+
+消除逐层 FP64 trace、使用平坦 checkpoint、逐块嵌套重算和流式梯度后，原生 FP32/Flex 原始容量参考已完成两份真实微批的连续 **3 次更新**，梯度范数分别为 **0.29377660、1.10465622、0.42172375**；参考 manifest 标记完成，包含 811 个参数及全部三步状态。同输入的 TP4 对照已启动，其数值门槛与 TP2 对照尚无结果；这不是 TP 通过，也不是完整 576 槽验收。过程和输出位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/original_capacity_nested_20261119T1019/`。
+
+上文包含 VAE 的 45.47% 结果还存在配置不一致：TP 实际记录 `cudnn.deterministic=false`、`cudnn.benchmark=true`，FSDP 参考强制为 `true`、`false`；VAE 属于计时范围，二者可能选择不同卷积算法。两侧 TF32 关闭，均使用 `CUDA_DEVICE_MAX_CONNECTIONS=1`，但运行时 `torch.are_deterministic_algorithms_enabled()` 未记录。FSDP 各 rank 重复同一三份 fixture 和初始 RNG，因此每更新 132 是样本处理次数，不是 132 个不同样本；该基准不证明真实数据连续性，旧结果也没有逐次 prepared payload/RNG 哈希。旧结果除 GPU PID 监控与 CPU 重叠限制外，还应因这些合同差异标记为暂定，不用于最终性能验收。同设置、实际运行时取值及匹配输入/状态的重测仍待执行。
