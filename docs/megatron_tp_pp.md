@@ -649,6 +649,8 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 在该次测量的 host 计时中，TP rank0 三个 microstep 的 `prepare_enqueue` 均值合计约 **6.315 秒/更新**，FSDP 各 rank 约 **12.57–12.76 秒/更新**。该区间包含输入准备、VAE 分片通信及编码、noising 和异步 GPU 等待，不等同纯 VAE kernel 时间；它指出数据准备值得继续分析，但不能直接将其全部归为可消除开销。
 
+VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个真实 fixture 做四卡零容差输出和 RNG 检查，各 rank 均执行 9 次候选调用；这不替代完整模型正确性验证。同口径重复性能组完成 7 更新、2 预热、5 测量，候选 TP4 的同步窗口为 **2.259224 样本/秒**，FSDP4 为 **3.835746 样本/秒**，吞吐比 **58.90%**。此前原 TP4 的一次测量为 2.282668 样本/秒，而对应 FSDP4 为 3.858637 样本/秒；两次实验非同时，约 1% 差异不足以证明稳定变慢或存在收益。两次 TP 测量中的 PyTorch allocated 峰值均约 65.1 GiB/卡，此指标不包含首次 tokenizer AOT 初始化峰值，也不等于设备总占用。当前证据不支持将批量 P2P 作为性能优化启用；报告及四 rank 合同副本在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_batched_p2p_results_20261120/`。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
