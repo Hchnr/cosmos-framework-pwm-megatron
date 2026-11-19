@@ -63,6 +63,11 @@ def copy_snapshot(snapshot):
                 raise ValueError(f"Snapshot differs from isolated base: {source}")
 
 
+def baseline_fingerprints():
+    files = sorted(path for base in ("tools", "tests", "cosmos_framework") for path in (BASE / base).rglob("*.py"))
+    return {str(path.relative_to(BASE)): digest(path) for path in files}
+
+
 def fingerprints(snapshot):
     files = sorted(path for base in ("tools", "tests", "cosmos_framework") for path in (snapshot / base).rglob("*.py"))
     assets = [TOML, TP2 / "manifest.json", TP4 / "manifest.json", Path(__file__)]
@@ -252,6 +257,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--snapshot", type=Path, required=True)
+    parser.add_argument("--baseline-manifest", type=Path, required=True)
     parser.add_argument("--selective-layers", type=int, default=8)
     parser.add_argument("--timeout", type=int, default=10800)
     args = parser.parse_args()
@@ -271,6 +277,10 @@ def main():
     }
     save(target, result)
     try:
+        baseline = json.loads(args.baseline_manifest.read_text())
+        if baseline.get("files") != baseline_fingerprints():
+            raise RuntimeError("Isolated baseline source changed after queueing")
+        result["baseline_manifest_sha256"] = digest(args.baseline_manifest)
         copy_snapshot(args.snapshot)
         hashes = fingerprints(args.snapshot)
         result["source_and_input_sha256"] = hashes
