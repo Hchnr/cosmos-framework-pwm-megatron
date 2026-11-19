@@ -1,0 +1,47 @@
+{
+  "passed": false,
+  "reference_clipping_norm": "cuda",
+  "reference_optimizer": "torch_cpu AdamW",
+  "tp_completed_updates": 1,
+  "scope": "full-source 36-layer full-text real-RF crop; fixed FP32 gate",
+  "update1_observations": [
+    {
+      "rank_report": "full_source_real_rf_full_text_cuda_clip_fp32.update1.observation.rank0.json",
+      "failed_parameter_shards": 199,
+      "failed_outputs": 0,
+      "gradient_summary": {
+        "relative_l2": 0.0001105065877635427,
+        "cosine": 0.9999999938964232
+      }
+    },
+    {
+      "rank_report": "full_source_real_rf_full_text_cuda_clip_fp32.update1.observation.rank1.json",
+      "failed_parameter_shards": 211,
+      "failed_outputs": 0,
+      "gradient_summary": {
+        "relative_l2": 0.0001105065877635427,
+        "cosine": 0.9999999938964232
+      }
+    },
+    {
+      "rank_report": "full_source_real_rf_full_text_cuda_clip_fp32.update1.observation.rank2.json",
+      "failed_parameter_shards": 8,
+      "failed_outputs": 0,
+      "gradient_summary": {
+        "relative_l2": 0.0001105065877635427,
+        "cosine": 0.9999999938964232
+      }
+    },
+    {
+      "rank_report": "full_source_real_rf_full_text_cuda_clip_fp32.update1.observation.rank3.json",
+      "failed_parameter_shards": 4,
+      "failed_outputs": 0,
+      "gradient_summary": {
+        "relative_l2": 0.0001105065877635427,
+        "cosine": 0.9999999938964232
+      }
+    }
+  ],
+  "native_cuda_fused_optimizer_followup_running": true,
+  "production_576_slot_acceptance": false
+}

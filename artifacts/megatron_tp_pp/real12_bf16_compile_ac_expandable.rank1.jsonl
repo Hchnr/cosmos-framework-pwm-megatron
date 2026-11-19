@@ -1,0 +1,1 @@
+{"iteration": 1201, "rank": 1, "update_seconds": 217.3042997829616, "denominator_preflight_seconds": 62.42140847817063, "grad_norm": 0.15925516784582952, "peak_cuda_allocated_bytes": 72497999872, "logical_slots": 12, "samples_by_original_microstep": [[0.0, 36.0], [0.0, 44.0], [0.0, 75.0]], "metadata_bytes_sent": 2246435011}

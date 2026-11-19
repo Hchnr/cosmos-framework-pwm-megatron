@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "scope": "actual source layer 0, synthetic packed inputs, FP32",
+  "groups": {
+    "tp": [
+      0,
+      1
+    ],
+    "pp": [
+      1
+    ],
+    "dp": [
+      1,
+      3
+    ],
+    "microbatches": 1
+  },
+  "updates": 3,
+  "source_step": 1200,
+  "gradient_relative_l2": {
+    "0/layers.0.action_block_moe_gen_action.down_proj.weight": 5.88159871000258e-07,
+    "0/layers.0.action_block_moe_gen_action.up_proj.weight": 7.888515867418472e-07,
+    "0/layers.0.action_block_moe_gen_action.gate_proj.weight": 7.922416449244313e-07,
+    "0/layers.0.action_block_moe_gen_action.o_proj.weight": 6.871043973894005e-07,
+    "0/layers.0.action_block_moe_gen_action.v_proj.weight": 7.639998258453686e-07,
+    "0/layers.0.action_block_moe_gen_action.k_proj.weight": 4.2830295189439495e-07,
+    "0/layers.0.action_block_moe_gen_action.q_proj.weight": 7.852311700083185e-07,
+    "0/layers.0.mlp_moe_gen.down_proj.weight": 1.0629622058402296e-06,
+    "0/layers.0.mlp_moe_gen.up_proj.weight": 9.027058912958212e-07,
+    "0/layers.0.action_block_moe_gen_action.k_norm.weight": 5.197239401012551e-07,
+    "0/layers.0.action_block_moe_gen_action.q_norm.weight": 2.399579569325752e-06,
+    "0/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 4.7676305865150796e-07,
+    "0/layers.0.action_block_moe_gen_action.input_layernorm.weight": 5.168697281184195e-07,
+    "0/layers.0.post_attention_layernorm_moe_gen.weight": 6.030685995157086e-07,
+    "0/layers.0.input_layernorm_moe_gen.weight": 8.706823431969561e-07,
+    "1/layers.0.action_block_moe_gen_action.down_proj.weight": 5.885887575105471e-07,
+    "1/layers.0.action_block_moe_gen_action.up_proj.weight": 7.263264059227151e-07,
+    "1/layers.0.action_block_moe_gen_action.gate_proj.weight": 7.431320413969741e-07,
+    "1/layers.0.action_block_moe_gen_action.o_proj.weight": 5.774846559272611e-07,
+    "1/layers.0.action_block_moe_gen_action.v_proj.weight": 3.435289746772664e-07,
+    "1/layers.0.action_block_moe_gen_action.k_proj.weight": 5.404227922568144e-07,
+    "1/layers.0.action_block_moe_gen_action.q_proj.weight": 6.467964010468055e-07,
+    "1/layers.0.mlp_moe_gen.down_proj.weight": 1.4762852489374455e-06,
+    "1/layers.0.mlp_moe_gen.up_proj.weight": 1.660674215497902e-06,
+    "1/layers.0.action_block_moe_gen_action.k_norm.weight": 3.4992991019168017e-07,
+    "1/layers.0.action_block_moe_gen_action.q_norm.weight": 1.4369673021577272e-06,
+    "1/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 5.989121809593183e-07,
+    "1/layers.0.action_block_moe_gen_action.input_layernorm.weight": 3.6558185157821535e-07,
+    "1/layers.0.post_attention_layernorm_moe_gen.weight": 9.113071008803818e-07,
+    "1/layers.0.input_layernorm_moe_gen.weight": 7.415113371224122e-07,
+    "2/layers.0.action_block_moe_gen_action.down_proj.weight": 6.064741097171991e-07,
+    "2/layers.0.action_block_moe_gen_action.up_proj.weight": 7.069783977202272e-07,
+    "2/layers.0.action_block_moe_gen_action.gate_proj.weight": 9.116617901476442e-07,
+    "2/layers.0.action_block_moe_gen_action.o_proj.weight": 6.426900067618113e-07,
+    "2/layers.0.action_block_moe_gen_action.v_proj.weight": 3.6737370088974365e-07,
+    "2/layers.0.action_block_moe_gen_action.k_proj.weight": 2.254415337841592e-07,
+    "2/layers.0.action_block_moe_gen_action.q_proj.weight": 6.124607456331738e-07,
+    "2/layers.0.mlp_moe_gen.down_proj.weight": 9.512063464406786e-07,
+    "2/layers.0.mlp_moe_gen.up_proj.weight": 8.971868586201279e-07,
+    "2/layers.0.action_block_moe_gen_action.k_norm.weight": 3.3077319081442363e-07,
+    "2/layers.0.action_block_moe_gen_action.q_norm.weight": 4.5036727844862174e-07,
+    "2/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 4.3443997425936274e-07,
+    "2/layers.0.action_block_moe_gen_action.input_layernorm.weight": 4.6709929310386516e-07,
+    "2/layers.0.post_attention_layernorm_moe_gen.weight": 5.333945275337239e-07,
+    "2/layers.0.input_layernorm_moe_gen.weight": 8.235476438712009e-07
+  }
+}

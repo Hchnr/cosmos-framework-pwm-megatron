@@ -1,0 +1,140 @@
+{
+  "scope": "all three pre-clip gradient/output observations against native GPU-leaf reference; final optimizer/state comparison not represented here",
+  "all_gradient_observations_passed": false,
+  "rows": [
+    {
+      "update": 0,
+      "rank": 0,
+      "passed": true,
+      "gradient_summary": {
+        "relative_l2": 1.0041324600472541e-05,
+        "cosine": 0.9999999999902097
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update0.observation.rank0.json",
+      "sha256": "8e441bab3fbb24b0754ad37e7f5e64cbb71d2e5a92a589bd0d4f75144ef51552"
+    },
+    {
+      "update": 0,
+      "rank": 1,
+      "passed": true,
+      "gradient_summary": {
+        "relative_l2": 1.0041324600472541e-05,
+        "cosine": 0.9999999999902097
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update0.observation.rank1.json",
+      "sha256": "8c8a62649a9a296dfa15a8fd7b28b91a9578d0844daa0e33f02c82288861b487"
+    },
+    {
+      "update": 0,
+      "rank": 2,
+      "passed": true,
+      "gradient_summary": {
+        "relative_l2": 1.0041324600472541e-05,
+        "cosine": 0.9999999999902097
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update0.observation.rank2.json",
+      "sha256": "56de4c40ebf22bc8ca3f7938dd1325827b201d975aad5fdaa030bc2093c87b60"
+    },
+    {
+      "update": 0,
+      "rank": 3,
+      "passed": true,
+      "gradient_summary": {
+        "relative_l2": 1.0041324600472541e-05,
+        "cosine": 0.9999999999902097
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update0.observation.rank3.json",
+      "sha256": "e1bb8fcec5dbe3e0e5c5886762b05678f7b6ef6d5d67457869c5e84cd9af1212"
+    },
+    {
+      "update": 1,
+      "rank": 0,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 9.024850433170424e-05,
+        "cosine": 0.9999999959650975
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update1.observation.rank0.json",
+      "sha256": "b57ae3bbc07f054b8383ee8abb9c5c5187414763cfc69ea0dfe942e25c8e2e4f"
+    },
+    {
+      "update": 1,
+      "rank": 1,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 9.024850433170424e-05,
+        "cosine": 0.9999999959650975
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update1.observation.rank1.json",
+      "sha256": "7381ea8e20b51c2eeb00543019abb3f5cfc0187ac4a32ebcaa8833bab7a47d4b"
+    },
+    {
+      "update": 1,
+      "rank": 2,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 9.024850433170424e-05,
+        "cosine": 0.9999999959650975
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update1.observation.rank2.json",
+      "sha256": "c0fe52512ea90c086c81cef84f5f53be72569a2fa3ef193f04ea026c63ae00ff"
+    },
+    {
+      "update": 1,
+      "rank": 3,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 9.024850433170424e-05,
+        "cosine": 0.9999999959650975
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update1.observation.rank3.json",
+      "sha256": "ec40dfcb080748dd3826343da82dd37418cb70e46db76463cc1cc92a0b87acd4"
+    },
+    {
+      "update": 2,
+      "rank": 0,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 0.0006276230826472142,
+        "cosine": 0.9999998165738424
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update2.observation.rank0.json",
+      "sha256": "4bf74a4ccff754d2840be721db168597677966ad9b0d7904e2fa12772a2c0982"
+    },
+    {
+      "update": 2,
+      "rank": 1,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 0.0006276230826472142,
+        "cosine": 0.9999998165738424
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update2.observation.rank1.json",
+      "sha256": "7aea611b5e640bd13d7264773bb44f109230fdfe4413ab167988638d85886eea"
+    },
+    {
+      "update": 2,
+      "rank": 2,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 0.0006276230826472142,
+        "cosine": 0.9999998165738424
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update2.observation.rank2.json",
+      "sha256": "83a8b5b31a74d435d92262907c9f2ec9a73091cb90577d5778a6762abd782a14"
+    },
+    {
+      "update": 2,
+      "rank": 3,
+      "passed": false,
+      "gradient_summary": {
+        "relative_l2": 0.0006276230826472142,
+        "cosine": 0.9999998165738424
+      },
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.update2.observation.rank3.json",
+      "sha256": "a7178f61e05e05c59decffd85d7177530e3f3216826fe31018be2152a53a7cae"
+    }
+  ],
+  "tp_pp_accepted": false,
+  "production_capacity_576_slot_acceptance": false
+}

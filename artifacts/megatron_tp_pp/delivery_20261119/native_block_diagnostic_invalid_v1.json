@@ -1,0 +1,9 @@
+{
+  "scope": "diagnostic control only; formal TP test unaffected",
+  "valid": false,
+  "reason": "parameter marker lost during meta materialization; Q/K norm gradients double-reduced",
+  "observed_qk_gradient_relative_error": 1.0,
+  "observed_other_parameter_gradient_error": 0.0,
+  "fix": "clear partial flags on materialized layer parameters after driver construction",
+  "regression": "tests/megatron/tp_pp_native_block_flags_test.py"
+}

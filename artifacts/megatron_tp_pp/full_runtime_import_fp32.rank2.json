@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "scope": "full real model and Adam import; no training update",
+  "groups": {
+    "tp": [
+      2,
+      3
+    ],
+    "pp": [
+      0,
+      2
+    ],
+    "dp": [
+      2
+    ],
+    "microbatches": 576
+  },
+  "dtype": "float32",
+  "local_layers": [
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35"
+  ],
+  "model_tensors_verified": 602,
+  "optimizer_fragments_verified": 402,
+  "optimizer_owned_elements": 1998605760,
+  "action128_append_only_extension": true,
+  "local_parameter_elements": 4046368704,
+  "peak_cuda_allocated_bytes": 40311221760,
+  "production_capacity_576_slot_acceptance": false
+}

@@ -1,0 +1,80 @@
+{
+  "scope": "real original-capacity 12-slot BF16 updates, source update then new-process two-update continuation",
+  "full_checkpoint_1203_saved": true,
+  "strict_same_prepared_math_accepted": false,
+  "production_576_slot_acceptance": false,
+  "updates": [
+    {
+      "iteration": 1201,
+      "rank": 1,
+      "update_seconds": 217.3042997829616,
+      "denominator_preflight_seconds": 62.42140847817063,
+      "grad_norm": 0.15925516784582952,
+      "peak_cuda_allocated_bytes": 72497999872,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          36.0
+        ],
+        [
+          0.0,
+          44.0
+        ],
+        [
+          0.0,
+          75.0
+        ]
+      ],
+      "metadata_bytes_sent": 2246435011
+    },
+    {
+      "iteration": 1202,
+      "rank": 1,
+      "update_seconds": 167.46240792423487,
+      "denominator_preflight_seconds": 35.26494991034269,
+      "grad_norm": 0.14890579339644885,
+      "peak_cuda_allocated_bytes": 72530721792,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          33.0
+        ]
+      ],
+      "metadata_bytes_sent": 2226438996
+    },
+    {
+      "iteration": 1203,
+      "rank": 1,
+      "update_seconds": 157.43738621473312,
+      "denominator_preflight_seconds": 41.96098515018821,
+      "grad_norm": 0.1856230127825474,
+      "peak_cuda_allocated_bytes": 72521428992,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          44.0
+        ],
+        [
+          0.0,
+          24.0
+        ]
+      ],
+      "metadata_bytes_sent": 2244375455
+    }
+  ]
+}

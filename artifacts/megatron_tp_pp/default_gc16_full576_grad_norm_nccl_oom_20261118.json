@@ -1,0 +1,44 @@
+{
+  "passed": false,
+  "scope": "original capacity global576 production TP2 PP2 GC16, no activation offload; schedule completed on all ranks, first optimizer update failed before Adam at grad-norm all-reduce",
+  "failure": "NCCL ncclUnhandledCudaError: cuda failure 2 out of memory, get_grad_norm_fp32 all_reduce",
+  "rows": [
+    {
+      "rank": 0,
+      "completed_backwards": 576,
+      "gc_collections": 36,
+      "gc_host_seconds": 25.497680969536304,
+      "cumulative_reclaimed_allocated_bytes": 28650181632,
+      "trace_sha256": "32d3738e71471b2fb65fdb88b119ddadbae9a4f2e5bfa84121d6b913c4a66878"
+    },
+    {
+      "rank": 1,
+      "completed_backwards": 576,
+      "gc_collections": 36,
+      "gc_host_seconds": 22.474210876971483,
+      "cumulative_reclaimed_allocated_bytes": 28976579072,
+      "trace_sha256": "3646e3fb277ff91de50c2364793cbe861dae1e5464a2feffca5f2d80f60b0a83"
+    },
+    {
+      "rank": 2,
+      "completed_backwards": 576,
+      "gc_collections": 36,
+      "gc_host_seconds": 25.153245516121387,
+      "cumulative_reclaimed_allocated_bytes": 35884108288,
+      "trace_sha256": "10c079d1551761cc840b0d06f0df8550a48b71d1579539a1f33264c07b21d19b"
+    },
+    {
+      "rank": 3,
+      "completed_backwards": 576,
+      "gc_collections": 36,
+      "gc_host_seconds": 25.081637620925903,
+      "cumulative_reclaimed_allocated_bytes": 35884108288,
+      "trace_sha256": "740577b08b21dc5bc17ccb12c33b8fc3749dfcb1796f5dcc2befec02d8cb2f72"
+    }
+  ],
+  "optimizer_update_completed": false,
+  "checkpoint_published": false,
+  "source_guard_unchanged": true,
+  "source_guard_files": 844,
+  "warm_communicator_root_cause_confirmed": false
+}

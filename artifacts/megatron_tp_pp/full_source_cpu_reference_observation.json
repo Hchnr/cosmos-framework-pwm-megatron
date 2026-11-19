@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "scope": "full36 source FP32 CPU native versus four-GPU TP2/PP2, cropped real prepared inputs, diagnostic loss",
+  "native_cpu_completed_updates": 3,
+  "native_cpu_gradient_norms": [
+    48.63628387451172,
+    6.065450191497803,
+    1.8307141065597534
+  ],
+  "first_tp_update_completed": false,
+  "relative_tolerance": 0.0001,
+  "absolute_tolerance": 2e-06,
+  "observed_gradient_failure": {
+    "name": "layers.17.action_block_moe_gen_action.down_proj.weight",
+    "relative_l2": 0.00012115457808561545,
+    "maximum_absolute_error": 1.5213154256343842e-06
+  },
+  "cuda_unsharded_reference_pending": true,
+  "production_576_slot_acceptance": false
+}

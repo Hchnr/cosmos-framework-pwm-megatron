@@ -1,0 +1,11 @@
+{
+  "checked_slots": 12,
+  "slot": true,
+  "sha256": true,
+  "prepared_noise_sha256": true,
+  "prepared_packed_sha256": true,
+  "full_checkpoint_comparison_pending": false,
+  "production_576_slot_acceptance": false,
+  "full_runtime_state_comparison_passed": true,
+  "complete_state_report": "controlled12_deterministic_runtime_state_comparison.json"
+}

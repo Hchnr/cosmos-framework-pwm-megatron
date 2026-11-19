@@ -1,0 +1,33 @@
+{
+  "scope": "predeclared short-window full576 matched-input throughput comparison; one warmup and two measured updates, not long steady state",
+  "required_completed_iterations": [
+    1201,
+    1202,
+    1203
+  ],
+  "warmup_iterations": [
+    1201
+  ],
+  "measured_iterations": [
+    1202,
+    1203
+  ],
+  "command": [
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/.venv/bin/python",
+    "tools/compare_tp_pp_performance.py",
+    "--tp-run",
+    "outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted",
+    "--native-run",
+    "outputs/megatron_tp_pp_native_full576_consume_three_updates_20261118",
+    "--logical-dp",
+    "192",
+    "--reference-microsteps",
+    "3",
+    "--warmup-updates",
+    "1",
+    "--output",
+    "artifacts/megatron_tp_pp/matched_full576_default_gc16_three_updates_20261118.json"
+  ],
+  "comparison_executed": false,
+  "full_correctness_requires_separate_fp32_and_restart_gates": true
+}

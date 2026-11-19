@@ -1,0 +1,20 @@
+{
+  "iteration": 1200,
+  "rank": 0,
+  "error": "CUDA out of memory. Tried to allocate 700.00 MiB. GPU 0 has a total capacity of 79.11 GiB of which 639.94 MiB is free. Process 2837999 has 78.48 GiB memory in use. Of the allocated memory 72.14 GiB is allocated by PyTorch, and 1.33 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+  "allocated_bytes": 77455346176,
+  "reserved_bytes": 78888566784,
+  "peak_allocated_bytes": 78181805568,
+  "peak_reserved_bytes": 79553363968,
+  "logical_slots": 576,
+  "compute_precision": "torch.bfloat16",
+  "passed": false,
+  "scope": "actual TP2/PP2 full576 first update, BF16 compile/full AC, parallel preparation, runtime AOT build; not completed",
+  "prepared_slots": 576,
+  "prepared_spool_bytes": 65338371264,
+  "last_reported_prepared_slots": 112,
+  "failed_microbatch_index": null,
+  "source_log": "outputs/megatron_tp_pp_full576_strict_restart_20261118/uninterrupted.log",
+  "native_reference_started": false,
+  "production_capacity_576_slot_acceptance": false
+}

@@ -3,8 +3,12 @@
 
 """User-facing parallelism degrees shared by VFM and VLM trainers."""
 
+from dataclasses import asdict
+
 import attrs
 import torch
+
+from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
 
 # Canonical mapping from precision string (used in user-facing configs and
 # threaded through OmegaConf) to ``torch.dtype``. Consumed by sites that
@@ -24,6 +28,7 @@ class ParallelismConfig:
     backend: str = "pytorch"
     megatron_fuse_projections: bool = False
     megatron_sharding_strategy: str = "optim_grads_params"
+    megatron: dict = attrs.field(factory=lambda: asdict(ModelParallelConfig()))
 
     # Number of ranks for sharding the model weights (FSDP). The default -1
     # auto-infers to world_size at runtime via ParallelDims.

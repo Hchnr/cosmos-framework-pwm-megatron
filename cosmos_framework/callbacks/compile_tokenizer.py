@@ -76,6 +76,7 @@ class CompileTokenizer(Callback):
         self.enabled: bool = enabled
         self.compile_after_iterations: int = compile_after_iterations
         self._has_compiled: bool = False
+        self.process_group = None  # TP/PP may restrict VAE compilation to data owners.
         # Hydra can coerce numeric-looking CLI values such as ``"256"`` to
         # integers after launcher shell parsing. Resolution lookup tables use
         # string keys, so normalize them at the callback boundary.
@@ -151,6 +152,8 @@ class CompileTokenizer(Callback):
                     extra["spatial_sizes"] = self.spatial_sizes
                 if self.require_full_coverage:
                     extra["require_full_coverage"] = True
+                if self.process_group is not None:
+                    extra["process_group"] = self.process_group
                 with preserve_training_rng():
                     tokenizer.compile_encode(
                         self.warmup_resolutions,

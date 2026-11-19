@@ -268,6 +268,7 @@ class JITConfig:
 class CheckpointConfig:
     # possible checkpoint class
     type: Optional[Dict] = None
+    megatron_tp_pp_import_path: str = ""
 
     # for dcp, whether to use async mode
     dcp_async_mode_enabled: bool = False

@@ -1,0 +1,98 @@
+{
+  "scope": "bounded equally-spaced samples, all 811 native reference parameters across three updates; CPU leaves versus GPU leaves; same input hashes and names; not full tensor equality or TP/PP acceptance",
+  "roots": [
+    "/opt/cosmos-tp-pp-full-source-real-rf-full-text-native-adam-reference",
+    "/opt/cosmos-tp-pp-full-source-real-rf-full-text-native-gpu-leaf-reference"
+  ],
+  "samples_per_tensor": 32,
+  "rows": [
+    {
+      "update": 0,
+      "fields": {
+        "gradient": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "master": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "exp_avg": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "exp_avg_sq": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        }
+      }
+    },
+    {
+      "update": 1,
+      "fields": {
+        "gradient": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "master": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "exp_avg": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "exp_avg_sq": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        }
+      }
+    },
+    {
+      "update": 2,
+      "fields": {
+        "gradient": {
+          "sampled_elements": 25952,
+          "different_elements": 0,
+          "different_parameters": 0,
+          "maximum_absolute_error": 0.0
+        },
+        "master": {
+          "sampled_elements": 25952,
+          "different_elements": 172,
+          "different_parameters": 140,
+          "maximum_absolute_error": 1.4901161193847656e-08
+        },
+        "exp_avg": {
+          "sampled_elements": 25952,
+          "different_elements": 12721,
+          "different_parameters": 807,
+          "maximum_absolute_error": 2.3283064365386963e-10
+        },
+        "exp_avg_sq": {
+          "sampled_elements": 25952,
+          "different_elements": 8531,
+          "different_parameters": 796,
+          "maximum_absolute_error": 4.547473508864641e-13
+        }
+      }
+    }
+  ],
+  "production_capacity_576_slot_acceptance": false
+}

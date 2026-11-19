@@ -1,0 +1,92 @@
+{
+  "passed": true,
+  "scope": "one entire original576 prepared decoder/optimizer update without resident VAE, GC16 only, no input crop/activation offload; not full-loader/restart acceptance",
+  "rows": [
+    {
+      "rank": 0,
+      "summary": {
+        "passed": true,
+        "scope": "one complete prepared original-capacity decoder/optimizer update, no resident VAE; not logical-loader continuity",
+        "rank": 0,
+        "iteration": 1201,
+        "global_slots": 576,
+        "forwards": 576,
+        "backwards": 576,
+        "gradient_norm": 0.10712552373896067,
+        "peak_allocated_cuda_bytes": 73838461952,
+        "source_spool_unchanged": true,
+        "checkpoint_published": false,
+        "collect_cycles_every": 16,
+        "production_capacity_576_slot_acceptance": false
+      },
+      "collections": 36,
+      "cumulative_reclaimed_allocated_bytes": 28499088896,
+      "gc_host_seconds": 24.18474029749632
+    },
+    {
+      "rank": 1,
+      "summary": {
+        "passed": true,
+        "scope": "one complete prepared original-capacity decoder/optimizer update, no resident VAE; not logical-loader continuity",
+        "rank": 1,
+        "iteration": 1201,
+        "global_slots": 576,
+        "forwards": 576,
+        "backwards": 576,
+        "gradient_norm": 0.10712552373896067,
+        "peak_allocated_cuda_bytes": 74056680960,
+        "source_spool_unchanged": true,
+        "checkpoint_published": false,
+        "collect_cycles_every": 16,
+        "production_capacity_576_slot_acceptance": false
+      },
+      "collections": 36,
+      "cumulative_reclaimed_allocated_bytes": 29384217600,
+      "gc_host_seconds": 22.136173028498888
+    },
+    {
+      "rank": 2,
+      "summary": {
+        "passed": true,
+        "scope": "one complete prepared original-capacity decoder/optimizer update, no resident VAE; not logical-loader continuity",
+        "rank": 2,
+        "iteration": 1201,
+        "global_slots": 576,
+        "forwards": 576,
+        "backwards": 576,
+        "gradient_norm": 0.10712552373896067,
+        "peak_allocated_cuda_bytes": 59851162112,
+        "source_spool_unchanged": true,
+        "checkpoint_published": false,
+        "collect_cycles_every": 16,
+        "production_capacity_576_slot_acceptance": false
+      },
+      "collections": 36,
+      "cumulative_reclaimed_allocated_bytes": 35884108288,
+      "gc_host_seconds": 24.023397341370583
+    },
+    {
+      "rank": 3,
+      "summary": {
+        "passed": true,
+        "scope": "one complete prepared original-capacity decoder/optimizer update, no resident VAE; not logical-loader continuity",
+        "rank": 3,
+        "iteration": 1201,
+        "global_slots": 576,
+        "forwards": 576,
+        "backwards": 576,
+        "gradient_norm": 0.10712552373896067,
+        "peak_allocated_cuda_bytes": 59851162112,
+        "source_spool_unchanged": true,
+        "checkpoint_published": false,
+        "collect_cycles_every": 16,
+        "production_capacity_576_slot_acceptance": false
+      },
+      "collections": 36,
+      "cumulative_reclaimed_allocated_bytes": 35884108288,
+      "gc_host_seconds": 24.017326805740595
+    }
+  ],
+  "protected_source_files_unchanged": 836,
+  "production_capacity_576_slot_acceptance": false
+}

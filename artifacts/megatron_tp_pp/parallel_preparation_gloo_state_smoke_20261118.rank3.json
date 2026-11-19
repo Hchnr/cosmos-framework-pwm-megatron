@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "rank": 3,
+  "members": [
+    1,
+    3
+  ],
+  "assigned": [
+    3,
+    7
+  ],
+  "scope": "real CPU/Gloo aggregation and repartition; no production loader or GPU acceptance"
+}

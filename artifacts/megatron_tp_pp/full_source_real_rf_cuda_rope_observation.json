@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "scope": "FP32 actual 36-layer source, small real RF crop, corrected CUDA-initialized RoPE, exact runtime constants",
+  "gradient_relative_l2_limit": 0.0001,
+  "gradient_summary": {
+    "relative_l2": 0.00010172316293143278,
+    "cosine": 0.9999999949210269
+  },
+  "runtime_constants_sha256": "32dda11a860f3e73b36441649b6cdea93d2ffacdfd093a901d3ba31743397524",
+  "all_outputs_passed": true,
+  "failed_parameter_shards_by_rank": [
+    216,
+    213,
+    61,
+    58
+  ],
+  "native_reference_updates": 3,
+  "tp_updates_completed": 0,
+  "production_576_slot_acceptance": false
+}

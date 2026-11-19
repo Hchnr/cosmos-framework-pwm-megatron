@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "scope": "small GPU native FP32 oracle with full block AC, preserved dense saved layouts, streamed frozen weights and nonzero source-like Adam; not full-model acceptance",
+  "gpu_report": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp4_fsdp4_microbatch_20261119/native_preserved_full_ac_qualification.json",
+  "gather_diagnostic_ranks": [
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp4_fsdp4_microbatch_20261119/native_block_gather_qualification.rank0.json",
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp4_fsdp4_microbatch_20261119/native_block_gather_qualification.rank1.json",
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp4_fsdp4_microbatch_20261119/native_block_gather_qualification.rank2.json",
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp4_fsdp4_microbatch_20261119/native_block_gather_qualification.rank3.json"
+  ],
+  "cpu_layer_trace_and_measurement_tests": "4 passed",
+  "wrapper_sha256": "aea32c6e29f3039ca221c749b607ced55d556ec5a9bc6a6325347a093337a7a7",
+  "previous_save_on_cpu_negative_control_retained": true,
+  "shared_training_source_modified": false,
+  "observed_at_utc": "2026-11-19T04:31:46.539156+00:00"
+}

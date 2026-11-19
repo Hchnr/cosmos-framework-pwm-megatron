@@ -1,0 +1,21 @@
+{
+  "snapshot": true,
+  "production_acceptance": false,
+  "standard_fp32_acceptance": false,
+  "tp2_third_gradient_relative_l2": 0.577237553349429,
+  "tp4_third_gradient_relative_l2": 0.10916545788631236,
+  "cpu_tests": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 1,
+    "cpu_planning_fixture_cuda_tensor_mock_fixed": true
+  },
+  "ruff_passed": true,
+  "raw_performance_run_provisional": "CPU-only test launch attempted CUDA during FSDP window; rerun without concurrent tests required",
+  "remaining_work": [
+    "Fix full-source FP32 trajectory",
+    "Complete full576 capacity/restart acceptance",
+    "Repeat raw performance without concurrent tests"
+  ],
+  "replicated_native_block_native_norm_control_passed_all_four_ranks": true
+}

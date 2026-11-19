@@ -1,0 +1,18 @@
+{
+  "scope": "isolated unapplied early FP32 gradient-statistics SUM/MAX warmup candidate; NCCL OOM root cause still unconfirmed",
+  "base_driver_sha256": "41472d32953bf502d0f02ed64e1af3daa4ed06518d5a3c429be275200382564d",
+  "candidate_hashes": {
+    "/tmp/cosmos_tp_pp_collectives_warmup_20261118/driver.py": "d6cfdeebb3418f43f30efb6bd90ac0c47a6be3371925b30fb89ab5b2834ca35d",
+    "/tmp/cosmos_tp_pp_collectives_warmup_20261118/collectives.py": "b883e1729ff85f1250f135a8240a692e86b1ee98c8c3eaf313d0c6224ae529d9",
+    "tools/run_tp_pp_with_optimizer_collective_warmup.py": "49b6c30129b21c4183f51c5fd3fea0b06036572955b5a8e88f05822a4f114264"
+  },
+  "patch": "/tmp/cosmos_tp_pp_collectives_warmup_20261118/runtime.patch",
+  "cuda_qualification_passed": false,
+  "source_apply_allowed_only_after": "original-capacity FP32/Flex coordinator1162948 and all children terminal; its source guard covers all cosmos Python files",
+  "held_idle_dp2_coordinator": {
+    "pid": 1272836,
+    "create_time": 1795034380.53,
+    "status": "stopped"
+  },
+  "profile_coordinator_waits_held_dp2": 1378370
+}

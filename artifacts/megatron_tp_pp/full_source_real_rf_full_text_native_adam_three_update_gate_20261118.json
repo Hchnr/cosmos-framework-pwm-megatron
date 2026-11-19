@@ -1,0 +1,18 @@
+{
+  "passed": false,
+  "scope": "full 36-layer source, three FP32 real-RF updates, full real text, cropped video/action; original CUDA fused Adam oracle",
+  "errors": [
+    "gradient canonical coverage",
+    "missing final rank reports",
+    "missing three-update global gradient summaries",
+    "state canonical coverage"
+  ],
+  "final_rank_reports": 0,
+  "canonical_trainable_parameters": 811,
+  "gradient_parameter_shard_comparisons": 0,
+  "state_parameter_shard_comparisons": 0,
+  "maximum_global_gradient_relative_l2": null,
+  "minimum_global_gradient_cosine": null,
+  "production_576_slot_acceptance": false,
+  "strict_restart_accepted": false
+}

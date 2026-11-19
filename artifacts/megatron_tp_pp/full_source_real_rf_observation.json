@@ -1,0 +1,24 @@
+{
+  "passed": false,
+  "scope": "actual 36-layer source, cropped native RF conditioning/targets, FP32 TP2/PP2 versus unsharded native CUDA",
+  "fixed_gradient_relative_l2_limit": 0.0001,
+  "gradient_summary": {
+    "relative_l2": 0.00033868821570663806,
+    "cosine": 0.9999999468882009
+  },
+  "rank_observations": 4,
+  "failed_parameter_shards_by_rank": [
+    404,
+    404,
+    257,
+    251
+  ],
+  "all_outputs_passed": true,
+  "native_reference_updates": 3,
+  "tp_updates_completed": 0,
+  "production_launch_refused": true,
+  "performance_accepted": false,
+  "runtime_constants_checked": false,
+  "known_comparison_input_mismatch": "native CPU-initialized versus TP/PP CUDA-initialized nonpersistent RoPE frequencies; 4 differing entries, max abs 9.313225746154785e-10",
+  "requires_new_reference": true
+}

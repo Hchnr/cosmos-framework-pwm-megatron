@@ -1,0 +1,18 @@
+{
+  "pid": 1377380,
+  "create_time": 1795038976.09,
+  "script": "/tmp/run_tp_pp_full576_matched_profile_after_dp2_20261118.py",
+  "script_sha256": "fdeb4bedae95e818aee41dfc5986759a112402a940182b8377816f0be52cd890",
+  "log": "/tmp/cosmos_tp_pp_full576_matched_profile_after_dp2_coordinator_20261118.log",
+  "wait_for_pid": 1272836,
+  "wait_for_create_time": 1795034380.53,
+  "profile_tool_hashes": {
+    "tools/run_tp_pp_full_update_profile.py": "4a65542e42334ca075242202b46c88dea5caf8b2e0f6bdd8dc44c2c0046c9a72",
+    "tests/megatron/tp_pp_full_update_profile_test.py": "f812d3a2f1ddd52fdfc602114f34de3e0d4853a1e17924aa98b0d212d34a7c8d"
+  },
+  "scope": "one original-capacity global576 update per backend, preparation-through-optimizer Nsight diagnostics, native DP4/M144 vs TP2 PP2 DP1/M576, GC16 and AOT consume; first-update profiling, not steady-state throughput",
+  "cpu_capture_boundary_tests_passed": 4,
+  "actual_nsys_profile_executed": false,
+  "training_started": false,
+  "superseded_reason": "Add recipe TOML to the during-run source guard before any profile starts"
+}

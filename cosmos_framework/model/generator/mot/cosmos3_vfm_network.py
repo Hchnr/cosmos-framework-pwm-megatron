@@ -1223,6 +1223,28 @@ class Cosmos3VFMNetwork(PreTrainedModel):
                 - "lbl_metadata_*": Load balancing metadata.
                 - "ce_preds": Cross-entropy predictions (if predict_text_tokens is True).
         """
+        prepared = self.prepare_decoder_inputs(
+            packed_seq, memory=memory, video_temporal_causal=video_temporal_causal, vlm_inputs=vlm_inputs
+        )
+        with nvtx_range("forward.network.language_model"):
+            packed_outputs, lbl_metadata = self.language_model(
+                prepared["input_pack"],
+                attention_mask=prepared["attention_meta"],
+                position_ids=prepared["position_ids"],
+                natten_metadata_list=prepared["natten_metadata_list"],
+                memory=memory,
+                deepstack_und=prepared["deepstack_und"],
+            )
+        return self.decode_decoder_outputs(packed_seq, packed_outputs, lbl_metadata, prepared)
+
+    def prepare_decoder_inputs(
+        self,
+        packed_seq: PackedSequence,
+        memory: MemoryState | None = None,
+        video_temporal_causal: bool | None = None,
+        vlm_inputs: list[dict[str, torch.Tensor]] | None = None,
+    ) -> dict:
+        """Encode/pack inputs before the decoder; shared by native and PP training."""
         # Note: During inference with @torch.no_grad(), model may be in training mode
         # This is intentional for proper batch norm / dropout behavior
         # assert self.training, "Cosmos3VFMNetwork only supports training mode"
@@ -1538,15 +1560,20 @@ class Cosmos3VFMNetwork(PreTrainedModel):
         with nvtx_range("forward.network.fixed_sequence_metadata"):
             mark_fixed_sequence_pack_dynamic_metadata(input_pack)
 
-        with nvtx_range("forward.network.language_model"):
-            packed_outputs, lbl_metadata = self.language_model(
-                input_pack,
-                attention_mask=attention_meta,
-                position_ids=packed_position_ids,
-                natten_metadata_list=natten_metadata_list,
-                memory=memory,
-                deepstack_und=deepstack_und,
-            )
+        return {
+            "input_pack": input_pack,
+            "attention_meta": attention_meta,
+            "position_ids": packed_position_ids,
+            "natten_metadata_list": natten_metadata_list,
+            "deepstack_und": deepstack_und,
+            "original_latent_shapes": original_latent_shapes,
+            "sequence_shard_parallel_dims": sequence_shard_parallel_dims,
+        }
+
+    def decode_decoder_outputs(self, packed_seq, packed_outputs, lbl_metadata, prepared):
+        """Decode predictions with the same native heads and packing restoration."""
+        original_latent_shapes = prepared["original_latent_shapes"]
+        sequence_shard_parallel_dims = prepared["sequence_shard_parallel_dims"]
         with nvtx_range("forward.network.context_parallel_gather"):
             last_hidden_state = get_context_parallel_last_hidden_state(
                 packed_outputs=packed_outputs,

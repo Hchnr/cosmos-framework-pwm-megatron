@@ -1,0 +1,18 @@
+{
+  "scope": "original-capacity controlled 12-slot BF16 replay from identical runtime checkpoint 1203",
+  "raw_and_prepared_noise_equal": true,
+  "checked_slots": 12,
+  "loss": [
+    0.021617795263106625,
+    0.021617795263106625
+  ],
+  "loss_exact_equal": true,
+  "gradient_norms": [
+    0.12394354342001516,
+    0.12382593724577504
+  ],
+  "gradient_norm_relative_difference": 0.0009488689043009623,
+  "strict_fp32_math_accepted": false,
+  "complete_runtime_state_comparison_pending": true,
+  "production_576_slot_acceptance": false
+}

@@ -1,0 +1,105 @@
+{
+  "passed": false,
+  "scope": "complete full-source model three-update diagnostic against native GPU FP32 leaves; full text and cropped VIDEO/Action inputs; original fixed gates unchanged",
+  "continuous_trajectory": true,
+  "native_adam_arithmetic_candidate": true,
+  "rows": [
+    {
+      "rank": 0,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "failed_parameter_gradients": 559,
+      "failed_parameter_states": 529,
+      "compute_checks": 1227,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 199,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.rank0.json"
+    },
+    {
+      "rank": 1,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "failed_parameter_gradients": 573,
+      "failed_parameter_states": 554,
+      "compute_checks": 1227,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 199,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.rank1.json"
+    },
+    {
+      "rank": 2,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "failed_parameter_gradients": 388,
+      "failed_parameter_states": 590,
+      "compute_checks": 1206,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 200,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.rank2.json"
+    },
+    {
+      "rank": 3,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "failed_parameter_gradients": 384,
+      "failed_parameter_states": 591,
+      "compute_checks": 1206,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 200,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_full_text_native_gpu_leaf_tp2_fp32.rank3.json"
+    }
+  ],
+  "production_capacity_576_slot_acceptance": false
+}

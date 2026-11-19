@@ -1,0 +1,110 @@
+{
+  "passed": false,
+  "scope": "summary of completed unchanged-gate full-source TP2 default diagnostic; no new training or gate changes",
+  "ranks": [
+    {
+      "rank": 0,
+      "passed": false,
+      "state_failures_by_update_field": {
+        "update1.exp_avg": 55,
+        "update1.exp_avg_sq": 28,
+        "update2.exp_avg": 402,
+        "update2.exp_avg_sq": 132
+      },
+      "compute_checks": 1227,
+      "compute_master_mismatches": 0,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.1138564906456042e-05,
+          "cosine": 0.9999999999909334
+        },
+        {
+          "relative_l2": 0.00013761413248516722,
+          "cosine": 0.9999999908066542
+        },
+        {
+          "relative_l2": 0.0007821094380576709,
+          "cosine": 0.9999997062117435
+        }
+      ]
+    },
+    {
+      "rank": 1,
+      "passed": false,
+      "state_failures_by_update_field": {
+        "update1.exp_avg": 72,
+        "update1.exp_avg_sq": 34,
+        "update2.exp_avg": 401,
+        "update2.exp_avg_sq": 147
+      },
+      "compute_checks": 1227,
+      "compute_master_mismatches": 0,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.1138564906456042e-05,
+          "cosine": 0.9999999999909334
+        },
+        {
+          "relative_l2": 0.00013761413248516722,
+          "cosine": 0.9999999908066542
+        },
+        {
+          "relative_l2": 0.0007821094380576709,
+          "cosine": 0.9999997062117435
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "passed": false,
+      "state_failures_by_update_field": {
+        "update1.exp_avg_sq": 22,
+        "update1.exp_avg": 5,
+        "update2.exp_avg": 382,
+        "update2.exp_avg_sq": 203
+      },
+      "compute_checks": 1206,
+      "compute_master_mismatches": 0,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.1138564906456042e-05,
+          "cosine": 0.9999999999909334
+        },
+        {
+          "relative_l2": 0.00013761413248516722,
+          "cosine": 0.9999999908066542
+        },
+        {
+          "relative_l2": 0.0007821094380576709,
+          "cosine": 0.9999997062117435
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "passed": false,
+      "state_failures_by_update_field": {
+        "update1.exp_avg_sq": 18,
+        "update1.exp_avg": 3,
+        "update2.exp_avg_sq": 211,
+        "update2.exp_avg": 381
+      },
+      "compute_checks": 1206,
+      "compute_master_mismatches": 0,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.1138564906456042e-05,
+          "cosine": 0.9999999999909334
+        },
+        {
+          "relative_l2": 0.00013761413248516722,
+          "cosine": 0.9999999908066542
+        },
+        {
+          "relative_l2": 0.0007821094380576709,
+          "cosine": 0.9999997062117435
+        }
+      ]
+    }
+  ]
+}

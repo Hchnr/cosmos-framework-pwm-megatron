@@ -1,0 +1,68 @@
+{
+  "scope": "existing matched-input four-GPU real12 phase accounting; selected1205 is a single unprofiled point,1202/1203 are warmup observations",
+  "source_hashes": {
+    "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_matched12_parallel_prepare_5updates_20261118/updates.rank0.jsonl": "09c6f153b9f0d32a144920a65acc1de15868e56046d628dd5ea03e809cbc0431",
+    "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_matched12_parallel_prepare_5updates_20261118/updates.rank1.jsonl": "cc8515c365724e29392c2c5470f2be6ef59f0350f223b077e693f5d6382e0957",
+    "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_matched12_parallel_prepare_5updates_20261118/updates.rank2.jsonl": "0acf1d6ec1ad61bc1341601748984198d5490cc9620b225cb74a37f3050b244c",
+    "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_matched12_parallel_prepare_5updates_20261118/updates.rank3.jsonl": "392e0f1cb3ce5cefc7b4f43da54186507413c0f609b259147df51b7893ebd38f",
+    "artifacts/megatron_tp_pp/matched12_parallel_preparation_5updates_20261118.json": "8801ff595ff469002c20c3e29a93bd885521727e6a9deed072f2c18ed2d49ea2"
+  },
+  "rows": [
+    {
+      "iteration": 1202,
+      "critical_rank_by_update_wall": 1,
+      "update_seconds": 50.964091785252094,
+      "critical_rank_host_phases_seconds": {
+        "parallel_prepare_wall_seconds": 20.106342639774084,
+        "forward_backward_host_seconds": 30.779426999390125,
+        "optimizer_and_sync_host_seconds": 0.07812698185443878
+      },
+      "host_phase_fraction": {
+        "parallel_prepare_wall_seconds": 0.39451978707864316,
+        "forward_backward_host_seconds": 0.6039434025251682,
+        "optimizer_and_sync_host_seconds": 0.0015329809502667728
+      },
+      "unassigned_host_seconds": 0.00019516423344612122,
+      "native_same_update_seconds": 41.723999571055174
+    },
+    {
+      "iteration": 1203,
+      "critical_rank_by_update_wall": 3,
+      "update_seconds": 52.676156636327505,
+      "critical_rank_host_phases_seconds": {
+        "parallel_prepare_wall_seconds": 21.45474534854293,
+        "forward_backward_host_seconds": 29.319342140108347,
+        "optimizer_and_sync_host_seconds": 1.90186358243227
+      },
+      "host_phase_fraction": {
+        "parallel_prepare_wall_seconds": 0.4072951923327472,
+        "forward_backward_host_seconds": 0.5565960770928493,
+        "optimizer_and_sync_host_seconds": 0.036104828140036925
+      },
+      "unassigned_host_seconds": 0.00020556524395942688,
+      "native_same_update_seconds": 40.86971966922283
+    },
+    {
+      "iteration": 1205,
+      "critical_rank_by_update_wall": 1,
+      "update_seconds": 49.12071428075433,
+      "critical_rank_host_phases_seconds": {
+        "parallel_prepare_wall_seconds": 19.460081860423088,
+        "forward_backward_host_seconds": 29.5882018096745,
+        "optimizer_and_sync_host_seconds": 0.07227283716201782
+      },
+      "host_phase_fraction": {
+        "parallel_prepare_wall_seconds": 0.39616854407281327,
+        "forward_backward_host_seconds": 0.6023569128201229,
+        "optimizer_and_sync_host_seconds": 0.0014713311526566009
+      },
+      "unassigned_host_seconds": 0.00015777349472045898,
+      "native_same_update_seconds": 39.83461259305477
+    }
+  ],
+  "timing_semantics": "sequential host wall phases on the actual slowest rank; forward/backward includes communication, host work and waits; optimizer phase is not isolated kernel duration",
+  "worker_timing_sums_are_not_critical_path": true,
+  "native_gpu_phase_breakdown_available": false,
+  "production_576_slot_acceptance": false,
+  "steady_state_performance_accepted": false
+}

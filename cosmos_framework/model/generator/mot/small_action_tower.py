@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Heterogeneous action experts with simultaneous, bidirectional KV exchange.
 
 Only the pack boundary pads action features for legacy modality scatter/gather.
@@ -168,6 +171,49 @@ def rotate(x, position):
     return x * cos[:, None] + torch.cat((-b, a), -1) * sin[:, None]
 
 
+def build_small_masks(ids, attention_backend, num_samples, *, fixed_capacity=False):
+    """Rebuild native masks from tensor metadata on each pipeline stage."""
+    masks = {}
+
+    def mask_for(query_ids, key_ids, *, causal=False, video=False):
+        if (attention_backend == "flash3" or (attention_backend == "flash3_video" and video)) and len(query_ids):
+            if attention_backend == "flash3" and fixed_capacity:
+                raise ValueError("All-stream flash3 requires unpadded inference sequences")
+            from .small_action_attention import video_varlen_mask
+
+            return video_varlen_mask(
+                query_ids,
+                key_ids,
+                num_samples,
+                fixed_capacity=fixed_capacity,
+                causal=causal,
+            )
+        if attention_backend in ("flex", "flash3_video") and len(query_ids) and len(key_ids):
+            from .small_action_attention import sample_block_mask
+
+            return sample_block_mask(query_ids, key_ids, causal=causal)
+        if not fixed_capacity:
+            real = query_ids[:, None] == key_ids[None, :]
+        else:
+            real = (query_ids[:, None] >= 0) & (query_ids[:, None] == key_ids[None, :])
+            # Padding queries attend one dummy key to keep every backend finite;
+            # real queries never attend padding keys. Padded outputs are discarded.
+            real = real | ((query_ids[:, None] < 0) & (torch.arange(len(key_ids), device=key_ids.device)[None] == 0))
+        if causal:
+            n = torch.arange(len(query_ids), device=query_ids.device)
+            real = real & (n[:, None] >= n[None, :])
+        return real
+
+    for active in (False, True):
+        ks = torch.cat(ids if active else ids[:2])
+        masks[(active, 1)] = mask_for(ids[1], ks, video=True)
+        if active:
+            masks[(active, 2)] = mask_for(ids[2], ks)
+    masks[(False, 0)] = mask_for(ids[0], ids[0], causal=True)
+
+    return masks
+
+
 def compact_pack(
     pack, positions, position_ids, shape, fixed_lengths=None, attention_backend="sdpa", und_short_tokens=0
 ):
@@ -197,43 +243,9 @@ def compact_pack(
             ids[i] = F.pad(ids[i], (0, targets[i] - real_lengths[i]), value=-1)
     out["_small_ids"] = ids
     # Masks are built once, never per layer. Empty queries are handled explicitly.
-    out["_small_masks"] = {}
-
-    def mask_for(query_ids, key_ids, *, causal=False, video=False):
-        if (attention_backend == "flash3" or (attention_backend == "flash3_video" and video)) and len(query_ids):
-            if attention_backend == "flash3" and fixed_lengths is not None:
-                raise ValueError("All-stream flash3 requires unpadded inference sequences")
-            from .small_action_attention import video_varlen_mask
-
-            return video_varlen_mask(
-                query_ids,
-                key_ids,
-                len(pack["sample_offsets"]) - 1,
-                fixed_capacity=fixed_lengths is not None,
-                causal=causal,
-            )
-        if attention_backend in ("flex", "flash3_video") and len(query_ids) and len(key_ids):
-            from .small_action_attention import sample_block_mask
-
-            return sample_block_mask(query_ids, key_ids, causal=causal)
-        if fixed_lengths is None:
-            real = query_ids[:, None] == key_ids[None, :]
-        else:
-            real = (query_ids[:, None] >= 0) & (query_ids[:, None] == key_ids[None, :])
-            # Padding queries attend one dummy key to keep every backend finite;
-            # real queries never attend padding keys. Padded outputs are discarded.
-            real = real | ((query_ids[:, None] < 0) & (torch.arange(len(key_ids), device=key_ids.device)[None] == 0))
-        if causal:
-            n = torch.arange(len(query_ids), device=query_ids.device)
-            real = real & (n[:, None] >= n[None, :])
-        return real
-
-    for active in (False, True):
-        ks = torch.cat(ids if active else ids[:2])
-        out["_small_masks"][(active, 1)] = mask_for(ids[1], ks, video=True)
-        if active:
-            out["_small_masks"][(active, 2)] = mask_for(ids[2], ks)
-    out["_small_masks"][(False, 0)] = mask_for(ids[0], ids[0], causal=True)
+    out["_small_masks"] = build_small_masks(
+        ids, attention_backend, len(pack["sample_offsets"]) - 1, fixed_capacity=fixed_lengths is not None
+    )
 
     # all position tensors still have their original token order.
     out["_small_rope"] = tuple(

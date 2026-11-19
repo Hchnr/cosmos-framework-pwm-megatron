@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "scope": "actual source layer 0, synthetic packed inputs, FP32",
+  "groups": {
+    "tp": [
+      2,
+      3
+    ],
+    "pp": [
+      2
+    ],
+    "dp": [
+      0,
+      2
+    ],
+    "microbatches": 1
+  },
+  "updates": 3,
+  "source_step": 1200,
+  "gradient_relative_l2": {
+    "0/layers.0.mlp_moe_gen.up_proj.weight": 8.458802920325102e-07,
+    "0/layers.0.mlp_moe_gen.gate_proj.weight": 8.963220588112445e-07,
+    "0/layers.0.self_attn.o_proj_moe_gen.weight": 6.068087480962213e-07,
+    "0/layers.0.self_attn.v_proj_moe_gen.weight": 5.697297135416708e-07,
+    "0/layers.0.self_attn.k_proj_moe_gen.weight": 9.395443699451116e-07,
+    "0/layers.0.self_attn.q_proj_moe_gen.weight": 1.009518288421714e-06,
+    "0/layers.0.self_attn.k_norm_moe_gen.weight": 3.4751552259616147e-07,
+    "0/layers.0.self_attn.q_norm_moe_gen.weight": 3.262586244043141e-07,
+    "1/layers.0.mlp_moe_gen.up_proj.weight": 1.143055537053332e-06,
+    "1/layers.0.mlp_moe_gen.gate_proj.weight": 1.1949604992383228e-06,
+    "1/layers.0.self_attn.o_proj_moe_gen.weight": 1.0093860401425506e-06,
+    "1/layers.0.self_attn.v_proj_moe_gen.weight": 3.9553556225546154e-07,
+    "1/layers.0.self_attn.k_proj_moe_gen.weight": 7.919534826738861e-07,
+    "1/layers.0.self_attn.q_proj_moe_gen.weight": 7.558675506950828e-07,
+    "1/layers.0.self_attn.k_norm_moe_gen.weight": 5.487256922742477e-07,
+    "1/layers.0.self_attn.q_norm_moe_gen.weight": 4.1785108609969045e-07,
+    "2/layers.0.mlp_moe_gen.up_proj.weight": 1.3632121933483626e-06,
+    "2/layers.0.mlp_moe_gen.gate_proj.weight": 1.1827273906530194e-06,
+    "2/layers.0.self_attn.o_proj_moe_gen.weight": 5.671611438728476e-07,
+    "2/layers.0.self_attn.v_proj_moe_gen.weight": 5.860565798846323e-07,
+    "2/layers.0.self_attn.k_proj_moe_gen.weight": 8.193491143424015e-07,
+    "2/layers.0.self_attn.q_proj_moe_gen.weight": 8.092888072412814e-07,
+    "2/layers.0.self_attn.k_norm_moe_gen.weight": 8.441441303826607e-07,
+    "2/layers.0.self_attn.q_norm_moe_gen.weight": 1.1970575578902035e-06
+  }
+}

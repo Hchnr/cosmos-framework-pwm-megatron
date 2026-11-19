@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "scope": "actual original prepared captures, every tensor field retained exactly after FP32 casting, no sample/token/target crop; derived device cache cleared",
+  "rows": [
+    {
+      "rank": 0,
+      "tensor_fields_exact_after_fp32_cast": 120,
+      "samples": 6,
+      "text_tokens": 1064,
+      "vision_tokens": 57600,
+      "action_tokens": 366,
+      "source_hashes": {
+        "/opt/cosmos-tp-pp-real-rf-prepared-controlled12/rank0.micro0.pt": "090ebbb243f8fd9d7951094a295a075613b7eaf244bd730021a36ce482718796",
+        "/opt/cosmos-tp-pp-real-rf-prepared-controlled12/rank0.micro0.loss.pt": "8925f533a25aa937f87bbc34df061b58bde987f9711bd0467037366821684380"
+      }
+    },
+    {
+      "rank": 1,
+      "tensor_fields_exact_after_fp32_cast": 120,
+      "samples": 6,
+      "text_tokens": 1030,
+      "vision_tokens": 57600,
+      "action_tokens": 366,
+      "source_hashes": {
+        "/opt/cosmos-tp-pp-real-rf-prepared-controlled12/rank1.micro0.pt": "11a4c74d14852caafc083c1132fd0cea1a39d3a36202d1f4de595193868d030e",
+        "/opt/cosmos-tp-pp-real-rf-prepared-controlled12/rank1.micro0.loss.pt": "e9dafddb1f536481ab87b1764e768840456a60d233802cd92efcfcd2644b042f"
+      }
+    }
+  ],
+  "cuda_initialized": false,
+  "full_model_math_accepted": false,
+  "production_capacity_576_slot_acceptance": false
+}

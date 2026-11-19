@@ -1,0 +1,13 @@
+{
+  "pid": 1404824,
+  "create_time": 1795040597.28,
+  "script": "/tmp/run_tp_pp_collective_warmup_qualification_after_math_20261118.py",
+  "script_sha256": "9c571c63e40a2f4c77ca2be5c48333a7da8251b0037f07f53764e6b96f7b3d44",
+  "log": "/tmp/cosmos_tp_pp_collective_warmup_qualification_after_math_20261118.log",
+  "wait_for_pid": 1162948,
+  "wait_for_create_time": 1795028820.41,
+  "scope": "cold/warm actual MCore FP32 norm under cache pressure then compiled native-Adam network and BF16 master restore PP2/DP1 and PP1/DP2; not production acceptance",
+  "gpu_tests_started": false,
+  "default_patch_applied": false,
+  "held_idle_dp2_pid": 1272836
+}

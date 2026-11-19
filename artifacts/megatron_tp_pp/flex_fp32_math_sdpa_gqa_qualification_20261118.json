@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "scope": "small production Flex FP32 kernel versus math SDPA; unequal packed samples, padding and GQA32/8",
+  "source_sha256": "6f32afa106f3f996322b2ae4a669eb4ee991a2c1013e9b703fa9e64608e32a58",
+  "rows": {
+    "output": {
+      "passed": true,
+      "finite": true,
+      "relative_l2": 3.288716442635494e-07,
+      "cosine": 0.9999999999999459,
+      "maximum_absolute_error": 1.7285346984863281e-06
+    },
+    "dq": {
+      "passed": true,
+      "finite": true,
+      "relative_l2": 6.415280504036769e-07,
+      "cosine": 0.9999999999997967,
+      "maximum_absolute_error": 3.5206469419790665e-06
+    },
+    "dk": {
+      "passed": true,
+      "finite": true,
+      "relative_l2": 6.894284798205307e-07,
+      "cosine": 0.9999999999997646,
+      "maximum_absolute_error": 4.9173831939697266e-06
+    },
+    "dv": {
+      "passed": true,
+      "finite": true,
+      "relative_l2": 4.5024233213137394e-07,
+      "cosine": 0.9999999999998989,
+      "maximum_absolute_error": 1.52587890625e-05
+    }
+  },
+  "peak_allocated_cuda_bytes": 175324160,
+  "full_model_math_accepted": false,
+  "production_capacity_576_slot_acceptance": false
+}

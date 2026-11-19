@@ -1,0 +1,16 @@
+{
+  "passed": false,
+  "scope": "full 36-layer FP32 source with full real text and cropped V/A, legacy CPU clipping norm reference",
+  "gradient_gate_passed": true,
+  "all_parameter_gradients_and_outputs_passed": true,
+  "gradient_relative_l2": 1.0041324600472541e-05,
+  "gradient_cosine": 0.9999999999902097,
+  "native_reference_cpu_fp32_norm": 123.03472900390625,
+  "tp_mcore_norm": 123.17072296142578,
+  "independent_saved_native_gradient_fp64_norm": 123.16960956638715,
+  "norm_gate_passed": false,
+  "reference_cpu_norm_accuracy_issue_verified": true,
+  "followup": "Regenerate native three updates with CUDA per-parameter/global norm; fixed tolerance unchanged",
+  "optimizer_state_correctness_accepted": false,
+  "production_576_slot_acceptance": false
+}

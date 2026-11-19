@@ -1,0 +1,12 @@
+{
+  "completed": true,
+  "scope": "immutable hard-linked payloads with PP ownership reassigned; independent source verification required",
+  "source": "/opt/cosmos-tp-pp-canonical-iter1200",
+  "destination": "/opt/cosmos-tp-pp-canonical-iter1200-tp2-pp1",
+  "tp": 2,
+  "pp": 1,
+  "parameters": 1214,
+  "linked_files": 2550,
+  "independent_source_verification_passed": false,
+  "training_resume_accepted": false
+}

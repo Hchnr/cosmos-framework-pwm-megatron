@@ -1009,6 +1009,7 @@ def _video_vae(
     object_store_credential_path_pretrained="",
     temporal_window: int | Mapping[str, int] = 4,
     encode_exact_durations: list[int] | None = None,
+    process_group=None,
 ):
     """
     Autoencoder3d adapted from Wan 2.2.
@@ -1025,7 +1026,7 @@ def _video_vae(
     if pretrained_path is None:
         model.to_empty(device=device)
     else:
-        if get_rank() == 0:
+        if get_rank(process_group) == 0:
             if pretrained_path.startswith("hf://"):
                 # easy_io has no 'hf' backend, so an hf:// URI must be resolved to a
                 # local file first. Do this regardless of INTERNAL (unlike s3:// paths,
@@ -1071,7 +1072,10 @@ def _video_vae(
     for b in model.buffers():
         if not b.is_contiguous():
             b.data = b.data.contiguous()
-    sync_model_states(model)
+    if process_group is None:
+        sync_model_states(model)
+    else:
+        sync_model_states(model, process_group=process_group, src=dist.get_global_rank(process_group, 0))
 
     return model
 
@@ -1086,6 +1090,7 @@ class WanVAE:
         device=DEVICE,
         temporal_window: int | Mapping[str, int] = 4,
         encode_exact_durations: list[int] | None = None,
+        process_group=None,
     ):
         self.dtype = dtype
         self.device = device
@@ -1203,6 +1208,7 @@ class WanVAE:
             device=device,
             temporal_window=temporal_window,
             encode_exact_durations=encode_exact_durations,
+            process_group=process_group,
         )
 
         self.model = self.model.eval().requires_grad_(False)
@@ -1353,7 +1359,9 @@ def _collect_warmup_shapes(
     return all_shapes
 
 
-def _synchronized_reset_dir(path: str, *, is_distributed: bool, rank: int, mode: Literal["delete", "recreate"]) -> None:
+def _synchronized_reset_dir(
+    path: str, *, is_distributed: bool, rank: int, mode: Literal["delete", "recreate"], process_group=None
+) -> None:
     """Delete (and optionally recreate) a directory in a distributed-safe way: barrier, rank-0 reset, barrier.
 
     The leading barrier ensures every rank has finished using ``path`` before rank 0
@@ -1372,14 +1380,14 @@ def _synchronized_reset_dir(path: str, *, is_distributed: bool, rank: int, mode:
     import torch.distributed as dist
 
     if is_distributed:
-        dist.barrier()
+        dist.barrier(group=process_group)
     if rank == 0:
         shutil.rmtree(path, ignore_errors=True)
         if mode == "recreate":
             os.makedirs(path, exist_ok=True)
         log.info(f"{'Reset' if mode == 'recreate' else 'Removed'} directory: {path}")
     if is_distributed:
-        dist.barrier()
+        dist.barrier(group=process_group)
 
 
 # Version 3 restores optimized BF16 fusion and validates rare cache outliers
@@ -1585,6 +1593,7 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
         temporal_window: int | None = None,
         encode_bucket_multiple: int | None = None,
         causal: bool = True,
+        process_group=None,
     ):
         # Remove temporal_window and encode_bucket_multiple once they have been
         # removed from the uploaded HuggingFace checkpoint.
@@ -1616,6 +1625,7 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
             object_store_credential_path_pretrained=object_store_credential_path_pretrained,
             temporal_window=encode_chunk_frames,
             encode_exact_durations=encode_exact_durations,
+            process_group=process_group,
         )
         self.encode_chunk_frames = encode_chunk_frames
         self.encode_exact_durations = encode_exact_durations
@@ -1682,6 +1692,7 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
         aspect_ratio: str | None = None,
         spatial_sizes: Sequence[Sequence[int]] | None = None,
         require_full_coverage: bool = False,
+        process_group=None,
         # ignores torch compile args
         **kwargs,
     ) -> None:
@@ -1735,9 +1746,9 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
 
         all_shapes = _collect_warmup_shapes(self, warmup_resolutions, aspect_ratio, spatial_sizes)
 
-        is_distributed = dist.is_available() and dist.is_initialized() and dist.get_world_size() > 1
-        rank = dist.get_rank() if is_distributed else 0
-        world_size = dist.get_world_size() if is_distributed else 1
+        is_distributed = dist.is_available() and dist.is_initialized() and dist.get_world_size(group=process_group) > 1
+        rank = dist.get_rank(group=process_group) if is_distributed else 0
+        world_size = dist.get_world_size(group=process_group) if is_distributed else 1
 
         wanvae = self.model  # WanVAE (plain class)
         wanvae_model = wanvae.model  # WanVAE_ (nn.Module)
@@ -1754,7 +1765,9 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
         if cache_mode in {"off", "build"}:
             # Build only from a fresh working directory.  A canonical artifact
             # is never passed to the compiler as a writable package directory.
-            _synchronized_reset_dir(save_dir, is_distributed=is_distributed, rank=rank, mode="recreate")
+            _synchronized_reset_dir(
+                save_dir, is_distributed=is_distributed, rank=rank, mode="recreate", process_group=process_group
+            )
             if rank == 0:
                 log.info(f"Saving AOT compiled packages to {save_dir}")
 
@@ -1941,12 +1954,12 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
             # Gather .pt2 paths from every rank so all ranks can load all variants.
             if is_distributed:
                 gathered: list[dict[_AOTChunkKey, str] | None] = [None] * world_size
-                dist.all_gather_object(gathered, my_pkg_paths)
+                dist.all_gather_object(gathered, my_pkg_paths, group=process_group)
                 pkg_paths: dict[_AOTChunkKey, str] = {}
                 for rank_paths in gathered:
                     if rank_paths:
                         pkg_paths.update(rank_paths)
-                dist.barrier()
+                dist.barrier(group=process_group)
             else:
                 pkg_paths = my_pkg_paths
         else:
@@ -2059,7 +2072,7 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
         local_complete = set(loaded_fns) == expected_variant_keys
         if is_distributed:
             completeness: list[bool | None] = [None] * world_size
-            dist.all_gather_object(completeness, local_complete)
+            dist.all_gather_object(completeness, local_complete, group=process_group)
             all_ranks_complete = all(value is True for value in completeness)
         else:
             all_ranks_complete = local_complete
@@ -2085,7 +2098,7 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
                     publish_error = f"{type(exc).__name__}: {exc}"
             if is_distributed:
                 publish_errors: list[str | None] = [None] * world_size
-                dist.all_gather_object(publish_errors, publish_error)
+                dist.all_gather_object(publish_errors, publish_error, group=process_group)
                 publish_error = next((error for error in publish_errors if error is not None), None)
             if publish_error is not None:
                 raise RuntimeError(f"tokenizer AOT publication failed: {publish_error}")
@@ -2104,7 +2117,9 @@ class Wan2pt2VAEInterface(VideoTokenizerInterface):
         # Working packages are disposable after load/publication.  Consumer
         # packages are staged immutable artifacts and must survive this call.
         if cache_mode in {"off", "build"}:
-            _synchronized_reset_dir(save_dir, is_distributed=is_distributed, rank=rank, mode="delete")
+            _synchronized_reset_dir(
+                save_dir, is_distributed=is_distributed, rank=rank, mode="delete", process_group=process_group
+            )
 
         if not loaded_fns:
             raise RuntimeError("AOT compilation produced no loadable functions")

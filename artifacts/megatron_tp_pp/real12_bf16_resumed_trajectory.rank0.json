@@ -1,0 +1,98 @@
+{
+  "scope": "real original-capacity 12-slot BF16 updates, source update then new-process two-update continuation",
+  "full_checkpoint_1203_saved": true,
+  "strict_same_prepared_math_accepted": false,
+  "production_576_slot_acceptance": false,
+  "updates": [
+    {
+      "iteration": 1201,
+      "rank": 0,
+      "update_seconds": 217.16727970167994,
+      "denominator_preflight_seconds": 63.53271561488509,
+      "grad_norm": 0.15925516784582952,
+      "peak_cuda_allocated_bytes": 73908568064,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          36.0
+        ],
+        [
+          0.0,
+          44.0
+        ],
+        [
+          0.0,
+          75.0
+        ]
+      ],
+      "metadata_bytes_sent": 2246435011,
+      "local_logical_samples": 155,
+      "local_logical_tokens": {
+        "text": 41625,
+        "vision": 696320,
+        "action": 6430
+      }
+    },
+    {
+      "iteration": 1202,
+      "rank": 0,
+      "update_seconds": 167.31851375475526,
+      "denominator_preflight_seconds": 36.34692098945379,
+      "grad_norm": 0.14890579339644885,
+      "peak_cuda_allocated_bytes": 73939147776,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          33.0
+        ]
+      ],
+      "metadata_bytes_sent": 2226438996,
+      "local_logical_samples": 97,
+      "local_logical_tokens": {
+        "text": 29646,
+        "vision": 700320,
+        "action": 5917
+      }
+    },
+    {
+      "iteration": 1203,
+      "rank": 0,
+      "update_seconds": 157.4329161643982,
+      "denominator_preflight_seconds": 43.397183794528246,
+      "grad_norm": 0.1856230127825474,
+      "peak_cuda_allocated_bytes": 73442351104,
+      "logical_slots": 12,
+      "samples_by_original_microstep": [
+        [
+          0.0,
+          32.0
+        ],
+        [
+          0.0,
+          44.0
+        ],
+        [
+          0.0,
+          24.0
+        ]
+      ],
+      "metadata_bytes_sent": 2244375455,
+      "local_logical_samples": 100,
+      "local_logical_tokens": {
+        "text": 22765,
+        "vision": 703520,
+        "action": 6098
+      }
+    }
+  ]
+}

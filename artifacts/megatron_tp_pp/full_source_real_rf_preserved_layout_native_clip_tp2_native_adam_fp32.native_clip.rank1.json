@@ -1,0 +1,11 @@
+{
+  "native_clip_arithmetic": true,
+  "helper_completed_successfully": false,
+  "source_unchanged": true,
+  "source_hashes": {
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/tests/megatron/tp_pp_full_source_math.py": "6eb82ab711165c08bd4648f6880f4fbe4e97d6d50d06d58975b677015bc0b536",
+    "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/tools/run_tp_pp_math_with_native_clip.py": "04ca216b8f02965b259b985e0f2e876d55d259d571cf6dd7dcd6cd569b6bce5c",
+    "tools/tp_pp_native_clip_arithmetic.py": "28d64866e98a5ab7fdebbb8e80c88f8a9739b7e88439fde62b4aa6e6eb25af14"
+  },
+  "scope": "diagnostic only; original helper gates and inputs unchanged"
+}

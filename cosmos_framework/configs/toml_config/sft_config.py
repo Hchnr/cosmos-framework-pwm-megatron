@@ -135,6 +135,29 @@ class EMAConfig(BaseModel):
     )
 
 
+class MegatronModelParallelConfig(BaseModel):
+    """TP/PP topology and topology-independent logical update definition."""
+
+    model_config = _PYDANTIC_MODEL_CONFIG
+    tensor_model_parallel_size: int = 2
+    pipeline_model_parallel_size: int = 2
+    global_packed_microbatches_per_update: int = 576
+    logical_data_parallel_size: int = 192
+    reference_micro_steps_per_update: int = 3
+    sequence_parallel: bool = False
+    pipeline_schedule: Literal["1f1b"] = "1f1b"
+    use_distributed_optimizer: bool = True
+    overlap_grad_reduce: bool = False
+    overlap_param_gather: bool = False
+
+    @model_validator(mode="after")
+    def validate_topology(self):
+        from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
+
+        ModelParallelConfig(**self.model_dump())
+        return self
+
+
 class ParallelismConfig(BaseModel):
     """FSDP / context-parallel / classifier-free-guidance topology.
 
@@ -142,7 +165,8 @@ class ParallelismConfig(BaseModel):
     """
 
     model_config = _PYDANTIC_MODEL_CONFIG
-    backend: Literal["pytorch", "megatron"] = "pytorch"
+    backend: Literal["pytorch", "megatron", "megatron_tp_pp"] = "pytorch"
+    megatron: MegatronModelParallelConfig = Field(default_factory=MegatronModelParallelConfig)
     megatron_fuse_projections: bool = False
     megatron_sharding_strategy: Literal["optim_grads_params", "optim_grads", "optim", "no_shard"] = "optim_grads_params"
 
@@ -178,6 +202,17 @@ class ParallelismConfig(BaseModel):
             "Almost always 1 for SFT."
         ),
     )
+
+    @model_validator(mode="after")
+    def validate_model_parallel_backend(self):
+        if self.backend == "megatron_tp_pp" and (
+            self.data_parallel_shard_degree not in (-1, 1)
+            or self.data_parallel_replicate_degree != 1
+            or self.context_parallel_shard_degree != 1
+            or self.cfg_parallel_shard_degree != 1
+        ):
+            raise ValueError("megatron_tp_pp derives DP from WORLD/(TP*PP); FSDP/HSDP/CP/CFG degrees are incompatible")
+        return self
 
 
 class CompileConfig(BaseModel):
@@ -787,6 +822,7 @@ class CheckpointConfig(BaseModel):
     """Resume + save policy. Lands at ``config.checkpoint.*``."""
 
     model_config = _PYDANTIC_MODEL_CONFIG
+    megatron_tp_pp_import_path: str = ""
 
     dcp_async_mode_enabled: bool = Field(
         default=False,
@@ -1101,6 +1137,37 @@ class SFTExperimentConfig(BaseModel):
             "resolution; specify concrete values here (no ${...} interpolation)."
         ),
     )
+
+    @model_validator(mode="after")
+    def validate_megatron_tp_pp(self):
+        if self.model.parallelism.backend != "megatron_tp_pp":
+            return self
+        if (
+            self.job.task != "vfm"
+            or self.model.tower_structure != "three_tower"
+            or self.model.action_tower_preset != "width_only_1b"
+            or self.model.load_vlm_visual
+            or self.model.predict_text_tokens
+            or self.model.ema.enabled
+        ):
+            raise ValueError(
+                "megatron_tp_pp requires the dense Nano three-tower action recipe, frozen visual/UND, and EMA off"
+            )
+        if self.trainer.grad_accum_iter != 1:
+            raise ValueError(
+                "MCore owns accumulation; set trainer.grad_accum_iter=1 and configure logical slots under parallelism.megatron"
+            )
+        if (
+            self.checkpoint.dcp_async_mode_enabled
+            or not self.checkpoint.load_training_state
+            or self.checkpoint.keys_to_skip_loading
+            or self.checkpoint.keys_not_to_resume
+            or not self.checkpoint.megatron_tp_pp_import_path
+        ):
+            raise ValueError("megatron_tp_pp requires synchronous full-state loading and a canonical import path")
+        if self.model.precision not in ("float32", "bfloat16"):
+            raise ValueError("megatron_tp_pp supports FP32 and BF16")
+        return self
 
     @model_validator(mode="after")
     def validate_vfm_fixed_sequence_length_contract(self) -> "SFTExperimentConfig":

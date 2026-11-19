@@ -1,0 +1,31 @@
+{
+  "native_optimizer_file": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/cosmos_framework/utils/generator/fused_adam.py",
+  "mcore_optimizer_file": "/share-mixed/project/eai_pwm/home/hcr/venv/cosmos-framework-pwm-cu130-train/lib/python3.13/site-packages/transformer_engine/pytorch/optimizers/fused_adam.py",
+  "source_step": 1200,
+  "reports": [
+    {
+      "update": 1,
+      "master_max_abs": 0.0,
+      "moment_max_abs": {
+        "exp_avg": 0.0,
+        "exp_avg_sq": 0.0
+      }
+    },
+    {
+      "update": 2,
+      "master_max_abs": 0.0,
+      "moment_max_abs": {
+        "exp_avg": 0.0,
+        "exp_avg_sq": 0.0
+      }
+    },
+    {
+      "update": 3,
+      "master_max_abs": 0.0,
+      "moment_max_abs": {
+        "exp_avg": 0.0,
+        "exp_avg_sq": 0.0
+      }
+    }
+  ]
+}

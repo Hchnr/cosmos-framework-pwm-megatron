@@ -1,0 +1,114 @@
+{
+  "passed": true,
+  "scope": "811-parameter actual clipped-gradient samples, norm/scale only; concurrent GPU diagnostic, not production throughput",
+  "fixture": "artifacts/megatron_tp_pp/native_vs_mcore_adam_actual_value_samples_20261118.samples.pt",
+  "parameters": 811,
+  "elements_per_update": 189786,
+  "transformer_engine_version": "2.12+cu130.torch210",
+  "cuda_visible_devices": "3",
+  "peak_allocated_bytes": 5489152,
+  "backend": {
+    "installed_norm_function": "local_multi_tensor_l2_norm",
+    "installed_norm_module": "megatron.core.utils",
+    "te_symbols": {
+      "multi_tensor_applier": true,
+      "multi_tensor_l2norm": true,
+      "multi_tensor_scale": true,
+      "multi_tensor_scale_tensor": false
+    }
+  },
+  "rows": [
+    {
+      "update": 0,
+      "fp64_sample_norm": 0.1502891911395946,
+      "norms": {
+        "installed_mcore": 0.15028917789459229,
+        "te_available": 0.15028919279575348,
+        "native_foreach": 0.15028919279575348
+      },
+      "norm_relative_errors": {
+        "installed_mcore": 8.813010580939952e-08,
+        "te_available": 1.101981362829885e-08,
+        "native_foreach": 1.101981362829885e-08
+      },
+      "median_wall_seconds_including_scalar_read": {
+        "installed_mcore": 0.01723756641149521,
+        "te_available": 0.0005542971193790436,
+        "native_foreach": 0.0023209452629089355
+      },
+      "scale": [
+        {
+          "coefficient": 0.5,
+          "bitexact_native_foreach": true
+        },
+        {
+          "coefficient": 0.008118385449051857,
+          "bitexact_native_foreach": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "update": 1,
+      "fp64_sample_norm": 0.08815047659165506,
+      "norms": {
+        "installed_mcore": 0.08815047144889832,
+        "te_available": 0.08815047889947891,
+        "native_foreach": 0.08815047889947891
+      },
+      "norm_relative_errors": {
+        "installed_mcore": 5.834065732912914e-08,
+        "te_available": 2.6180503361103038e-08,
+        "native_foreach": 2.6180503361103038e-08
+      },
+      "median_wall_seconds_including_scalar_read": {
+        "installed_mcore": 0.017315134406089783,
+        "te_available": 0.0005530007183551788,
+        "native_foreach": 0.0023693107068538666
+      },
+      "scale": [
+        {
+          "coefficient": 0.5,
+          "bitexact_native_foreach": true
+        },
+        {
+          "coefficient": 0.008118385449051857,
+          "bitexact_native_foreach": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "update": 2,
+      "fp64_sample_norm": 0.08503362288219021,
+      "norms": {
+        "installed_mcore": 0.08503362536430359,
+        "te_available": 0.08503361791372299,
+        "native_foreach": 0.08503361791372299
+      },
+      "norm_relative_errors": {
+        "installed_mcore": 2.9189787425433568e-08,
+        "te_available": 5.842944299646943e-08,
+        "native_foreach": 5.842944299646943e-08
+      },
+      "median_wall_seconds_including_scalar_read": {
+        "installed_mcore": 0.01749873161315918,
+        "te_available": 0.0005486756563186646,
+        "native_foreach": 0.0023958273231983185
+      },
+      "scale": [
+        {
+          "coefficient": 0.5,
+          "bitexact_native_foreach": true
+        },
+        {
+          "coefficient": 0.008118385449051857,
+          "bitexact_native_foreach": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "full_model_trajectory_accepted": false,
+  "production_performance_accepted": false
+}

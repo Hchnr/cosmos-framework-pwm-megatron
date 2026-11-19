@@ -1,0 +1,306 @@
+{
+  "passed": false,
+  "scope": "original full576 decoder-only replay without resident VAE; actual fatal OOM, no optimizer update/checkpoint completed",
+  "failure": {
+    "passed": false,
+    "scope": "original-capacity decoder-only memory diagnostic; failed before controlled completion",
+    "rank": 0,
+    "global_slots": 576,
+    "forwards_started": 206,
+    "backwards_completed": 204,
+    "active_forward_slot": null,
+    "active_backward_slot": [
+      1200,
+      1,
+      12
+    ],
+    "in_flight_slots": [
+      [
+        1200,
+        1,
+        12
+      ],
+      [
+        1200,
+        1,
+        13
+      ]
+    ],
+    "allocated_cuda_bytes": 78663704576,
+    "reserved_cuda_bytes": 79947628544,
+    "peak_allocated_cuda_bytes": 79278677504,
+    "error_type": "OutOfMemoryError",
+    "error": "CUDA out of memory. Tried to allocate 700.00 MiB. GPU 0 has a total capacity of 79.11 GiB of which 569.94 MiB is free. Process 3266123 has 78.54 GiB memory in use. Of the allocated memory 73.26 GiB is allocated by PyTorch, and 1.20 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+    "source_spool_unchanged": true,
+    "checkpoint_published": false,
+    "production_capacity_576_slot_acceptance": false
+  },
+  "failed_slot_input": {
+    "event": "before_forward",
+    "forwards": 205,
+    "backwards": 203,
+    "allocated_bytes": 60907659264,
+    "reserved_bytes": 80404807680,
+    "peak_allocated_bytes": 79278677504,
+    "slot": [
+      1200,
+      1,
+      12
+    ],
+    "samples": 11,
+    "tokens": {
+      "text": 1945,
+      "vision": 59400,
+      "action": 671
+    }
+  },
+  "same_in_flight_after_backward_samples": {
+    "0": [
+      {
+        "forwards": 2,
+        "backwards": 1,
+        "allocated_bytes": 52700707328,
+        "reserved_bytes": 73299656704
+      },
+      {
+        "forwards": 17,
+        "backwards": 16,
+        "allocated_bytes": 53461652480,
+        "reserved_bytes": 73461137408
+      },
+      {
+        "forwards": 33,
+        "backwards": 32,
+        "allocated_bytes": 54362091008,
+        "reserved_bytes": 75226939392
+      },
+      {
+        "forwards": 65,
+        "backwards": 64,
+        "allocated_bytes": 54033039360,
+        "reserved_bytes": 75732353024
+      },
+      {
+        "forwards": 97,
+        "backwards": 96,
+        "allocated_bytes": 55820278784,
+        "reserved_bytes": 75921096704
+      },
+      {
+        "forwards": 129,
+        "backwards": 128,
+        "allocated_bytes": 56794230272,
+        "reserved_bytes": 77720453120
+      },
+      {
+        "forwards": 161,
+        "backwards": 160,
+        "allocated_bytes": 58649609216,
+        "reserved_bytes": 79654027264
+      },
+      {
+        "forwards": 193,
+        "backwards": 192,
+        "allocated_bytes": 60056692736,
+        "reserved_bytes": 80190898176
+      },
+      {
+        "forwards": 205,
+        "backwards": 204,
+        "allocated_bytes": 60718157312,
+        "reserved_bytes": 80515956736
+      }
+    ],
+    "1": [
+      {
+        "forwards": 2,
+        "backwards": 1,
+        "allocated_bytes": 52700707328,
+        "reserved_bytes": 73299656704
+      },
+      {
+        "forwards": 17,
+        "backwards": 16,
+        "allocated_bytes": 53603502080,
+        "reserved_bytes": 73612132352
+      },
+      {
+        "forwards": 33,
+        "backwards": 32,
+        "allocated_bytes": 54181378048,
+        "reserved_bytes": 75199676416
+      },
+      {
+        "forwards": 65,
+        "backwards": 64,
+        "allocated_bytes": 55426259968,
+        "reserved_bytes": 76053217280
+      },
+      {
+        "forwards": 97,
+        "backwards": 96,
+        "allocated_bytes": 56938271232,
+        "reserved_bytes": 77770784768
+      },
+      {
+        "forwards": 129,
+        "backwards": 128,
+        "allocated_bytes": 57541519360,
+        "reserved_bytes": 78859206656
+      },
+      {
+        "forwards": 161,
+        "backwards": 160,
+        "allocated_bytes": 59111879168,
+        "reserved_bytes": 79305900032
+      },
+      {
+        "forwards": 193,
+        "backwards": 192,
+        "allocated_bytes": 53444526080,
+        "reserved_bytes": 79882616832
+      },
+      {
+        "forwards": 205,
+        "backwards": 204,
+        "allocated_bytes": 53916580352,
+        "reserved_bytes": 79882616832
+      }
+    ],
+    "2": [
+      {
+        "forwards": 1,
+        "backwards": 1,
+        "allocated_bytes": 41323909632,
+        "reserved_bytes": 58839793664
+      },
+      {
+        "forwards": 16,
+        "backwards": 16,
+        "allocated_bytes": 42476226048,
+        "reserved_bytes": 59519270912
+      },
+      {
+        "forwards": 32,
+        "backwards": 32,
+        "allocated_bytes": 42668960768,
+        "reserved_bytes": 59938701312
+      },
+      {
+        "forwards": 64,
+        "backwards": 64,
+        "allocated_bytes": 43404123136,
+        "reserved_bytes": 60402171904
+      },
+      {
+        "forwards": 96,
+        "backwards": 96,
+        "allocated_bytes": 43772440576,
+        "reserved_bytes": 60867739648
+      },
+      {
+        "forwards": 128,
+        "backwards": 128,
+        "allocated_bytes": 44141693952,
+        "reserved_bytes": 61519953920
+      },
+      {
+        "forwards": 160,
+        "backwards": 160,
+        "allocated_bytes": 45262694912,
+        "reserved_bytes": 61922607104
+      },
+      {
+        "forwards": 192,
+        "backwards": 192,
+        "allocated_bytes": 46736607744,
+        "reserved_bytes": 63250104320
+      },
+      {
+        "forwards": 204,
+        "backwards": 204,
+        "allocated_bytes": 46012098048,
+        "reserved_bytes": 63648563200
+      },
+      {
+        "forwards": 206,
+        "backwards": 206,
+        "allocated_bytes": 46391108096,
+        "reserved_bytes": 63648563200
+      }
+    ],
+    "3": [
+      {
+        "forwards": 1,
+        "backwards": 1,
+        "allocated_bytes": 41323909632,
+        "reserved_bytes": 58839793664
+      },
+      {
+        "forwards": 16,
+        "backwards": 16,
+        "allocated_bytes": 42476226048,
+        "reserved_bytes": 59519270912
+      },
+      {
+        "forwards": 32,
+        "backwards": 32,
+        "allocated_bytes": 42668960768,
+        "reserved_bytes": 59938701312
+      },
+      {
+        "forwards": 64,
+        "backwards": 64,
+        "allocated_bytes": 43404123136,
+        "reserved_bytes": 60402171904
+      },
+      {
+        "forwards": 96,
+        "backwards": 96,
+        "allocated_bytes": 43772440576,
+        "reserved_bytes": 60867739648
+      },
+      {
+        "forwards": 128,
+        "backwards": 128,
+        "allocated_bytes": 44141693952,
+        "reserved_bytes": 61519953920
+      },
+      {
+        "forwards": 160,
+        "backwards": 160,
+        "allocated_bytes": 45262694912,
+        "reserved_bytes": 61922607104
+      },
+      {
+        "forwards": 192,
+        "backwards": 192,
+        "allocated_bytes": 46736607744,
+        "reserved_bytes": 63250104320
+      },
+      {
+        "forwards": 204,
+        "backwards": 204,
+        "allocated_bytes": 46012098048,
+        "reserved_bytes": 63648563200
+      },
+      {
+        "forwards": 206,
+        "backwards": 206,
+        "allocated_bytes": 46391108096,
+        "reserved_bytes": 63648563200
+      }
+    ]
+  },
+  "source_report_hashes": {
+    "outputs/megatron_tp_pp_full576_decoder_memory_replay_20261118/rank0/summary.json": "21d3666729fca18bbf45473ddd8c3acf87af5af1630211b05d648b68c1b2f0d8",
+    "outputs/megatron_tp_pp_full576_decoder_memory_replay_20261118/rank0/memory.jsonl": "d1868c341b21d1eab079c637d74e2763a29db792dd68c1d9c08f2e39335ebf3a",
+    "outputs/megatron_tp_pp_full576_decoder_memory_replay_20261118/rank1/memory.jsonl": "5ec5a8b980bcea2cd21116bc8cec74a878d30c58ba729004770a165e4766d7cd",
+    "outputs/megatron_tp_pp_full576_decoder_memory_replay_20261118/rank2/memory.jsonl": "17ac87c87869214d142a82e62ea4e3da53750e47b54a38363dcec3e5223a22e8",
+    "outputs/megatron_tp_pp_full576_decoder_memory_replay_20261118/rank3/memory.jsonl": "17ac87c87869214d142a82e62ea4e3da53750e47b54a38363dcec3e5223a22e8"
+  },
+  "cycle_collection_hypothesis_proven": false,
+  "next_experiment": "same immutable576 spool with gc.collect every16 completed backward calls; no activation offload or input crop",
+  "failed_worker_cleanup": "all saved failed PID identities terminated after durable fatal report; prior NCCL cleanup had not exited",
+  "production_capacity_576_slot_acceptance": false
+}

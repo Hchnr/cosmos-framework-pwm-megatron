@@ -1,0 +1,95 @@
+{
+  "passed": false,
+  "scope": "actual 36-layer three continuous updates with TE capturable arithmetic candidate; fixed gates retained",
+  "ranks": [
+    {
+      "rank": 0,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "native_adam_arithmetic": true,
+      "state_failures": 529,
+      "compute_master_failures": 0
+    },
+    {
+      "rank": 1,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "native_adam_arithmetic": true,
+      "state_failures": 554,
+      "compute_master_failures": 0
+    },
+    {
+      "rank": 2,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "native_adam_arithmetic": true,
+      "state_failures": 590,
+      "compute_master_failures": 0
+    },
+    {
+      "rank": 3,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 9.024850433170424e-05,
+          "cosine": 0.9999999959650975
+        },
+        {
+          "relative_l2": 0.0006276230826472142,
+          "cosine": 0.9999998165738424
+        }
+      ],
+      "native_adam_arithmetic": true,
+      "state_failures": 591,
+      "compute_master_failures": 0
+    }
+  ],
+  "production_defaults_changed": false
+}

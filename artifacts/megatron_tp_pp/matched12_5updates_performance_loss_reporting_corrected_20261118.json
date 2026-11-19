@@ -1,0 +1,107 @@
+{
+  "scope": "four-GPU short-window matched-input comparison; excludes checkpoint writes",
+  "inputs_matched": true,
+  "input_mismatches": [],
+  "bf16_loss_trajectory_passed": true,
+  "warmup_updates": 3,
+  "legacy_tp_loss_reporting_scale": 12.0,
+  "measured_updates": 2,
+  "updates": [
+    {
+      "iteration": 1201,
+      "warmup": true,
+      "logical_slots": 12,
+      "samples": 155,
+      "tokens": {
+        "text": 41625,
+        "vision": 696320,
+        "action": 6430
+      },
+      "tp_update_seconds": 141.75643353536725,
+      "native_update_seconds": 90.09885578230023,
+      "tp_loss": 0.3380802758038044,
+      "tp_loss_as_logged": 0.0281733563169837,
+      "native_loss": 0.33819834887981415,
+      "loss_relative_difference": 0.0003491237506062163,
+      "loss_passed": true
+    },
+    {
+      "iteration": 1202,
+      "warmup": true,
+      "logical_slots": 12,
+      "samples": 97,
+      "tokens": {
+        "text": 29646,
+        "vision": 700320,
+        "action": 5917
+      },
+      "tp_update_seconds": 96.15876944363117,
+      "native_update_seconds": 41.723999571055174,
+      "tp_loss": 0.14656207198277116,
+      "tp_loss_as_logged": 0.012213505998564262,
+      "native_loss": 0.14669147692620751,
+      "loss_relative_difference": 0.0008821572060485356,
+      "loss_passed": true
+    },
+    {
+      "iteration": 1203,
+      "warmup": true,
+      "logical_slots": 12,
+      "samples": 100,
+      "tokens": {
+        "text": 22765,
+        "vision": 703520,
+        "action": 6098
+      },
+      "tp_update_seconds": 94.33286457136273,
+      "native_update_seconds": 40.86971966922283,
+      "tp_loss": 0.4680527758318931,
+      "tp_loss_as_logged": 0.03900439798599109,
+      "native_loss": 0.46834447359045345,
+      "loss_relative_difference": 0.0006228273738859949,
+      "loss_passed": true
+    },
+    {
+      "iteration": 1204,
+      "warmup": false,
+      "logical_slots": 12,
+      "samples": 85,
+      "tokens": {
+        "text": 21992,
+        "vision": 686080,
+        "action": 5184
+      },
+      "tp_update_seconds": 107.54504539072514,
+      "native_update_seconds": 53.84296740964055,
+      "tp_loss": 0.2595347324386239,
+      "tp_loss_as_logged": 0.021627894369885325,
+      "native_loss": 0.2596039787555734,
+      "loss_relative_difference": 0.0002667382729703361,
+      "loss_passed": true
+    },
+    {
+      "iteration": 1205,
+      "warmup": false,
+      "logical_slots": 12,
+      "samples": 124,
+      "tokens": {
+        "text": 35612,
+        "vision": 703520,
+        "action": 7564
+      },
+      "tp_update_seconds": 93.32715567201376,
+      "native_update_seconds": 39.83461259305477,
+      "tp_loss": 0.2838503308594227,
+      "tp_loss_as_logged": 0.02365419423828522,
+      "native_loss": 0.28382962817947066,
+      "loss_relative_difference": 7.2940517467514e-05,
+      "loss_passed": true
+    }
+  ],
+  "tp_mean_update_seconds": 100.43610053136945,
+  "native_mean_update_seconds": 46.83879000134766,
+  "matched_tp_throughput_over_native": 0.46635412718675184,
+  "production_576_slot_acceptance": false,
+  "full_optimizer_state_correctness_accepted": false,
+  "192_gpu_performance_accepted": false
+}

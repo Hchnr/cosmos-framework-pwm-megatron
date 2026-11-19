@@ -1,0 +1,119 @@
+{
+  "passed": true,
+  "scope": "separate native per-logical-rank loaders and optional native VAE/noising versus TP/PP replay",
+  "logical_data_parallel_size": 4,
+  "checked_slots": 12,
+  "slots": [
+    {
+      "slot": [
+        1203,
+        0,
+        0
+      ],
+      "source": "egolive:53",
+      "sha256": "aa0dcb420f4e203e937d1b32befaf7f6d54008bcb1dae9ef75abf0e3c01e34be"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        0
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "e280fd834525f2925289c6f6ab20393eeefd9c865009595f0e97d510e5805024"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        0
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "263b3bf4101f79e140bfc5208e378a09f762ae7f256f3ccdf5483cc822b928a2"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        1
+      ],
+      "source": "egolive:53",
+      "sha256": "d84fc22a383599bed47e6cf8c750376cb6e368d7e02b7ffb62b56f546742a60b"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        1
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "22fd293e0459f9deb4b32298259102a564f3311544d5b89892d621bc13e3fe19"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        1
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "2d5a8f5abf7eaab97e5fee361f6bafd2ceaeb4c5872bf329f15fc966c8177414"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        2
+      ],
+      "source": "egolive:53",
+      "sha256": "2f8a786adaf429bdc1e992ec34e3b87781f5a253ea8114312e715e9bf1747075"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        2
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "229584aaaa8056137dfd5b6def0bd940a05f745c9592653601ef8a0c595b1518"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        2
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "82a658d86771370de6ff75d81f0ffbe415f9262d1d3f75066310fdd3c9183de6"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        3
+      ],
+      "source": "egolive:53",
+      "sha256": "58a17289efaded97884e53e2bfd54761380eb882d172f49969d12c37421415b7"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        3
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "4f9b53bb1bffe50749169ccfc482a16c63e41319824d76ae9fcb35de8353769b"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        3
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "a834cfc5f1560eebb68ceb898f6094adbdbf8da9323756849f4054a87ca82016"
+    }
+  ],
+  "noise_equality_independently_checked": false,
+  "production_576_slot_raw_data_accepted": false,
+  "production_capacity_576_slot_acceptance": false
+}

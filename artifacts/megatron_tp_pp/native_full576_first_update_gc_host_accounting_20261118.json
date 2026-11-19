@@ -1,0 +1,47 @@
+{
+  "scope": "native original-capacity full576 first-update explicit GC host intervals; included in update time, not CUDA kernel time; not steady state or matched TP/PP comparison",
+  "iteration": 1201,
+  "rows": [
+    {
+      "rank_log": "updates.rank0.jsonl",
+      "update_seconds": 1813.73456543684,
+      "collections": 9,
+      "gc_host_seconds": 7.525443218648434,
+      "fraction_of_update": 0.004149142527278197,
+      "cumulative_reclaimed_allocated_bytes": 0
+    },
+    {
+      "rank_log": "updates.rank1.jsonl",
+      "update_seconds": 1813.724744386971,
+      "collections": 9,
+      "gc_host_seconds": 7.4936071783304214,
+      "fraction_of_update": 0.004131612143199391,
+      "cumulative_reclaimed_allocated_bytes": 0
+    },
+    {
+      "rank_log": "updates.rank2.jsonl",
+      "update_seconds": 1813.7213961444795,
+      "collections": 9,
+      "gc_host_seconds": 7.472880493849516,
+      "fraction_of_update": 0.004120192059119444,
+      "cumulative_reclaimed_allocated_bytes": 0
+    },
+    {
+      "rank_log": "updates.rank3.jsonl",
+      "update_seconds": 1813.7229329757392,
+      "collections": 9,
+      "gc_host_seconds": 7.511418554931879,
+      "fraction_of_update": 0.004141436609950144,
+      "cumulative_reclaimed_allocated_bytes": 0
+    }
+  ],
+  "critical_rank": {
+    "rank_log": "updates.rank0.jsonl",
+    "update_seconds": 1813.73456543684,
+    "collections": 9,
+    "gc_host_seconds": 7.525443218648434,
+    "fraction_of_update": 0.004149142527278197,
+    "cumulative_reclaimed_allocated_bytes": 0
+  },
+  "tp_pp_full576_performance_accepted": false
+}

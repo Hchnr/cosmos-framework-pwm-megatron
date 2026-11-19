@@ -1,0 +1,114 @@
+{
+  "passed": false,
+  "scope": "complete three finite updates observed; fixed gates retained, not production-capacity acceptance",
+  "ranks": [
+    {
+      "rank": 0,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 8.422674545419528e-05,
+          "cosine": 0.9999999965603777
+        },
+        {
+          "relative_l2": 0.0003619739234678595,
+          "cosine": 0.9999999543884872
+        }
+      ],
+      "compute_master_checks": 1227,
+      "compute_master_failures": 0,
+      "state_failures_by_update": {
+        "0": 0,
+        "1": 23,
+        "2": 411
+      },
+      "gate_failures": 437
+    },
+    {
+      "rank": 1,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 8.422674545419528e-05,
+          "cosine": 0.9999999965603777
+        },
+        {
+          "relative_l2": 0.0003619739234678595,
+          "cosine": 0.9999999543884872
+        }
+      ],
+      "compute_master_checks": 1227,
+      "compute_master_failures": 0,
+      "state_failures_by_update": {
+        "0": 0,
+        "1": 35,
+        "2": 424
+      },
+      "gate_failures": 462
+    },
+    {
+      "rank": 2,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 8.422674545419528e-05,
+          "cosine": 0.9999999965603777
+        },
+        {
+          "relative_l2": 0.0003619739234678595,
+          "cosine": 0.9999999543884872
+        }
+      ],
+      "compute_master_checks": 1206,
+      "compute_master_failures": 0,
+      "state_failures_by_update": {
+        "0": 0,
+        "1": 20,
+        "2": 532
+      },
+      "gate_failures": 555
+    },
+    {
+      "rank": 3,
+      "passed": false,
+      "updates": 3,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.0041324600472541e-05,
+          "cosine": 0.9999999999902097
+        },
+        {
+          "relative_l2": 8.422674545419528e-05,
+          "cosine": 0.9999999965603777
+        },
+        {
+          "relative_l2": 0.0003619739234678595,
+          "cosine": 0.9999999543884872
+        }
+      ],
+      "compute_master_checks": 1206,
+      "compute_master_failures": 0,
+      "state_failures_by_update": {
+        "0": 0,
+        "1": 16,
+        "2": 523
+      },
+      "gate_failures": 542
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "DP1 per-rank master-to-compute reconstruction plus UND warm flag false, compared with prior UND-only intervention; checkpoint writes disabled",
+  "input_slots": 12,
+  "input_mismatches": [],
+  "reference_gradient_norm": 0.15368276020317817,
+  "intervention_gradient_norm": 0.15368276020317817,
+  "gradient_norm_exact": true,
+  "reference_loss": 0.27572907228022814,
+  "intervention_loss": 0.27572907228022814,
+  "reference_metadata_bytes": 0,
+  "intervention_metadata_bytes": 0,
+  "strict_restart_accepted": false,
+  "reference_metadata_bytes_all_ranks": 4441352880,
+  "intervention_metadata_bytes_all_ranks": 4441352880
+}

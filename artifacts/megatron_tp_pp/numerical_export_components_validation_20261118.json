@@ -1,0 +1,6 @@
+{
+  "command": "LD_LIBRARY_PATH='' .venv/bin/python -m pytest tests/megatron/tp_pp_*_test.py --no-cov -q",
+  "result": "68 passed, 1 warning in 31.06s",
+  "log": "/tmp/tp_pp_components_numerical_export_20261118.log",
+  "scope": "CPU components; production numerical exporter integration still pending"
+}
