@@ -55,3 +55,17 @@ def test_four_rank_policy_reports_must_show_selected_fa3_path(tmp_path):
     path.write_text(json.dumps(row))
     with pytest.raises(ValueError):
         require_policy_reports(tmp_path, "tp", 8)
+
+
+def test_baseline_fingerprint_covers_all_source_trees(tmp_path, monkeypatch):
+    from tools import run_tp_pp_flash3_benchmark_sequence as sequence
+
+    for folder in ("tools", "tests", "cosmos_framework"):
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / "module.py").write_text(folder)
+    monkeypatch.setattr(sequence, "BASE", tmp_path)
+    before = sequence.baseline_fingerprints()
+    assert set(before) == {f"{folder}/module.py" for folder in ("tools", "tests", "cosmos_framework")}
+    (tmp_path / "cosmos_framework/module.py").write_text("changed")
+    after = sequence.baseline_fingerprints()
+    assert before["cosmos_framework/module.py"] != after["cosmos_framework/module.py"]
