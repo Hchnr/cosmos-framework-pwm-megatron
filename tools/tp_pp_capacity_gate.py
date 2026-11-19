@@ -111,10 +111,34 @@ def _output_records(items, pp_rank, pp_size):
             observed[key] += 1
         except TypeError as exc:
             raise ValueError("invalid output observation key") from exc
+        if item.get("actual_dtype") != "torch.float32" or item.get("reference_dtype") != "torch.float32":
+            raise ValueError("output is not measured in FP32")
         passed &= _metric_record(item, "output")
     if observed != expected:
         raise ValueError("incomplete or unexpected output observations")
     return passed
+
+
+def _activation_records(items, pp_rank, pp_size):
+    # PipelineStage assigns the 36 decoder layers contiguously to stages.
+    layer_start, layer_end = 36 * pp_rank // pp_size, 36 * (pp_rank + 1) // pp_size
+    expected = {
+        (update, str(layer), stream)
+        for update in UPDATES
+        for layer in range(layer_start, layer_end)
+        for stream in ("causal_seq", "full_only_seq", "action_seq")
+    }
+    observed = _keyed(items, ("update", "layer", "stream"), expected, "decoder activation")
+    for item in observed.values():
+        dtype_counts = item.get("dtype_counts")
+        if not isinstance(dtype_counts, dict) or set(dtype_counts) != {"torch.float32"}:
+            raise ValueError("decoder activation is not measured in FP32")
+        count = dtype_counts["torch.float32"]
+        if type(count) is not int or count < 2:
+            raise ValueError("decoder activation lacks both microbatch observations")
+        for flag in ("autocast_counts", "matmul_tf32_counts", "cudnn_tf32_counts"):
+            if item.get(flag) != {"False": count}:
+                raise ValueError(f"decoder runtime has autocast or TF32 enabled: {flag}")
 
 
 def validate_reports(reports, tp, result, reference, bundle):
@@ -166,6 +190,7 @@ def validate_reports(reports, tp, result, reference, bundle):
             "runtime_constants_sha256": runtime_hash,
             "observe_all_updates": True,
             "retain_full_text": True,
+            "native_dtype_evidence": "historical_reference_not_recorded",
         }
         if any(type(report.get(k)) is not type(v) or report.get(k) != v for k, v in required.items()):
             raise ValueError(f"rank {rank}: incomplete or inconsistent configuration")
@@ -199,10 +224,16 @@ def validate_reports(reports, tp, result, reference, bundle):
         computes = _keyed(report.get("compute_parameter_checks"), ("update", "name"), pairs, "compute")
         steps = _keyed(report.get("step_checks"), ("update", "name"), pairs, "step")
         norms = _keyed(report.get("norm_checks"), ("update",), {(u,) for u in UPDATES}, "norm")
+        _activation_records(report.get("activation_checks"), rank // tp, pp_size)
         output_pass = _output_records(report.get("output_errors"), rank // tp, pp_size)
         local_pass = summary_pass and output_pass
         gradient_relatives = []
         for item in grads.values():
+            if any(
+                item.get(key) != "torch.float32"
+                for key in ("gradient_dtype", "reference_dtype", "model_parameter_dtype")
+            ):
+                raise ValueError("gradient, model parameter or reference is not FP32")
             local_pass &= _metric_record(item, "gradient")
             relative, absolute = item.get("relative_l2"), item.get("maximum_absolute_error")
             if not _finite(relative) or not _finite(absolute) or relative < 0 or absolute < 0:
@@ -211,6 +242,8 @@ def validate_reports(reports, tp, result, reference, bundle):
         if not gradient_relatives or report.get("maximum_parameter_gradient_relative_l2") != max(gradient_relatives):
             raise ValueError("maximum parameter gradient summary disagrees with observations")
         for item in states.values():
+            if item.get("actual_dtype") != "torch.float32" or item.get("reference_dtype") != "torch.float32":
+                raise ValueError("optimizer state or reference is not FP32")
             local_pass &= _metric_record(item, "state")
         for item in norms.values():
             local_pass &= _norm_record(item)
@@ -222,6 +255,8 @@ def validate_reports(reports, tp, result, reference, bundle):
                 raise ValueError("optimizer step flag disagrees with values")
             local_pass &= match
         for item in computes.values():
+            if item.get("compute_dtype") != "torch.float32" or item.get("master_dtype") != "torch.float32":
+                raise ValueError("compute or master parameter is not FP32")
             match = item.get("compute_equals_master")
             if type(match) is not bool:
                 raise ValueError("missing compute/master equality result")
