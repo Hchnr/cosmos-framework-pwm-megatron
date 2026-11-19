@@ -620,3 +620,5 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 上述 prepared 输入四组 profiler 已完成：TP4 与 FSDP4 的 full AC 均为每卡 **216 次** FA3 前向 kernel，两侧选择性重算均为每卡 **192 次**。TP4 的配对计时从 4.176040 增至 4.205391 样本/秒，约 **0.7%**；单轮测量不能排除波动，也不代表完整模型数值已通过。完整结果见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/summary.json`；其中资格结果 `passed` 不表示性能或数值验收通过。
 
 H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention 调用及四个 rank：Q/K/V 与 mask 相同，完整 heads 和 TP 局部 heads 各自的前向都逐位复现对应原捕获，但两种布局间前向最大相对 L2 为 **3.5758e-7**。对共同原生上游梯度的反向，dq 最大相对 L2 为 **2.5358e-6**，dk/dv 均约 **1.60e-6**。这证实了分片计算中一个微小差异来源，并不证明它单独造成 36 层训练漂移；原 storage offset 没有独立捕获。报告为 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sdpa_captured_replay_20261119T1045/sdpa_replay.json`。
+
+36 层裁剪输入、eager FP32 的 full-QKV/full-head SDPA 候选已完成三次连续更新观察：四 rank 梯度整体相对 L2 分别为 **4.36076e-4、2.79956e-3、1.74387e-1**，全部超过 1e-4；虽然小模型资格通过，真实模型数值门槛未通过。rank0 各步的失败参数集合与前述全宽 K/V 候选分别完全相同，数量为 **629、810、811**；这次组合没有纠正漂移，但不能由此断定 SDPA 差异与最终结果无关。队列执行完成不等于数学门槛通过，汇总见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/full_head_after_sdpa_20261119T1057/sequence/summary.json`。
