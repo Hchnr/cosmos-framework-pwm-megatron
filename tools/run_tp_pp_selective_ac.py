@@ -35,16 +35,17 @@ def install(patterns, count):
     import torch
     from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import checkpoint_wrapper
 
-    from cosmos_framework.configs.base.defaults.compile import inductor_compile_options
     from cosmos_framework.model.generator.mot.parallelize_unified_mot import _apply_selective_ac
-    from cosmos_framework.training_backends.megatron_tp_pp import train
+    from cosmos_framework.training_backends.megatron_tp_pp import model, train
 
     def optimize(stage, model_config):
         ac, compile_config = model_config.activation_checkpointing, model_config.compile
         selected = selective_config(ac, patterns)
         if compile_config.enabled and (compile_config.compiled_region != "language" or compile_config.use_cuda_graphs):
             raise ValueError("The candidate requires the existing language-block compilation policy")
-        options = inductor_compile_options(compile_config)
+        # Consult the same provider as the default backend at call time. Other
+        # opt-in experiments may wrap it to install and observe scheduling.
+        options = model.inductor_compile_options(compile_config)
         selected_names = selected_layers(stage.layers, count)
         for name, block in list(stage.layers.items()):
             block = (
@@ -65,7 +66,8 @@ def install(patterns, count):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
-    parser.add_argument("--run-path", type=Path, required=True)
+    # --entry can be nested under another wrapper that also consumes --run-path.
+    parser.add_argument("--run-path", "--entry", dest="run_path", type=Path, required=True)
     parser.add_argument("--save-op-regex", action="append", required=True)
     parser.add_argument("--selective-layers", type=int, default=4)
     parser.add_argument("--shared-input-reduction", action="store_true")
