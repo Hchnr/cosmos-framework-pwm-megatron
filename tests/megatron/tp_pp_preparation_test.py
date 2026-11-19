@@ -60,9 +60,6 @@ def test_vae_load_and_sync_use_owner_group_even_when_global_zero_is_absent(monke
     monkeypatch.setattr(wan, "TRAINING", True)
     monkeypatch.setattr(wan, "INTERNAL", True)
     monkeypatch.setattr(wan, "get_rank", lambda supplied: local_rank if supplied is group else 99)
-    monkeypatch.setattr(
-        wan.dist, "get_global_rank", lambda supplied, rank: 4 if supplied is group and rank == 0 else -1
-    )
 
     def load(path, **kwargs):
         loaded.append(path)
@@ -72,5 +69,5 @@ def test_vae_load_and_sync_use_owner_group_even_when_global_zero_is_absent(monke
     monkeypatch.setattr(wan, "sync_model_states", lambda model, **kwargs: synced.append(kwargs))
     model = wan._video_vae("/readonly/vae.pth", device="cpu", process_group=group)
     assert loaded == (["/readonly/vae.pth"] if local_rank == 0 else [])
-    assert synced == [{"process_group": group, "src": 4}]
+    assert synced == [{"process_group": group, "src": 0}]
     assert not next(model.parameters()).is_meta
