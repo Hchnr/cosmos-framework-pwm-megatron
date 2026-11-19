@@ -16,6 +16,15 @@
 training_output/
 .compile_cache/
 
+# TP/PP runs generate checkpoints, tensor samples, per-parameter reports and
+# node-specific job handles. Keep runtime evidence locally; tracked historical
+# reports remain tracked. Portable candidate code and this guide are allowed.
+/artifacts/megatron_tp_pp/*
+!/artifacts/megatron_tp_pp/README.md
+!/artifacts/megatron_tp_pp/candidates/
+/artifacts/megatron_tp_pp/candidates/*
+!/artifacts/megatron_tp_pp/candidates/*.py
+
 # Release-tool metadata (regenerated on every release run).
 cosmos_training_meta/
 
