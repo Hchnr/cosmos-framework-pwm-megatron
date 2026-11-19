@@ -94,11 +94,11 @@ def main():
 
         install()
     sys.argv = [sys.argv[0], "--output", str(args.output), *remainder]
+    # Set the device before profiler creation; never measure another rank.
+    torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+    torch.cuda.reset_peak_memory_stats()
     counts = None
     if args.profile_collectives:
-        # The existing smoke initializes CUDA at entry; do it before profiler
-        # creation so the profiler cannot pick an unintended device.
-        torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
         original_forward_backward = smoke.ModelParallelDriver.forward_backward
 
         def observed(driver, *positional, **keywords):
@@ -127,6 +127,7 @@ def main():
                 "mode": mode,
                 "scope": "FP32 production-I/O tiny model; no full-model or performance acceptance",
                 "full_model_acceptance": False,
+                "peak_cuda_allocated_bytes": torch.cuda.max_memory_allocated(),
                 "functional_all_reduce_calls_per_update": counts,
                 "profiling_scope": "whole model forward/backward, not CUDA kernel count or steady-state timing"
                 if counts is not None
