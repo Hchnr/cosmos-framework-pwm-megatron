@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 # 58-source State128 Megatron TP/PP. Four-GPU default TP2/PP2; 576 logical slots per update.
 # Paths/ratios match the 58-source workbook mixture (sum 100000; Ego 40%).
 # Preserve the 52-source production runtime; extend its full-state checkpoint.

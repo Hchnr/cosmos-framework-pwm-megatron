@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Explicit mapping from model TP parameters to DP-owned FP32 Adam state.
 
 MCore 0.20 internals are isolated here and pinned by runtime.py. In particular,

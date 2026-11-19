@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Capture real CPU microbatches and require their existing native-plan hashes.
 
 Used to recover node-local diagnostic inputs and prepare equal-microbatch

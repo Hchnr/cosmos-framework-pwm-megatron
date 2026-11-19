@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Adapt native MCore Linear to the existing three-tower block math.
 
 The factory accepts a meta decoder layer: only local TP storage is allocated.
