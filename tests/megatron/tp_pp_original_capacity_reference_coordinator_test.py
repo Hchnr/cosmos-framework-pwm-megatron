@@ -78,3 +78,21 @@ def test_completed_numerical_tp_failure_is_recorded_and_missing_rank_is_rejected
     output.with_name("tp4.rank3.json").unlink()
     with pytest.raises(FileNotFoundError):
         coordinator.tp_gate(output, 4, {"returncode": 1})
+
+
+def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkeypatch):
+    source = tmp_path / "source"
+    root = tmp_path / "root"
+    for base in ("tools", "tests", "cosmos_framework"):
+        (source / base).mkdir(parents=True)
+        (source / base / "module.py").write_text(f"{base} = True\n")
+    (root / "tools").mkdir(parents=True)
+    for name in ("run_tp_pp_untraced_capacity_math.py", "run_tp_pp_checkpointed_chunked_mlp_math.py"):
+        (root / "tools" / name).write_text(f"# {name}\n")
+    monkeypatch.setattr(coordinator, "WORK", source)
+    monkeypatch.setattr(coordinator, "ROOT", root)
+    target = tmp_path / "snapshot"
+    coordinator.snapshot_copy(target)
+    assert (target / "cosmos_framework/module.py").read_text() == "cosmos_framework = True\n"
+    assert (target / "tools/run_tp_pp_untraced_capacity_math.py").is_file()
+    assert not (source / "tools/run_tp_pp_untraced_capacity_math.py").exists()
