@@ -613,4 +613,10 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 
 四卡 BF16、prepared 输入、每 rank 每微步 9/11/13 样本、每次更新三个微步，四个配置各完成七次更新，前两次预热、后五次计时。同为 full AC 时 TP4 为 **7.902223 秒/更新、4.176040 样本/秒**，FSDP4 为 **22.866170 秒/更新、5.772720 样本/秒**，整机吞吐比 **72.34%**。两侧均对 36 层中的 8 层采用 FA3 选择性重算时，TP4 为 **7.847071 秒/更新、4.205391 样本/秒**，FSDP4 为 **22.635285 秒/更新、5.831603 样本/秒**，吞吐比 **72.11%**。计数是样本处理次数，FSDP 四个 rank 重复使用 fixture；比较不包含 VAE/noising、媒体解码或 checkpoint 写入，也不代表完整模型数值通过。实验记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/`。
 
-这两组结果均为探索性测量：两侧 cuDNN 运行设置并不相同，prepared 输入范围内的影响未知；GPU PID 监控受命名空间限制，不能保证严格独占。FSDP selective 计时阶段附近于 13:52:02 UTC 发生了 CPU 测试，测试未使用 GPU，但其对耗时的影响未知，另有更早 CPU 工作的精确重叠待核查。因此 selective 结果不能用于无干扰的最终性能验收；其 profiler 也仍在运行。测试时间及限制见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/cpu_test_overlap_20261119.json`，新的对齐设置和完整时窗重测仍待完成。
+这两组结果均为探索性测量：两侧 cuDNN 运行设置并不相同，prepared 输入范围内的影响未知；GPU PID 监控受命名空间限制，不能保证严格独占。FSDP selective 计时阶段附近于 13:52:02 UTC 发生了 CPU 测试，测试未使用 GPU，但其对耗时的影响未知，另有更早 CPU 工作的精确重叠待核查。因此 selective 结果不能用于无干扰的最终性能验收。测试时间及限制见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/cpu_test_overlap_20261119.json`，新的对齐设置和完整时窗重测仍待完成。
+
+### 2026-11-19：FA3 profiler 与固定输入 SDPA 回放
+
+上述 prepared 输入四组 profiler 已完成：TP4 与 FSDP4 的 full AC 均为每卡 **216 次** FA3 前向 kernel，两侧选择性重算均为每卡 **192 次**。TP4 的配对计时从 4.176040 增至 4.205391 样本/秒，约 **0.7%**；单轮测量不能排除波动，也不代表完整模型数值已通过。完整结果见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/summary.json`；其中资格结果 `passed` 不表示性能或数值验收通过。
+
+H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention 调用及四个 rank：Q/K/V 与 mask 相同，完整 heads 和 TP 局部 heads 各自的前向都逐位复现对应原捕获，但两种布局间前向最大相对 L2 为 **3.5758e-7**。对共同原生上游梯度的反向，dq 最大相对 L2 为 **2.5358e-6**，dk/dv 均约 **1.60e-6**。这证实了分片计算中一个微小差异来源，并不证明它单独造成 36 层训练漂移；原 storage offset 没有独立捕获。报告为 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sdpa_captured_replay_20261119T1045/sdpa_replay.json`。
