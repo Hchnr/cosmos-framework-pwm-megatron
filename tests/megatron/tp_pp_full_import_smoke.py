@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Import every real Nano/Action parameter and Adam fragment on four GPUs.
 
 This validates runtime state ownership, not a production-capacity update.

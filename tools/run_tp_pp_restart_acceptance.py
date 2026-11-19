@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Compare uninterrupted execution with save/exit and at least two resumed updates.
 
 Starts both branches from a canonical bundle or a read-only completed checkpoint.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Candidate native per-parameter FP32 norm arithmetic for DP1 TP/PP.
 
 The order argument contains parameter names only. No reference gradient/norm,

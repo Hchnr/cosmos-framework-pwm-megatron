@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Run the unchanged full-source math diagnostic with native FP32 clip arithmetic.
 
 This entry is diagnostic only. It preserves the reference, input crops, optimizer

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Isolate FP32 TP summation error using FP64 Linear accumulators on both sides.
 
 Parameters, activations, gradients, Adam state and nonlinearities remain FP32.

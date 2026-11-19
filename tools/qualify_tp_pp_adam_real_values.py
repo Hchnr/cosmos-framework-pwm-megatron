@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Compare native/TE Adam arithmetic on samples of actual nonzero source state.
 
 This isolates kernels using identical gradients. Sampled elementwise coverage

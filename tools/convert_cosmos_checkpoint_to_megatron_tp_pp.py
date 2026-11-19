@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Convert full Cosmos DCP state to bounded canonical TP/PP tensor bundles.
 
 This is an import format, distinct from MCore's runtime restart format. Every

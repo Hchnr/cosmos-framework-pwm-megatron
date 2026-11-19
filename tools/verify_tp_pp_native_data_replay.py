@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Compare a replay plan with separate, unvirtualized native loaders.
 
 Checks raw media/packing/augmentation, optionally native VAE/noising. Supports
