@@ -6,13 +6,15 @@
 import copy
 import hashlib
 import json
+import sys
 
 import pytest
 import torch
 from torch import nn
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import checkpoint_wrapper
 
-from tools.trace_tp_pp_attention_isolation import Recorder
+from tools import run_tp_pp_traced_fp32_math, trace_tp_pp_attention_isolation
+from tools.trace_tp_pp_attention_isolation import Recorder, attach_recorders
 
 
 def test_second_forward_capture_preserves_gradients_and_skips_recomputation(tmp_path):
@@ -161,3 +163,85 @@ def test_real_checkpoint_recomputation_keeps_target_cotangents(tmp_path, overlap
     torch.testing.assert_close(captured("attention_call0", "output_dgrad"), second * 2)
     torch.testing.assert_close(captured("self_attn_q_proj_moe_gen", "input_dgrad"), values[1].grad)
     assert recorder.sequence == 1
+
+
+def test_multiple_forwards_and_pipeline_stage_layer_coverage(tmp_path):
+    class Layer(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.self_attn = nn.Module()
+            self.self_attn.q_proj_moe_gen = nn.Linear(4, 4, bias=False)
+
+        def forward(self, value):
+            return self.self_attn.q_proj_moe_gen(value)
+
+    class Stage(nn.Module):
+        def __init__(self, layer):
+            super().__init__()
+            self.layer = checkpoint_wrapper(layer, preserve_rng_state=True)
+
+        def forward(self, value):
+            return self.layer(value)
+
+    for rank in range(4):
+        index = 0 if rank < 2 else 30
+        layer = Layer()
+        stage = Stage(layer)
+        recorders = attach_recorders(
+            stage,
+            [(index, layer)],
+            tmp_path,
+            "tp",
+            rank=rank,
+            tp_rank=rank % 2,
+            tp_size=2,
+            target_forwards=(0, 1),
+            split_by_forward=True,
+            max_elements=100,
+            rows=2,
+            selected_layers=(0, 30, 32),
+        )
+        values = [torch.full((2, 4), float(i + 1), requires_grad=True) for i in range(2)]
+        outputs = [stage(value) for value in values]
+        for output in outputs:
+            output.square().sum().backward()
+        for forward in range(2):
+            directory = tmp_path / f"forward{forward:03d}" / "tp"
+            saved = torch.load(
+                directory / f"layer{index:02d}.self_attn_q_proj_moe_gen.input.rank{rank}.pt", weights_only=False
+            )
+            assert saved["forward"] == forward
+            torch.testing.assert_close(saved["value"], values[forward])
+            gradient = torch.load(
+                directory / f"layer{index:02d}.self_attn_q_proj_moe_gen.input_dgrad.rank{rank}.pt", weights_only=False
+            )
+            torch.testing.assert_close(gradient["value"], values[forward].grad)
+            assert not list(directory.glob(f"layer32.*.rank{rank}.pt"))
+        assert all(recorder.sequence == 1 for recorder in recorders)
+
+
+@pytest.mark.parametrize("layers", [(), (0, 0), (-1,), ("0",)])
+def test_invalid_selected_layers_rejected(tmp_path, layers):
+    with pytest.raises(ValueError, match="Layer indices"):
+        Recorder(tmp_path, rank=0, tp_rank=0, tp_size=1, layers=layers)
+
+
+@pytest.mark.parametrize(
+    ("extra", "forwards", "split", "layers"),
+    [
+        ([], (1,), False, (30, 31, 32)),
+        (["--forward-indices", "0,1", "--layers", "0,30,31,32"], (0, 1), True, (0, 30, 31, 32)),
+    ],
+)
+def test_cli_preserves_single_forward_and_supports_two_forwards(monkeypatch, tmp_path, extra, forwards, split, layers):
+    called = {}
+    monkeypatch.setattr(trace_tp_pp_attention_isolation, "install", lambda path, **kwargs: called.update(kwargs))
+    monkeypatch.setattr(run_tp_pp_traced_fp32_math, "main", lambda: called.update(downstream_argv=sys.argv[1:]))
+    monkeypatch.setattr(
+        sys, "argv", ["trace", "--entry", "standard", "--capture-dir", str(tmp_path), *extra, "--", "--mode", "native"]
+    )
+    trace_tp_pp_attention_isolation.main()
+    assert called["target_forwards"] == forwards
+    assert called["split_by_forward"] is split
+    assert called["layers"] == layers
+    assert called["downstream_argv"] == ["--mode", "native"]

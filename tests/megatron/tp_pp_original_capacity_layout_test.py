@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
+import ast
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -23,5 +24,26 @@ def test_oracle_helper_transform_is_explicit_and_rejects_double_application():
     source = Path("tests/megatron/tp_pp_full_source_math.py").read_text()
     result = transform(source)
     assert "initial_shapes(network, original_capacity=args.original_capacity)" in result
+    assert '"pipeline_parallel_size": 2,' not in result
+    assert '"pipeline_parallel_size": topology.pipeline_model_parallel_size,' in result
+    report = [
+        value
+        for node in ast.walk(ast.parse(result))
+        if isinstance(node, ast.Dict)
+        for key, value in zip(node.keys, node.values, strict=True)
+        if isinstance(key, ast.Constant) and key.value == "pipeline_parallel_size"
+    ]
+    assert len(report) == 1
+    expression = compile(ast.Expression(body=report[0]), "<pp-report>", "eval")
+    for actual_pp in (1, 2):
+        assert eval(expression, {"topology": SimpleNamespace(pipeline_model_parallel_size=actual_pp)}) == actual_pp
     with pytest.raises(ValueError, match="Unexpected oracle source"):
         transform(result)
+
+
+@pytest.mark.parametrize("replacement", ["", '"pipeline_parallel_size": 2,\n"pipeline_parallel_size": 2,'])
+def test_oracle_helper_rejects_missing_or_duplicate_pp_report(replacement):
+    source = Path("tests/megatron/tp_pp_full_source_math.py").read_text()
+    source = source.replace('"pipeline_parallel_size": 2,', replacement)
+    with pytest.raises(ValueError, match="Unexpected oracle source"):
+        transform(source)
