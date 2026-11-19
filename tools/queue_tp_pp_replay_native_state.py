@@ -143,6 +143,10 @@ def main():
     parser.add_argument("--timeout", type=int, default=86400)
     parser.add_argument("--case-timeout", type=int, default=14400)
     args = parser.parse_args()
+    plan = json.loads(PLAN.read_text())
+    before = fingerprints(plan)
+    # Capture process trees after the potentially slow snapshot hashing so no
+    # unobserved process can be introduced during that read window.
     snapshots = [
         queue.snapshot(pid, fragment)
         for pid, fragment in (
@@ -154,8 +158,6 @@ def main():
     ]
     for item in snapshots:
         queue.validate_snapshot(item, item["predecessor"]["pid"])
-    plan = json.loads(PLAN.read_text())
-    before = fingerprints(plan)
     args.output.mkdir(parents=True, exist_ok=False)
     status = args.output / "queue_result.json"
     result = {
