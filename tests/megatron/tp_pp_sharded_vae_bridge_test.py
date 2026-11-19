@@ -52,7 +52,12 @@ def fixture_reports(tmp_path):
     vae_file = tmp_path / "vae.pth"
     vae_file.write_bytes(b"vae-weights")
     pins[str(vae_file)] = {"resolved": str(vae_file), "sha256": hashlib.sha256(vae_file.read_bytes()).hexdigest()}
-    environment = {"HF_MODEL_PATH": "hf", "WAN_VAE_PATH": str(vae_file), "BASE_CHECKPOINT_PATH": "model"}
+    hf_root = tmp_path / "hf"
+    hf_root.mkdir()
+    hf_file = hf_root / "model.safetensors"
+    hf_file.write_bytes(b"hf-weights")
+    pins[str(hf_file)] = {"resolved": str(hf_file), "sha256": hashlib.sha256(hf_file.read_bytes()).hexdigest()}
+    environment = {"HF_MODEL_PATH": str(hf_root), "WAN_VAE_PATH": str(vae_file), "BASE_CHECKPOINT_PATH": "model"}
     (qualification / "queue_result.json").write_text(
         json.dumps(
             {
@@ -176,5 +181,17 @@ def test_qualification_rejects_changed_or_unpinned_vae_file(tmp_path):
     for key in ("source_sha256_on_queue", "source_sha256_before_launch", "source_sha256_after"):
         del queue[key][str(vae_file)]
     queue_path.write_text(json.dumps(queue))
+    with pytest.raises(ValueError, match="must pin"):
+        validate_qualification(qualification, fixture, source_root, environment=environment)
+
+
+def test_qualification_rejects_changed_or_new_hf_model_file(tmp_path):
+    fixture, qualification, source_root, environment = fixture_reports(tmp_path)
+    hf_file = Path(environment["HF_MODEL_PATH"]) / "model.safetensors"
+    hf_file.write_bytes(b"replacement")
+    with pytest.raises(ValueError, match="content changed"):
+        validate_qualification(qualification, fixture, source_root, environment=environment)
+    hf_file.write_bytes(b"hf-weights")
+    (hf_file.parent / "new.safetensors").write_bytes(b"extra")
     with pytest.raises(ValueError, match="must pin"):
         validate_qualification(qualification, fixture, source_root, environment=environment)
