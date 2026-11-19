@@ -629,6 +629,8 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 上述小模型数值报告的通过结论存在非有限值检查缺口：当比较张量产生 NaN/Inf 时，双阈值比较可能不报失败；报告未保存全部比较字段，不能据此证明每个张量都有限。当前没有证据表明该轮实际发生非有限值或误报，但在补充逐张量 finite 检查和负控并重跑前，不应将其视为完整数值资格。合成 profiler 的重叠观察与该数值检查属于不同证据。
 
+组合全宽 QKV、attention、MLP 投影和 row 归约的 36 层裁剪输入 FP32 诊断已完成三步：第 0 步裁剪前梯度和输出观察通过，整体梯度相对 L2 为 **1.28778e-8**；第 1 步整体相对 L2 为 **2.90771e-5**，但 rank0 有 6 个参数分片未过逐项门槛；第 2 步整体相对 L2 为 **0.00189652**，rank0 有 737 个参数分片未通过。完整报告最终仍为失败，不能称连续训练正确。四个 rank 的第 0 步非逐位相等梯度均恰为 **144 个 vision/action Q/K norm 权重**（36 层各 4 个），其余 667 个 trainable 参数梯度逐位相等；更新后 18 个 master 参数有非零差异，也全部属于这 144 个 norm 权重。首步梯度范数与该 native 参考记录相等，但尚未逐元素证明梯度裁剪一致。Q/K norm 权重在 TP 中使用跨 rank 求和，因此该路径是下一步受控对照重点；这些相关性还不能证明后续漂移的唯一因果。报告与来源在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/combined_fp32_queue_20261119T1241/sequence/`，此诊断不是原始容量或 BF16 验收。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
