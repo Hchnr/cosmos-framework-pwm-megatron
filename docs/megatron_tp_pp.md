@@ -525,3 +525,14 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 2026-11-19即时集成补充：独立worktree修正CPU planning测试漏mock的 `torch.tensor(device="cuda")`，GPU完全隐藏后101项通过、1项跳过，Ruff通过。原生完整block对照使用逐参数原生FP32 norm和独立meta模型参数顺序后，四rank连续三更新的固定门槛全部通过；这仍是汇集权重的诊断，不代表正式分片TP已通过。正式FP32数值和完整576槽容量限制继续有效。
 
 PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 `.pre-commit-config.yaml` 原有锁定的 `rumdl==0.1.62` 时失败（没有可安装发行包），尚未执行后续完整检查。本次按用户明确要求立即集成当前进度，不扩展修改无关Markdown、脚本权限或CI规则，也不将该CI状态记录为通过。
+
+
+### 2026-11-19：追加的正确性证据和性能候选
+
+用户进一步明确，性能完成门槛为同每rank/microstep batch下四卡整机samples/s打平FSDP4，而不是仅比较每更新秒数。当前prepared计算TP4/FSDP4吞吐比0.677209，仍未达标。含VAE/noising的首轮完整7更新已结束，TP约18.7710秒/更新、FSDP约34.2760秒/更新，吞吐比0.45650；其中FSDP窗口遭遇并发CPU测试误触CUDA初始化，已在原始JSON中明确provisional及clean_repeat_required，不作为性能验收证据。
+
+原生完整block＋原生FP32 norm对照四rank三步全部通过，原始梯度相对L2和master/moments最大绝对误差均为0，compute/master一致，冻结参数精确；报告 `native_block_native_norm_control_summary.json`。这是复制完整block计算的诊断，不满足真正分片TP计算要求。仅加宽Linear累积的TP2新输入三步仍失败，梯度相对L2=1.16240489e-5/5.17069218e-4/0.0263086530；第一步采样的UND逐层输出已精确，但VIDEO/Action输出存在微小误差。继续保留固定门槛，不声称该候选已修复标准FP32。
+
+性能候选 `tools/tp_pp_shared_input_reduction.py` 保留独立MCore GEMM与canonical参数，将共享输入的Q/K/V或gate/up本地dgrad先累积再做一次TP SUM。CPU覆盖全使用/部分断开/全部断开三种情况，未使用参数保持grad=None，输入梯度归约次数从活跃分支数降为1或0。真实TP2/PP1两层生产I/O、compile/full AC、12微批×四次非零Adam资格检查通过，最大逐参数梯度相对L2=7.4872e-7；不是完整模型验收。最初一次GPU资格失败于Dynamo不支持bool(tuple)，已将eligibility移至构建阶段，保留失败日志并用v2重新通过。真实TP4七更新和预热后完整更新Nsight对照等待当前数学窗口结束后串行运行。画像入口的三项边界测试通过，画像不用于稳态吞吐结论。
+
+原始未裁剪FP32/Flex/full-AC参考也已排队，目标保留原始每个sample/token/target，再做TP4和TP2三步对照。旧原容量参考因内存压力未完成，本次利用已资格通过的full AC重试；仍未取得完整输入参考或验收结果。全部新命令和进程身份记录于 `outputs/megatron_tp4_fsdp4_microbatch_20261119`。上述原始JSON报告也位于该目录。

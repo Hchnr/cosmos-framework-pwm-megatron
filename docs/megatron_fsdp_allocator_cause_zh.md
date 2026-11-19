@@ -10,7 +10,7 @@ PyTorch allocator 按 stream 查找缓存。总缓存有空闲，并不表示发
 
 原始 trace 的一个前向入口中，rank 1 约 440 ms 的停顿包含约 1,750 次 `cuMemUnmap` 和 `cuMemRelease`。晚到的 rank 尚未提交 AllGather，早到的 rank 已在 NCCL kernel 中等待；原报告中 428 ms 的 AllGather，主要耗时来自这种到达时间差。
 
-下图为原生 Nsight App 的局部 multi-view：上方 PyTorch，下方 Megatron，均为 rank 1、更新 1204 的第一个微批。保留 CUDA HW、kernel、CPU CUDA API 和微批/forward NVTX。上方 GPU 空档对应密集的显存管理 API，悬浮提示为 `cuMemRelease`；下方已开始 decoder 计算。上、下视窗分别约 **4.994–5.833 s**、**4.984–5.785 s**；绝对时刻不用于跨运行对齐。
+下图为原生 Nsight App 的局部 multi-view：上方 PyTorch，下方 Megatron，均为 rank 1、更新 1204 的第一个微批。保留 CUDA HW、kernel、CPU CUDA API 和微批/forward NVTX。上方 GPU 空档对应密集的显存管理 API；下方已开始 decoder 计算。静态截图未显示 API 悬浮提示，`cuMemUnmap` / `cuMemRelease` 名称与次数来自原报告查询。上、下视窗分别约 **4.994–5.833 s**、**4.984–5.785 s**；绝对时刻不用于跨运行对齐。各项收益对应的图与阅读位置见[局部 timeline 对照](megatron_fsdp_timeline_evidence_zh.md)。
 
 截图对应原报告的 `gc_observed_v2` 捕获，两份原始文件也收进本轮数据包；文件映射见[截图来源](../artifacts/megatron/nsys_allocator_cause_20261118/figure_sources.json)。
 
