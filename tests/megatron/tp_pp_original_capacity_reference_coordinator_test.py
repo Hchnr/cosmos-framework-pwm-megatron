@@ -58,6 +58,12 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
     )
     (source / "tests/megatron").mkdir()
     (source / "tests/megatron/tp_pp_full_source_math_cuda_compare_streamed_reference_v2.py").write_text(
+        "def tp(args, config, language, network, inputs):\n"
+        "    torch.backends.cuda.matmul.allow_tf32 = False\n"
+        "    topology = ModelParallelConfig(\n        x=1\n    )\n"
+        "    bundle.load_optimizer(stage, driver.optimizer)\n"
+        '    loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None\n'
+        "    for update in range(3):\n        pass\n"
         "def report(absolute, difference, output, expected, batch, reference, dist):\n"
         "    output_errors = []\n"
         "    gate_failures, compute_parameter_checks = [], []\n"
@@ -67,6 +73,8 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
         "        if True:\n"
         "            if not step_passed:\n"
         "                pass\n"
+        '    compute_parameter_checks.append({"update": update, "name": spec.canonical_name, "compute_equals_master": model_master_match})\n'
+        '    state_errors.append({"update": update, "name": spec.canonical_name, "field": key, **difference})\n'
         "    for key in expected:\n"
         "        for actual, target in zip(output[key], expected[key], strict=True):\n"
         '            output_errors.append({"update": 0, "slot": batch["slot_id"], "field": key, **difference})\n'

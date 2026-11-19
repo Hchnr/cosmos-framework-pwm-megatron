@@ -361,6 +361,37 @@ def native(args, config, instance, network, inputs):
         close_gpu_trainables(*gpu_leaf_handles)
 
 
+def install_decoder_dtype_observer(stage):
+    """Observe decoder boundary tensors during this math diagnostic only."""
+    observations = {}
+    active_update = [None]
+    handles = []
+    for layer_name, layer in stage.layers.items():
+
+        def observe(_module, _inputs, output, layer_name=layer_name):
+            if active_update[0] is None or not isinstance(output, tuple) or not isinstance(output[0], dict):
+                raise RuntimeError("Unexpected decoder activation observation")
+            pack = output[0]
+            for stream in ("causal_seq", "full_only_seq", "action_seq"):
+                value = pack.get(stream)
+                if not torch.is_tensor(value) or not value.is_floating_point():
+                    raise RuntimeError(f"Missing floating decoder stream {stream}")
+                key = (active_update[0], layer_name, stream)
+                entry = observations.setdefault(
+                    key, {"dtype_counts": {}, "autocast_counts": {}, "matmul_tf32_counts": {}, "cudnn_tf32_counts": {}}
+                )
+                for field, observed in (
+                    ("dtype_counts", str(value.dtype)),
+                    ("autocast_counts", str(torch.is_autocast_enabled("cuda"))),
+                    ("matmul_tf32_counts", str(torch.backends.cuda.matmul.allow_tf32)),
+                    ("cudnn_tf32_counts", str(torch.backends.cudnn.allow_tf32)),
+                ):
+                    entry[field][observed] = entry[field].get(observed, 0) + 1
+
+        handles.append(layer.register_forward_hook(observe))
+    return observations, active_update, handles
+
+
 def tp(args, config, language, network, inputs):
     from megatron.core import parallel_state as ps
     from megatron.core.optimizer import OptimizerConfig
@@ -382,6 +413,7 @@ def tp(args, config, language, network, inputs):
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl", timeout=datetime.timedelta(hours=2))
     torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
     topology = ModelParallelConfig(
         tensor_model_parallel_size=args.tp,
         global_packed_microbatches_per_update=2,
@@ -457,6 +489,7 @@ def tp(args, config, language, network, inputs):
     )
     driver = ModelParallelDriver(stage, topology, opt, config_overrides=bundle.optimizer_overrides(stage, opt))
     bundle.load_optimizer(stage, driver.optimizer)
+    activation_dtypes, observed_update, dtype_hook_handles = install_decoder_dtype_observer(stage)
     if args.native_adam_arithmetic:
         # Candidate arithmetic alignment, without changing production defaults
         # or enabling graph capture. Native CUDA Adam uses this TE kernel.
@@ -505,6 +538,7 @@ def tp(args, config, language, network, inputs):
     output_errors = []
     loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None
     for update in range(3):
+        observed_update[0] = update
         if args.replay_native_state and update > 0:
             # Diagnostic only: evaluate each subsequent gradient at exactly the
             # reference's previous master/moment state. This separates a local
@@ -568,6 +602,8 @@ def tp(args, config, language, network, inputs):
                             "slot": batch["slot_id"],
                             "field": key,
                             "sample_index": sample_index,
+                            "actual_dtype": str(actual.dtype),
+                            "reference_dtype": str(target.dtype),
                             **difference,
                         }
                     )
@@ -602,6 +638,9 @@ def tp(args, config, language, network, inputs):
                     "name": spec.canonical_name,
                     "relative_l2": rel.item(),
                     "maximum_absolute_error": absolute.item(),
+                    "gradient_dtype": str(actual.dtype),
+                    "reference_dtype": str(target.dtype),
+                    "model_parameter_dtype": str(entry.model_parameter.dtype),
                     "comparison_relative_l2": difference.get("relative_l2"),
                     "comparison_maximum_absolute_error": difference.get("maximum_absolute_error"),
                     "reference_squared_l2": difference.get("reference_squared_l2"),
@@ -682,7 +721,13 @@ def tp(args, config, language, network, inputs):
             saved = torch.load(parameter_file(args.reference_dir, update, index), weights_only=False, mmap=True)
             model_master_match = torch.equal(entry.select(entry.model_parameter.detach()), entry.master)
             compute_parameter_checks.append(
-                {"update": update, "name": spec.canonical_name, "compute_equals_master": model_master_match}
+                {
+                    "update": update,
+                    "name": spec.canonical_name,
+                    "compute_equals_master": model_master_match,
+                    "compute_dtype": str(entry.model_parameter.dtype),
+                    "master_dtype": str(entry.master.dtype),
+                }
             )
             if not model_master_match:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.compute_master")
@@ -703,7 +748,16 @@ def tp(args, config, language, network, inputs):
                     gate_failures.append(f"update{update}.{spec.canonical_name}.{key}")
                 if not args.observe_all_updates:
                     assert difference["passed"], (update, entry.name, key, difference)
-                state_errors.append({"update": update, "name": spec.canonical_name, "field": key, **difference})
+                state_errors.append(
+                    {
+                        "update": update,
+                        "name": spec.canonical_name,
+                        "field": key,
+                        "actual_dtype": str(actual.dtype),
+                        "reference_dtype": str(target.dtype),
+                        **difference,
+                    }
+                )
             step_passed = entry.step == int(saved["step"].item())
             step_checks.append(
                 {
@@ -754,6 +808,11 @@ def tp(args, config, language, network, inputs):
                 "compute_parameter_checks": compute_parameter_checks,
                 "norm_checks": norm_checks,
                 "step_checks": step_checks,
+                "activation_checks": [
+                    {"update": u, "layer": layer, "stream": stream, **details}
+                    for (u, layer, stream), details in sorted(activation_dtypes.items())
+                ],
+                "native_dtype_evidence": "historical_reference_not_recorded",
                 "observe_all_updates": args.observe_all_updates,
                 "replay_native_state": args.replay_native_state,
                 "native_adam_arithmetic": args.native_adam_arithmetic,

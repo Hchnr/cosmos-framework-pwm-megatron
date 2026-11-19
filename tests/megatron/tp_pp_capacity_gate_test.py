@@ -37,6 +37,10 @@ def case(tp):
         "comparison_maximum_absolute_error": 1e-7,
         "reference_squared_l2": 1.0,
         "local_windows_checked": False,
+        "gradient_dtype": "torch.float32",
+        "model_parameter_dtype": "torch.float32",
+        "actual_dtype": "torch.float32",
+        "reference_dtype": "torch.float32",
     }
     for rank in range(4):
         stage = rank // tp
@@ -73,6 +77,7 @@ def case(tp):
                 "runtime_constants_sha256": "a" * 64,
                 "observe_all_updates": True,
                 "retain_full_text": True,
+                "native_dtype_evidence": "historical_reference_not_recorded",
                 "passed": True,
                 "pointwise_gates_passed": True,
                 "gate_failures": [],
@@ -84,7 +89,30 @@ def case(tp):
                     for u, n in pairs
                     for field in ("master", "exp_avg", "exp_avg_sq")
                 ],
-                "compute_parameter_checks": [{"update": u, "name": n, "compute_equals_master": True} for u, n in pairs],
+                "compute_parameter_checks": [
+                    {
+                        "update": u,
+                        "name": n,
+                        "compute_equals_master": True,
+                        "compute_dtype": "torch.float32",
+                        "master_dtype": "torch.float32",
+                    }
+                    for u, n in pairs
+                ],
+                "activation_checks": [
+                    {
+                        "update": u,
+                        "layer": str(layer),
+                        "stream": stream,
+                        "dtype_counts": {"torch.float32": 2},
+                        "autocast_counts": {"False": 2},
+                        "matmul_tf32_counts": {"False": 2},
+                        "cudnn_tf32_counts": {"False": 2},
+                    }
+                    for u in range(3)
+                    for layer in range(36 * stage // pp, 36 * (stage + 1) // pp)
+                    for stream in ("causal_seq", "full_only_seq", "action_seq")
+                ],
                 "step_checks": [
                     {"update": u, "name": n, "actual": u + 1, "reference": u + 1, "passed": True} for u, n in pairs
                 ],
@@ -140,6 +168,17 @@ def test_near_zero_reference_absolute_tolerance_is_not_rejected():
         "missing_norm_check",
         "wrong_norm_check",
         "boundary_norm",
+        "missing_activation",
+        "activation_bf16",
+        "autocast_on",
+        "tf32_on",
+        "cudnn_tf32_on",
+        "gradient_bf16",
+        "parameter_bf16",
+        "master_bf16",
+        "optimizer_bf16",
+        "output_bf16",
+        "native_claim",
         "missing_stage",
         "wrong_pp",
         "wrong_runtime",
@@ -203,6 +242,28 @@ def test_incomplete_or_contradictory_reports_cannot_pass(mutation):
         r["norm_checks"][0]["actual"] = 10.0
     elif mutation == "boundary_norm":
         r["norm_checks"][0].update(reference=0.0, actual=2e-6)
+    elif mutation == "missing_activation":
+        r["activation_checks"].pop()
+    elif mutation == "activation_bf16":
+        r["activation_checks"][0]["dtype_counts"] = {"torch.bfloat16": 2}
+    elif mutation == "autocast_on":
+        r["activation_checks"][0]["autocast_counts"] = {"True": 2}
+    elif mutation == "tf32_on":
+        r["activation_checks"][0]["matmul_tf32_counts"] = {"True": 2}
+    elif mutation == "cudnn_tf32_on":
+        r["activation_checks"][0]["cudnn_tf32_counts"] = {"True": 2}
+    elif mutation == "gradient_bf16":
+        r["parameter_gradient_errors"][0]["gradient_dtype"] = "torch.bfloat16"
+    elif mutation == "parameter_bf16":
+        r["parameter_gradient_errors"][0]["model_parameter_dtype"] = "torch.bfloat16"
+    elif mutation == "master_bf16":
+        r["compute_parameter_checks"][0]["master_dtype"] = "torch.bfloat16"
+    elif mutation == "optimizer_bf16":
+        r["parameter_state_errors"][0]["actual_dtype"] = "torch.bfloat16"
+    elif mutation == "output_bf16":
+        r["output_errors"][0]["actual_dtype"] = "torch.bfloat16"
+    elif mutation == "native_claim":
+        r["native_dtype_evidence"] = "fp32_verified"
     elif mutation == "missing_stage":
         bundle["parameters"]["net.second"]["optimizer_fields"] = []
     elif mutation == "wrong_pp":
@@ -275,3 +336,55 @@ def test_telemetry_builder_rejects_wrong_input_before_writing(tmp_path):
     with pytest.raises(ValueError, match="ambiguous telemetry"):
         apply(tmp_path)
     assert compare.read_bytes() == before
+
+
+def test_decoder_observer_records_real_torch_dtypes_without_changing_backward():
+    torch = pytest.importorskip("torch")
+    source = Path(__file__).with_name("tp_pp_full_source_math.py").read_text()
+    module = ast.parse(source)
+    func = next(n for n in module.body if isinstance(n, ast.FunctionDef) and n.name == "install_decoder_dtype_observer")
+    isolated = ast.fix_missing_locations(ast.Module(body=[func], type_ignores=[]))
+    namespace = {"torch": torch}
+    exec(compile(isolated, "<observer>", "exec"), namespace)
+
+    class Layer(torch.nn.Module):
+        def forward(self, x):
+            return {"causal_seq": x * 2, "full_only_seq": x * 3, "action_seq": x * 4}, None, None
+
+    stage = SimpleNamespace(layers=torch.nn.ModuleDict({"0": Layer()}))
+    observations, update, handles = namespace["install_decoder_dtype_observer"](stage)
+    update[0] = 0
+    old_matmul, old_cudnn = torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32
+    try:
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+        x = torch.tensor([2.0], dtype=torch.float32, requires_grad=True)
+        result = stage.layers["0"](x)[0]
+        stage.layers["0"](x)
+        sum(value.sum() for value in result.values()).backward()
+        assert x.grad.item() == 9.0
+        assert set(observations) == {(0, "0", key) for key in ("causal_seq", "full_only_seq", "action_seq")}
+        assert observations[(0, "0", "action_seq")] == {
+            "dtype_counts": {"torch.float32": 2},
+            "autocast_counts": {"False": 2},
+            "matmul_tf32_counts": {"False": 2},
+            "cudnn_tf32_counts": {"False": 2},
+        }
+    finally:
+        for handle in handles:
+            handle.remove()
+        torch.backends.cuda.matmul.allow_tf32 = old_matmul
+        torch.backends.cudnn.allow_tf32 = old_cudnn
+
+
+def test_isolated_builder_observer_matches_base_diagnostic():
+    from tools.build_tp_pp_capacity_telemetry import DECODER_DTYPE_OBSERVER
+
+    source = Path(__file__).with_name("tp_pp_full_source_math.py").read_text()
+    base = next(
+        n
+        for n in ast.parse(source).body
+        if isinstance(n, ast.FunctionDef) and n.name == "install_decoder_dtype_observer"
+    )
+    built = next(n for n in ast.parse(DECODER_DTYPE_OBSERVER).body if isinstance(n, ast.FunctionDef))
+    assert ast.dump(base, include_attributes=False) == ast.dump(built, include_attributes=False)
