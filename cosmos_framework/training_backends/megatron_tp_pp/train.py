@@ -192,7 +192,34 @@ def run(config, args=None, *, initialized_callback=None):
         bf16=stage.config.params_dtype == torch.bfloat16,
     )
     overrides = bundle.optimizer_overrides(stage, optimizer_config)
-    driver = ModelParallelDriver(stage, topology, optimizer_config, config_overrides=overrides, gc_trace_root=root)
+    from .native_fp32_norm import agree_requested
+
+    norm_flag = os.environ.get("COSMOS_TP_PP_NATIVE_FP32_NORM", "0")
+    norm_enabled = agree_requested(
+        norm_flag, dtype=stage.config.params_dtype, dp_size=dp_size, optimizer_config=optimizer_config, device="cuda"
+    )
+    native_norm_order = None
+    if norm_enabled:
+        from .native_fp32_norm import derive_native_parameter_order
+
+        derivation_error = None
+        try:
+            native_norm_order = derive_native_parameter_order(config.model.config, bundle.manifest)
+        except Exception as error:
+            derivation_error = error
+        failed = torch.tensor([int(derivation_error is not None)], dtype=torch.int32, device="cuda")
+        dist.all_reduce(failed, op=dist.ReduceOp.MAX)
+        if failed.item():
+            raise RuntimeError("Native FP32 norm metadata derivation failed on at least one rank") from derivation_error
+    driver = ModelParallelDriver(
+        stage,
+        topology,
+        optimizer_config,
+        config_overrides=overrides,
+        gc_trace_root=root,
+        native_fp32_norm_order=native_norm_order,
+        _native_norm_consensus_checked=True,
+    )
     bundle.load_optimizer(stage, driver.optimizer)
     dist.barrier()
     if dist.get_rank() == 0:
@@ -309,6 +336,8 @@ def run(config, args=None, *, initialized_callback=None):
         "logical_training_rng_states": len(rng.states) if rng is not None else 0,
         "source_trainer": source_state,
     }
+    if norm_enabled:
+        initialized["native_fp32_norm_enabled"] = True
     (root / f"initialization.rank{dist.get_rank()}.json").write_text(json.dumps(initialized, indent=2) + "\n")
     log.info(json.dumps(initialized), rank0_only=False)
     if restarted is not None:
