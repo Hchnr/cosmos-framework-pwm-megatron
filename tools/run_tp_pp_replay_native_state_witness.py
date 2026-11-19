@@ -80,9 +80,13 @@ def install_state_witness(reference, witness_dir):
         checked = 0
         if update in (1, 2):
             specs = stage_parameter_manifest(driver.stage)
+            seen = set()
             for entry in adam_parameter_states(driver.stage, driver.optimizer):
                 spec = specs[entry.name]
                 name = spec.canonical_name.removeprefix("net.")
+                if name in seen:
+                    raise RuntimeError(f"rank {rank}, update {update}: duplicate optimizer parameter {name}")
+                seen.add(name)
                 index = indices[name]
                 snapshot = reference / f"update{update - 1}.parameter{index:04d}.pt"
                 saved = torch.load(snapshot, map_location="cpu", weights_only=True, mmap=True)
@@ -96,8 +100,8 @@ def install_state_witness(reference, witness_dir):
                 if not torch.equal(entry.select(entry.model_parameter.detach()), entry.master):
                     raise RuntimeError(f"rank {rank}, update {update}, {name}: compute/master mismatch")
                 checked += 1
-            if checked == 0:
-                raise RuntimeError("No optimizer parameter shards were verified")
+            if seen != set(names):
+                raise RuntimeError(f"rank {rank}, update {update}: incomplete optimizer parameter coverage")
         elif update != 0:
             raise RuntimeError(f"Unexpected update {update}")
         with witness_path.open("x") as handle:
@@ -147,7 +151,7 @@ def main(argv=None):
             read_report(report_path)
             for update in (1, 2):
                 witness = json.loads((args.witness_dir / f"replay_state.update{update}.rank{rank}.json").read_text())
-                if not witness["master_moments_step_compute_exact"] or witness["verified_shards"] <= 0:
+                if not witness["master_moments_step_compute_exact"] or witness["verified_shards"] != 811:
                     raise ValueError("Replay state witness is incomplete")
             print(
                 json.dumps({"rank": rank, "diagnostic_expected_exit": True, "continuous_acceptance": False}), flush=True
