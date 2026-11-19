@@ -28,6 +28,13 @@ def initialize(config, *, seed=42):
         order="tp-cp-ep-dp-pp",
         distributed_timeout_minutes=max(1, int(os.environ.get("TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC", "1800")) // 60),
     )
+    # The TP/PP entry point bypasses Trainer.__init__, which normally seeds
+    # Python, NumPy and Torch per physical rank before model construction.
+    # Seed them before MCore sets its distinct model-parallel CUDA streams:
+    # torch.manual_seed also seeds CUDA, and must not overwrite those streams.
+    from cosmos_framework.utils.misc import set_random_seed
+
+    set_random_seed(seed=seed, by_rank=True)
     model_parallel_cuda_manual_seed(seed)
     return {
         "tp": dist.get_process_group_ranks(ps.get_tensor_model_parallel_group()),
