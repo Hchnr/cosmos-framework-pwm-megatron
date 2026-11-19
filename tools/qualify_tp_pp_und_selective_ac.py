@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""Two-GPU, four-update, fixed-capacity UND selective-AC network oracle.
+"""Two-GPU, four-update oracle for a row-count checkpoint heuristic.
 
 Runs production I/O and TP blocks versus a native tiny model. Both UND buckets,
-missing action, and missing noisy targets are required. Never claim this tiny
+matching mm row counts, missing action, and missing noisy targets are required.
+Matching rows do not prove UND operation provenance. Never claim this tiny
 qualification as full-model correctness or performance acceptance.
 """
 
@@ -31,6 +32,8 @@ def configure_native_buckets(net):
 
 
 def validate(observation, exercise, smoke):
+    if observation.data.get("provenance_verified") is not False:
+        raise ValueError("Row-count heuristic must report that source provenance is unverified")
     if not smoke.get("passed") or not smoke.get("compiled"):
         raise ValueError("Compiled network oracle did not pass")
     if observation.data["stage_count"] != 1 or observation.data["selected_blocks"] != 2:
@@ -44,7 +47,7 @@ def validate(observation, exercise, smoke):
         if not exercise["actual_und_tokens"].get(str(token)):
             raise ValueError(f"UND bucket {token} did not actually execute")
         if not observation.data["saved_mm_by_tokens"].get(str(token)):
-            raise ValueError(f"UND bucket {token} did not trigger checkpoint policy")
+            raise ValueError(f"No mm matching row count {token} triggered checkpoint policy")
     errors = smoke["relative_gradient_l2"]
     for update in range(4):
         names = [name for name in errors if name.startswith(f"{update}/")]
@@ -58,7 +61,14 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--shared-input-reduction", action="store_true")
+    parser.add_argument(
+        "--allow-row-count-heuristic",
+        action="store_true",
+        help="Acknowledge that matching mm rows do not prove UND provenance",
+    )
     args = parser.parse_args()
+    if not args.allow_row_count_heuristic:
+        parser.error("This candidate requires --allow-row-count-heuristic; mm provenance is not verified")
     rank = os.environ.get("RANK", "")
     if not rank.isdecimal() or int(os.environ.get("WORLD_SIZE", "0")) != 2:
         raise ValueError("Run this qualification with torchrun --nproc-per-node=2")
@@ -151,10 +161,14 @@ def main():
         report = {
             "passed": True,
             "full_model_acceptance": False,
-            "scope": "TP2/PP1 compiled production-I/O tiny four-update oracle",
+            "scope": "TP2/PP1 compiled production-I/O tiny four-update row-count heuristic oracle",
+            "classification": "mm_input_row_count_heuristic",
+            "provenance_verified": False,
+            "matching_non_und_ops_possible": True,
             "exercise": exercise,
             "policy_saved_mm_by_tokens": observation.data["saved_mm_by_tokens"],
             "policy_saved_mm_by_shape": observation.data["saved_mm_by_shape"],
+            "policy_saved_mm_by_shape_and_requires_grad": observation.data["saved_mm_by_shape_and_requires_grad"],
             "smoke_report": str(target),
             "checks": "native outputs, per-parameter gradients, clipped norm, Adam masters, moments and step on all four updates",
             **stats,

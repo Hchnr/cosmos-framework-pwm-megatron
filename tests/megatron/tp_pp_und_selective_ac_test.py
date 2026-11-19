@@ -21,7 +21,7 @@ def config(full=8, short=4, video=11, action=6, enabled=True):
     )
 
 
-def test_both_und_buckets_match_only_the_und_matmuls(tmp_path):
+def test_declared_row_buckets_match_and_other_declared_stream_sizes_do_not(tmp_path):
     lengths = buckets(config())
     observer = Observation(tmp_path, 0)
     policy = make_policy(lengths, observer)
@@ -33,6 +33,7 @@ def test_both_und_buckets_match_only_the_und_matmuls(tmp_path):
         assert (policy(None, torch.ops.aten.mm.default, *args) == CheckpointPolicy.MUST_SAVE) is save
     assert observer.data["saved_mm_by_tokens"] == {"4": 1, "8": 1}
     assert observer.data["saved_mm_by_shape"] == {"(4, 3) @ (3, 5)": 1, "(8, 3) @ (3, 5)": 1}
+    assert observer.data["provenance_verified"] is False
     assert not should_save_mm(torch.ops.aten.add.Tensor, (torch.randn(4, 3), torch.randn(4, 3)), lengths)
 
 
@@ -96,7 +97,7 @@ class CountMM(TorchDispatchMode):
         return func(*args, **(kwargs or {}))
 
 
-def test_policy_saves_und_mm_and_avoids_recomputation(tmp_path):
+def test_policy_saves_row_matched_mm_and_avoids_recomputation(tmp_path):
     ac = ActivationCheckpointingConfig(mode="full", preserve_rng_state=True, determinism_check="default")
     counts = []
     for rows in (8, 11):
@@ -125,5 +126,19 @@ def test_policy_is_observed_in_aot_compiled_blocks(tmp_path):
 
 def test_unobserved_policy_does_not_pass_qualification(tmp_path):
     observation = Observation(tmp_path, 0)
-    with pytest.raises(RuntimeError, match="No UND mm save"):
+    with pytest.raises(RuntimeError, match="No row-matched mm save"):
         observation.finish()
+
+
+def test_non_und_intermediate_can_collide_with_an_und_row_count(tmp_path):
+    lengths = buckets(config())
+    observer = Observation(tmp_path, 0)
+    policy = make_policy(lengths, observer)
+    from torch.utils.checkpoint import CheckpointPolicy
+
+    # The same shape could arise by flattening an unrelated VIDEO intermediate;
+    # the policy cannot distinguish it from an UND projection by provenance.
+    unrelated = (torch.randn(8, 3), torch.randn(3, 5))
+    assert policy(None, torch.ops.aten.mm.default, *unrelated) == CheckpointPolicy.MUST_SAVE
+    assert observer.data["provenance_verified"] is False
+    assert observer.data["matching_non_und_ops_possible"] is True
