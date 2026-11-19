@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from tools.run_tp_pp_async_row_gpu_sequence import verify_tiny
+from tools.run_tp_pp_async_row_gpu_sequence import fingerprints, verify_snapshot, verify_tiny
 
 
 def report(rank, *, passed=True, backend="inductor"):
@@ -38,3 +38,16 @@ def test_tiny_gate_rejects_wrong_backend(tmp_path):
     (tmp_path / "rank0.json").write_text(json.dumps(report(0, backend="aot_eager")))
     with pytest.raises(ValueError, match="Inductor"):
         verify_tiny(tmp_path, 1, compiled=True, dtype="fp32")
+
+
+def test_snapshot_rejects_source_change_and_wrong_path(tmp_path):
+    source = tmp_path / "cosmos_framework/module.py"
+    source.parent.mkdir()
+    source.write_text("VALUE = 1\n")
+    manifest = {"snapshot": str(tmp_path.resolve()), "files": fingerprints(tmp_path)}
+    assert verify_snapshot(tmp_path, manifest) == manifest["files"]
+    with pytest.raises(ValueError, match="path"):
+        verify_snapshot(tmp_path / "other", manifest)
+    source.write_text("VALUE = 2\n")
+    with pytest.raises(ValueError, match="changed"):
+        verify_snapshot(tmp_path, manifest)

@@ -55,6 +55,15 @@ def build_snapshot(snapshot):
             raise ValueError(f"Candidate changed while snapshotting: {relative}")
 
 
+def verify_snapshot(snapshot, manifest):
+    if manifest.get("snapshot") != str(snapshot.resolve()):
+        raise ValueError("Snapshot path does not match the queued manifest")
+    initial = fingerprints(snapshot)
+    if initial != manifest.get("files"):
+        raise ValueError("Snapshot source files changed while waiting")
+    return initial
+
+
 def runtime():
     path = ROOT / "tools/run_tp_pp_flash3_benchmark_sequence.py"
     spec = importlib.util.spec_from_file_location("_async_row_gpu_guards", path)
@@ -98,6 +107,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--snapshot", type=Path, required=True)
+    parser.add_argument("--snapshot-manifest", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=1800)
     args = parser.parse_args()
     if args.timeout <= 0:
@@ -115,8 +125,8 @@ def main():
     save(target, result)
     try:
         guards = runtime()
-        build_snapshot(args.snapshot)
-        initial = fingerprints(args.snapshot)
+        manifest = json.loads(args.snapshot_manifest.read_text())
+        initial = verify_snapshot(args.snapshot, manifest)
         result["snapshot_sha256_before"] = initial
         sequence = guards.load_sequence()
         env = dict(sequence.ENV, PYTHONPATH=str(args.snapshot))
