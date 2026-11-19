@@ -608,3 +608,9 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 原始容量三更新诊断现要求对四个 rank、三次更新逐项核对 trainable 参数、梯度、master、Adam 矩和 step、compute/master、梯度 norm 及输出样本，并按参考平方和重算相对或近零绝对误差门槛。新增诊断字段仅用于数学对照，未纳入性能测量；缺少字段的旧报告不能通过新的严格 gate，也不回填历史报告。新增 gate 本身不代表 TP 正确性已通过，完整 576 槽验收仍需单独完成。
 
 新的 TP 数学诊断会逐更新读取实际 trainable 参数、梯度、master、Adam 浮点状态的 dtype，并在每个 decoder 层边界采样三个输出流的 dtype、autocast 和 TF32 开关；该采集不进入性能训练路径。层边界检查不证明融合 kernel 的内部累加精度。此前已经生成的原生参考没有完整的运行时 dtype 与 TF32 实测记录，不能将 TP 侧记录推断为原生侧也通过了 FP32 检查。
+
+### 2026-11-19：两侧重算策略对照及测试重叠
+
+四卡 BF16、prepared 输入、每 rank 每微步 9/11/13 样本、每次更新三个微步，四个配置各完成七次更新，前两次预热、后五次计时。同为 full AC 时 TP4 为 **7.902223 秒/更新、4.176040 样本/秒**，FSDP4 为 **22.866170 秒/更新、5.772720 样本/秒**，整机吞吐比 **72.34%**。两侧均对 36 层中的 8 层采用 FA3 选择性重算时，TP4 为 **7.847071 秒/更新、4.205391 样本/秒**，FSDP4 为 **22.635285 秒/更新、5.831603 样本/秒**，吞吐比 **72.11%**。计数是样本处理次数，FSDP 四个 rank 重复使用 fixture；比较不包含 VAE/noising、媒体解码或 checkpoint 写入，也不代表完整模型数值通过。实验记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/`。
+
+这两组结果均为探索性测量：两侧 cuDNN 运行设置并不相同，prepared 输入范围内的影响未知；GPU PID 监控受命名空间限制，不能保证严格独占。FSDP selective 计时阶段附近于 13:52:02 UTC 发生了 CPU 测试，测试未使用 GPU，但其对耗时的影响未知，另有更早 CPU 工作的精确重叠待核查。因此 selective 结果不能用于无干扰的最终性能验收；其 profiler 也仍在运行。测试时间及限制见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/cpu_test_overlap_20261119.json`，新的对齐设置和完整时窗重测仍待完成。
