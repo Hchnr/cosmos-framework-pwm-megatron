@@ -82,6 +82,19 @@ def validate_qualification(directory, fixture, source_root=None, recipe=None, en
         raise ValueError("VAE qualification must pin the VAE checkpoint file content")
     if _digest(vae_file) != weight_pins[0]["sha256"]:
         raise ValueError("VAE checkpoint content changed after qualification")
+    hf_root = Path(environment["HF_MODEL_PATH"]).resolve(strict=True)
+    hf_entries = sorted(hf_root.rglob("*"))
+    if any(path.is_symlink() for path in hf_entries):
+        raise ValueError("Refusing symlink in qualified HF model directory")
+    hf_files = [path for path in hf_entries if path.is_file()]
+    if not hf_root.is_dir() or not hf_files:
+        raise ValueError("HF model directory must contain qualified files")
+    for path in hf_files:
+        matches = [entry for entry in pinned.values() if Path(entry["resolved"]) == path.resolve()]
+        if not matches or len({entry["sha256"] for entry in matches}) != 1:
+            raise ValueError(f"VAE qualification must pin HF model file content: {path.name}")
+        if _digest(path) != matches[0]["sha256"]:
+            raise ValueError(f"HF model file content changed after qualification: {path.name}")
     for relative in QUALIFICATION_DEPENDENCIES:
         matches = [entry for label, entry in pinned.items() if label.endswith("/" + relative)]
         if len(matches) != 1:
