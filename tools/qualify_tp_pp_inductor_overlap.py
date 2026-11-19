@@ -22,7 +22,7 @@ from types import SimpleNamespace
 from tools.run_tp_pp_inductor_overlap import Observation, candidate_options, install
 
 
-def create_rank_cache(cache_root, rank, environ):
+def create_rank_cache(cache_root, rank, environ, *, disable_caches=True):
     if not rank.isdecimal():
         raise ValueError("Rank must be numeric")
     root = Path(cache_root).resolve()
@@ -33,6 +33,9 @@ def create_rank_cache(cache_root, rank, environ):
     cache.mkdir(exist_ok=False)
     environ["TORCHINDUCTOR_CACHE_DIR"] = str(cache)
     environ["TRITON_CACHE_DIR"] = str(cache / "triton")
+    if disable_caches:
+        environ["TORCHINDUCTOR_FORCE_DISABLE_CACHES"] = "1"
+        environ["TORCH_COMPILE_FORCE_DISABLE_CACHES"] = "1"
     return cache
 
 
@@ -45,6 +48,8 @@ def install_oracle_compile(observation, *, torch_module=None, wrapper_type=None)
         wrapper_type = CheckpointWrapper
     original = torch_module.compile
     config = torch_module._inductor.config
+    if not torch_module.compiler.config.force_disable_caches or not config.force_disable_caches:
+        raise RuntimeError("Torch did not activate force_disable_caches from the environment")
 
     @functools.wraps(original)
     def compile_block(model=None, *args, **kwargs):
@@ -55,9 +60,6 @@ def install_oracle_compile(observation, *, torch_module=None, wrapper_type=None)
                 deterministic_algorithms=torch_module.are_deterministic_algorithms_enabled(),
                 inductor_deterministic=config.deterministic,
             )
-            if "force_disable_caches" in options:
-                raise ValueError("Oracle compile options already specify cache behavior")
-            options["force_disable_caches"] = True
             kwargs["options"] = options
             observation.data["options_installed"] = True
             observation.data["effective_block_options"] = options
@@ -81,10 +83,13 @@ def main():
     rank = os.environ.get("RANK", "")
     if not rank.isdecimal():
         parser.error("torchrun must provide a numeric RANK")
+    if "torch" in sys.modules:
+        raise RuntimeError("Fresh compiler-cache environment must be configured before importing torch")
     cache = create_rank_cache(args.cache_root, rank, os.environ)
     observation = Observation(args.report_dir / f"inductor_overlap_oracle.rank{rank}.json")
     observation.data["fresh_rank_cache"] = str(cache)
     observation.data["triton_cache"] = os.environ["TRITON_CACHE_DIR"]
+    observation.data["force_disable_caches_env"] = os.environ["TORCH_COMPILE_FORCE_DISABLE_CACHES"]
     observation.save()
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests/megatron"))
