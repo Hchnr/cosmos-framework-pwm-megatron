@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Streaming and preflight preserve native inputs, RNG and loss denominators."""
 
 import copy
@@ -59,6 +62,8 @@ def test_preflight_then_replay_keeps_samples_augmentations_and_weights(monkeypat
     original_zeros, original_empty = torch.zeros, torch.empty
     monkeypatch.setattr(planning.torch, "zeros", lambda *a, **kw: original_zeros(*a, **{**kw, "device": "cpu"}))
     monkeypatch.setattr(planning.torch, "empty", lambda *a, **kw: original_empty(*a, **{**kw, "device": "cpu"}))
+    original_tensor = torch.tensor
+    monkeypatch.setattr(planning.torch, "tensor", lambda *a, **kw: original_tensor(*a, **{**kw, "device": "cpu"}))
     monkeypatch.setattr(planning.dist, "broadcast", lambda *a, **kw: None)
     monkeypatch.setattr(planning.dist, "all_reduce", lambda *a, **kw: None)
     replay, records, totals = planning.preflight_update(

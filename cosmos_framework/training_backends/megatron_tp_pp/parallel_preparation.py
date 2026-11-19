@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Parallel frozen preparation, followed by the unchanged ordered pipeline.
 
 Each model-parallel rank advances a disjoint subset of the group's logical

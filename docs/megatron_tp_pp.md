@@ -520,3 +520,8 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 原1203失败输入的两个逻辑rank已恢复raw数据、VAE/noising和packed payload，三类SHA都与原记录一致，见 `legacy_prepared_inputs/manifest.json`。另一个待测候选显式使用FP64 Linear GEMM/TP归约中间累积，参数、激活及优化器状态仍FP32；小网络四GPU四步资格通过，但尚未完成完整模型三步验证。即使后者通过，也必须标明高精度累积，不能冒称标准FP32路径已通过。
 
 包含原生VAE/noising的第二轮TP4/FSDP4性能测试正在运行，仍对齐每micro_step/rank的9/11/13样本、双方7更新排除前2。媒体解码在本轮外；VAE启用相同的全部空间bucket AOT编译，冷启动编译仍进行中，暂时没有可报告的稳态结果。已完成的prepared计算性能结果不受影响。
+
+
+2026-11-19即时集成补充：独立worktree修正CPU planning测试漏mock的 `torch.tensor(device="cuda")`，GPU完全隐藏后101项通过、1项跳过，Ruff通过。原生完整block对照使用逐参数原生FP32 norm和独立meta模型参数顺序后，四rank连续三更新的固定门槛全部通过；这仍是汇集权重的诊断，不代表正式分片TP已通过。正式FP32数值和完整576槽容量限制继续有效。
+
+PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 `.pre-commit-config.yaml` 原有锁定的 `rumdl==0.1.62` 时失败（没有可安装发行包），尚未执行后续完整检查。本次按用户明确要求立即集成当前进度，不扩展修改无关Markdown、脚本权限或CI规则，也不将该CI状态记录为通过。

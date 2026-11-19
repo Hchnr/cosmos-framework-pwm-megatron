@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Heterogeneous action experts with simultaneous, bidirectional KV exchange.
 
 Only the pack boundary pads action features for legacy modality scatter/gather.

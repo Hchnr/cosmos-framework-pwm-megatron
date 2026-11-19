@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Diagnostic native local Linear autograd under the existing TP communication.
 
 This isolates MCore's local GEMM/autograd from the partitioning, pipeline,

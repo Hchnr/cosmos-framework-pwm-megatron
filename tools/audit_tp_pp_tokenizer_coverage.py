@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Audit structural AOT coverage of the recipe's actual Action128 catalogs.
 
 This reads catalog metadata, never media or sampling state. It does not prove

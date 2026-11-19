@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Offload selected compiled blocks' saved activations, retaining GPU parameters."""
 
 from tools.tp_pp_activation_offload import saved_tensor_cpu_offload
