@@ -1,6 +1,6 @@
 # Megatron TP/PP 实现与验收
 
-当前状态（2026-11-19）：**TP/PP 为显式选择的实验后端，尚未完成正确性和生产容量验收。标准 FP32 连续三更新测试失败：新输入第三步梯度相对 L2，TP2/PP2 为 0.57724，TP4/PP1 为 0.10917。已完成同 microstep/rank batch 的 TP4/FSDP4 七更新性能对比（前二预热、后五测量）：prepared 计算平均 8.42588 / 22.82432 秒每更新，整机吞吐 3.91650 / 5.78330 样本每秒，TP 为 FSDP 的 67.7%；不含 VAE/noising、媒体解码。含 VAE/noising 的首轮受到并发 CUDA 初始化干扰，只作暂定结果，仍需无干扰重测。真实 12 槽 BF16 严格重启通过不代表 FP32 数值或完整 576 槽容量通过。当前提交保存实现和诊断进度，不能作为验收通过的生产交付。**
+当前状态（2026-11-20）：**TP/PP 为显式选择的实验后端，尚未完成正确性和生产容量验收。标准 FP32 连续三更新测试失败：新输入第三步梯度相对 L2，TP2/PP2 为 0.57724，TP4/PP1 为 0.10917。后续相同 cuBLAS workspace 加 Q/K norm 梯度布局候选的 TP4 三步仍失败，第三步梯度相对 L2 为 0.40723，见文末。包含 VAE/noising 的同 microstep/rank batch 七更新对照中，TP4/FSDP4 四卡整机吞吐为 2.282668/3.858637 样本每秒，TP 为 FSDP 的 59.16%；详见下文的计时范围及限制。真实 12 槽 BF16 严格重启通过不代表 FP32 数值或完整 576 槽容量通过。当前提交保存实现和诊断进度，不能作为验收通过的生产交付。**
 
 范围和最终门槛仍遵循 [v0.0.1 方案](plans/v0.0.1.tp_pp.md)。现有 `megatron` FSDP 后端保持独立。
 
@@ -666,3 +666,13 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 针对当前 Wan2.2 tokenizer 的四卡真实 AOT 资格，三个 raw fixture 分别预热一次、检查一次；原串行与分片编码的 latent 和完整 prepared payload 均逐位一致。四 rank 分别记录 86、16、16、14 次单项编码，每次均命中 AOT chunk，检查的 CPU/CUDA、Python、NumPy RNG 以及显式创建的 model-parallel tracker 的命名 RNG 张量均在编码前后一致。报告与 SHA-256 清单保存在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_cross_slot_rng_qualification_20261120/`。
 
 这一结果只覆盖上述 Wan2.2 配置、输入和串行执行；model-parallel tracker 为测试中创建的实例，其当前状态名、seed 注册集合等内部元数据未纳入比较，不能推广到其他 tracker 或 tokenizer。VAE 权重和 fixture 经过内容校验，大型 HF 模型分片仅检查运行前后文件 stat，不能据此认证其历史字节。跨 microstep 并发的流、通信顺序、RNG 隔离、显存和吞吐尚未通过验证，因此该资格不是性能提升或完整模型正确性结论。
+
+### 2026-11-20：相同 cuBLAS workspace 的 FP32 三步对照
+
+为验证 QKV 矩阵乘法路径是否解释上述误差，使用 `CUBLAS_WORKSPACE_CONFIG=:16:8` 重新生成原生参考，并以同一配置运行 TP4/PP1。两侧为真实 36 层、裁剪输入、每更新两个 microbatch、连续三次更新；TP 保留默认分片 Linear 和 attention，启用试验性的全 head Q/K norm 权重梯度布局适配。该适配不是默认生产实现，亦未使用此前的全宽 Linear/attention 诊断替代计算。测试使用 deterministic、eager 非重入逐层 activation checkpoint、activation CPU offload、原生 Adam 和裁剪算术；不代表 BF16 生产吞吐或 576 槽容量。
+
+原生侧运行时实际检查的 1,210 个浮点参数、每次更新的梯度和全部 1,622 个 Adam 一/二阶矩均为 FP32；六个 microbatch 的主要输出均为 FP32，CUDA autocast、matmul TF32 和 cuDNN TF32 均关闭。原生三次 grad norm 分别为 172.063797、7.792744、8.282850。四个 TP rank 的全局 pre-clip 梯度相对 L2 一致，三次依次为 **0.000958909、0.004623426、0.407233865**；固定门槛未放宽，四 rank 均失败。rank 0 首步有 688/811 个参数梯度分片失败，后两步均为 811/811；首步最大输出相对 L2 为 7.3905e-5。源码运行前后身份检查一致。
+
+首步 rank 0 的逐层参数梯度相对误差中位数由第 35 层约 2.03e-5 增至第 31 层约 2.70e-4，浅层约 9e-4–1e-3，说明反向传播中存在明显放大；这些统计本身不能确定首个出错算子。相同 workspace 与 Q/K 布局适配没有解决问题，不能从单个 GEMM 重放一致推断完整训练正确。下一步需按相同输入与状态捕获层边界及算子前后值、反向 cotangent，确定差异来源并修复。
+
+完整逐 rank 输出、源码身份及原生 dtype 清单保存在执行节点 `/opt/cosmos-tp-workspace16-full-20261120-v11/`；其报告压缩副本 `reports.tar.gz` 的 SHA-256 为 `ca17c28de7a52e2c37275aab8cd57159fed2d4908a55d6481f1101c036a7083b`。共享 `outputs` 的目录创建返回 `No space left on device`，因此该次报告尚未复制到共享目录；大体积原始参考文件没有生成时内容哈希，本次检查不能认证其历史全部字节。这里记录的是裁剪输入定位，TP2/PP2、原始容量、严格恢复及生产性能均须单独验收。
