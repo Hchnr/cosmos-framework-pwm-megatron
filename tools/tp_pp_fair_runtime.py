@@ -111,7 +111,16 @@ class RuntimeAudit:
             self.check("vae_compiler_after")
             tokenizer = model.tokenizer_vision_gen
             if compiler._has_compiled:
-                functions = getattr(tokenizer.model, "_aot_chunk_fns", {})
+                # Wan2pt2VAEInterface -> WanVAE -> WanVAE_: dispatch reads
+                # the functions from the innermost encoder model.
+                encoder = getattr(getattr(tokenizer, "model", None), "model", None)
+                functions = getattr(encoder, "_aot_chunk_fns", None)
+                if (
+                    not isinstance(functions, dict)
+                    or not functions
+                    or not all(callable(fn) for fn in functions.values())
+                ):
+                    raise RuntimeError("VAE compile did not install callable AOT functions on its encoder")
                 self.vae = {
                     "enabled": compiler.enabled,
                     "compiled": compiler._has_compiled,

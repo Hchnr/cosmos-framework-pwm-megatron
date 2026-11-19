@@ -151,6 +151,51 @@ def test_checks_real_backend_flags(monkeypatch, tmp_path):
         torch.set_float32_matmul_precision(original["float32_matmul_precision"])
 
 
+@pytest.mark.parametrize("case", ["valid", "outer_only", "empty", "not_callable"])
+def test_vae_aot_audit_checks_actual_encoder(monkeypatch, case):
+    from cosmos_framework.callbacks.compile_tokenizer import CompileTokenizer
+    from cosmos_framework.model.generator.tokenizers.wan2pt2_vae_4x16x16 import Wan2pt2VAEInterface, WanVAE, WanVAE_
+
+    encoder = WanVAE_.__new__(WanVAE_)
+    torch.nn.Module.__init__(encoder)
+    wrapper = WanVAE.__new__(WanVAE)
+    wrapper.model = encoder
+    tokenizer = Wan2pt2VAEInterface.__new__(Wan2pt2VAEInterface)
+    tokenizer.model = wrapper
+
+    def fn(*args):
+        return args
+
+    if case == "valid":
+        encoder._aot_chunk_fns = {(0, 1, 240, 320): fn}
+    elif case == "outer_only":
+        wrapper._aot_chunk_fns = {(0, 1, 240, 320): fn}
+    elif case == "empty":
+        encoder._aot_chunk_fns = {}
+    else:
+        encoder._aot_chunk_fns = {(0, 1, 240, 320): object()}
+    compiler = SimpleNamespace(
+        _has_compiled=True,
+        enabled=True,
+        backend="inductor",
+        mode="default",
+        fullgraph=True,
+        dynamic=False,
+        require_full_coverage=True,
+    )
+    model = SimpleNamespace(tokenizer_vision_gen=tokenizer)
+    monkeypatch.setattr(CompileTokenizer, "on_training_step_start", lambda *_args, **_kwargs: None)
+    audit = RuntimeAudit.__new__(RuntimeAudit)
+    audit.check = lambda _phase: None
+    audit.wrap_vae_compiler()
+    if case == "valid":
+        CompileTokenizer.on_training_step_start(compiler, model)
+        assert audit.vae["variant_keys"] == ["(0, 1, 240, 320)"]
+    else:
+        with pytest.raises(RuntimeError, match="callable AOT functions"):
+            CompileTokenizer.on_training_step_start(compiler, model)
+
+
 def test_all_ranks_must_match_compile_and_execute_each_slot(tmp_path):
     write_reports(tmp_path)
     assert validate_reports(tmp_path)["passed"]
