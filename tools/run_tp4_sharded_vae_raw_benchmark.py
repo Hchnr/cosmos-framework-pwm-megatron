@@ -35,8 +35,18 @@ QUALIFICATION_DEPENDENCIES = (
 
 
 def _digest(path):
+    before = path.stat()
     with path.open("rb") as handle:
-        return hashlib.file_digest(handle, "sha256").hexdigest()
+        digest = hashlib.file_digest(handle, "sha256").hexdigest()
+    after = path.stat()
+    if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
+        after.st_dev,
+        after.st_ino,
+        after.st_size,
+        after.st_mtime_ns,
+    ):
+        raise RuntimeError(f"File changed while hashing: {path}")
+    return digest
 
 
 def _preparation_class(path):
@@ -66,6 +76,12 @@ def validate_qualification(directory, fixture, source_root=None, recipe=None, en
         actual = hashlib.sha256(environment.get(name, "").encode()).hexdigest()
         if not expected or not environment.get(name) or actual != expected:
             raise ValueError(f"Benchmark {name} differs from VAE qualification")
+    vae_file = Path(environment["WAN_VAE_PATH"]).resolve(strict=True)
+    weight_pins = [entry for entry in pinned.values() if Path(entry["resolved"]) == vae_file]
+    if not weight_pins or len({entry["sha256"] for entry in weight_pins}) != 1:
+        raise ValueError("VAE qualification must pin the VAE checkpoint file content")
+    if _digest(vae_file) != weight_pins[0]["sha256"]:
+        raise ValueError("VAE checkpoint content changed after qualification")
     for relative in QUALIFICATION_DEPENDENCIES:
         matches = [entry for label, entry in pinned.items() if label.endswith("/" + relative)]
         if len(matches) != 1:
@@ -344,8 +360,7 @@ def main():
         "passed": False,
         "rank": int(os.environ["RANK"]),
         "fixture_file_sha256": verified_hashes,
-        "qualification_weight_file_content_hashed": False,
-        "qualification_limit": "the prior VAE qualification pinned the checkpoint path, not the file contents",
+        "qualification_weight_file_content_hashed": True,
         "full_model_numerical_acceptance": False,
     }
     try:
