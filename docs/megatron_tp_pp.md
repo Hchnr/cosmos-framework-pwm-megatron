@@ -627,6 +627,8 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 异步 row 归约候选完成 TP2/TP4 的小模型 GPU 数值检查：FP32 eager、FP32 Inductor/full AC 与 BF16 Inductor/full AC 各阶段均通过，记录的最大相对 L2 为 **5.72e-7**。四卡 BF16 真实形状的合成前向 profiler 显示，baseline 无可测重叠，延迟等待候选平均每卡有约 **0.177–0.204 毫秒**计算与 NCCL 重叠。该测试不是端到端训练性能或完整 36 层正确性验收；实际收益仍需同设置吞吐对照。报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/async_row_queue_20261119T1152/sequence/`。
 
+上述小模型数值报告的通过结论存在非有限值检查缺口：当比较张量产生 NaN/Inf 时，双阈值比较可能不报失败；报告未保存全部比较字段，不能据此证明每个张量都有限。当前没有证据表明该轮实际发生非有限值或误报，但在补充逐张量 finite 检查和负控并重跑前，不应将其视为完整数值资格。合成 profiler 的重叠观察与该数值检查属于不同证据。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
