@@ -631,6 +631,14 @@ H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention
 
 组合全宽 QKV、attention、MLP 投影和 row 归约的 36 层裁剪输入 FP32 诊断已完成三步：第 0 步裁剪前梯度和输出观察通过，整体梯度相对 L2 为 **1.28778e-8**；第 1 步整体相对 L2 为 **2.90771e-5**，但 rank0 有 6 个参数分片未过逐项门槛；第 2 步整体相对 L2 为 **0.00189652**，rank0 有 737 个参数分片未通过。完整报告最终仍为失败，不能称连续训练正确。四个 rank 的第 0 步非逐位相等梯度均恰为 **144 个 vision/action Q/K norm 权重**（36 层各 4 个），其余 667 个 trainable 参数梯度逐位相等；更新后 18 个 master 参数有非零差异，也全部属于这 144 个 norm 权重。首步梯度范数与该 native 参考记录相等，但尚未逐元素证明梯度裁剪一致。Q/K norm 权重在 TP 中使用跨 rank 求和，因此该路径是下一步受控对照重点；这些相关性还不能证明后续漂移的唯一因果。报告与来源在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/combined_fp32_queue_20261119T1241/sequence/`，此诊断不是原始容量或 BF16 验收。
 
+### 2026-11-20：Q/K norm CPU 资格与 TP4 profile 分解
+
+针对上述 Q/K norm 权重梯度的 `weight_only` 全 head 诊断候选已通过 **20 项 CPU/Gloo 测试**，其中包括真实裁剪输入的传输与前后身份检查；详见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/qk_cpu_qualification_20261119T1554/result.json`。该结果不证明 GPU 数值正确：候选仍需四卡、连续三次更新，并按原逐参数输出、梯度与优化器状态门槛比较。全 head 归约属于定位诊断，也不是已验证的高性能生产实现。
+
+对 `flash3_ac_queue_20261119T1040/sequence/profile_tp_full.sqlite` 的 GPU 0 单次预热后完整更新分析，NCCL kernel 时间并集约 **1.328 秒**，非 NCCL kernel 时间并集约 **6.187 秒**；两类 kernel 在该捕获中未观察到重叠。按 kernel 名归类的累计时间中，GEMM 约 **3.474 秒**、FA3 前向与反向约 **1.388 秒**、Triton 约 **0.979 秒**。这些是一次 profile 中的设备时间，不是独立可删除的墙钟耗时，NCCL 也可能包含等待。
+
+以 prepared 输入的独立五步均值估算，TP4 要从 **7.902 秒/更新**降至约 **5.716 秒/更新**，才能达到当时 FSDP4 的 **5.773 样本/秒**。profile 和计时并非同一次运行，但二者说明通信重叠与计算、重算优化均值得验证，不能仅凭异步通信的合成测试宣称达到目标。上述吞吐不含 VAE/noising，且原对比的运行时设置不完全一致，不是最终端到端验收。
+
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
