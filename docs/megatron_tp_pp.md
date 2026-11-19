@@ -663,6 +663,6 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 
 ### 2026-11-20：跨 microstep VAE 预取的串行 RNG 前置检查
 
-针对当前 Wan2.2 tokenizer 的四卡真实 AOT 资格，三个 raw fixture 分别预热一次、检查一次；原串行与分片编码的 latent 和完整 prepared payload 均逐位一致。四 rank 分别记录 86、16、16、14 次单项编码，每次均命中 AOT chunk，检查的 CPU/CUDA、Python、NumPy RNG 以及显式创建的 model-parallel tracker 状态均在编码前后一致。报告与 SHA-256 清单保存在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_cross_slot_rng_qualification_20261120/`。
+针对当前 Wan2.2 tokenizer 的四卡真实 AOT 资格，三个 raw fixture 分别预热一次、检查一次；原串行与分片编码的 latent 和完整 prepared payload 均逐位一致。四 rank 分别记录 86、16、16、14 次单项编码，每次均命中 AOT chunk，检查的 CPU/CUDA、Python、NumPy RNG 以及显式创建的 model-parallel tracker 的命名 RNG 张量均在编码前后一致。报告与 SHA-256 清单保存在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_cross_slot_rng_qualification_20261120/`。
 
-这一结果只覆盖上述 Wan2.2 配置、输入和串行执行；model-parallel tracker 为测试中创建的实例，不能推广到其他 tracker 或 tokenizer。VAE 权重和 fixture 经过内容校验，大型 HF 模型分片仅检查运行前后文件 stat，不能据此认证其历史字节。跨 microstep 并发的流、通信顺序、RNG 隔离、显存和吞吐尚未通过验证，因此该资格不是性能提升或完整模型正确性结论。
+这一结果只覆盖上述 Wan2.2 配置、输入和串行执行；model-parallel tracker 为测试中创建的实例，其当前状态名、seed 注册集合等内部元数据未纳入比较，不能推广到其他 tracker 或 tokenizer。VAE 权重和 fixture 经过内容校验，大型 HF 模型分片仅检查运行前后文件 stat，不能据此认证其历史字节。跨 microstep 并发的流、通信顺序、RNG 隔离、显存和吞吐尚未通过验证，因此该资格不是性能提升或完整模型正确性结论。
