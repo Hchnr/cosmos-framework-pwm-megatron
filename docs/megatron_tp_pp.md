@@ -560,3 +560,8 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 在共享输入梯度归约基础上，最后 4 层使用选择性 activation checkpointing、保存规则为 `^mm\.default$`，其余层维持 full AC。真实 TP4 prepared 数据完成 7 次更新、前 2 次预热，后 5 次慢 rank 平均 **7.823829 秒/更新、4.217883 样本/秒**，为同输入 FSDP4 的 **72.93%**；相对仅共享输入归约的 4.170132 样本/秒提高约 1.15%。rank 0 峰值 PyTorch 分配 76,249,869,824 bytes，后者为 68,435,028,992 bytes。两者均不含媒体加载、VAE/noising 或 checkpoint 写入；此轮尚未通过 GPU 画像验证实际保存的算子及重算次数，不是完整模型数值验收。完整合同比较和各 rank 日志在运行目录的 `selective4_shared_tp4_comparison.json` 与 `selective4_shared_tp4/`。
 
 修复资格入口的 CUDA 初始化顺序后，隔离的原生 FP32 范数候选在 TP2/PP1 小模型完成四次非零更新：两个 rank 的参数和预测均为 FP32，四次均调用候选范数，顺序通过 meta 模型独立派生。首次资格尝试在模型计算前因导入时 CUDA 已初始化而退出，不能作为算法数值失败；重跑报告为 `native_norm_driver_tiny_v2*.json`。这不是 36 层或 TP2/PP2 的验证，原生范数只是一项候选，标准 FP32 连续轨迹仍未通过。真正触发 token 分块的 TP2/PP1 小模型四次更新也通过，最大逐参数梯度相对 L2 约 **6.80e-7**，完整容量仍待验证。
+
+
+### 2026-11-19：本地投影融合试验
+
+独立的 QKV、gate/up 及两者组合在 TP2/PP1 小模型上分别完成 compile/full AC 的四次非零 Adam 更新，各 rank 对应启用报告均有效，最大逐参数梯度相对 L2 约 **7.49e-7**。组合候选的真实 TP4/PP1 prepared 输入七更新测试，前二预热后五次平均 **7.872503 秒/更新、4.191805 样本/秒**，为同输入 FSDP4 的 **72.48%**；仅共享输入归约为 4.170132 样本/秒。rank 0 峰值 PyTorch 分配为 69,447,804,416 bytes；每个 rank 报告 108 组 QKV 和 108 组 gate/up 已安装。安装报告并不证明 GPU kernel 实际融合，需 profiler 验证；小模型结果不构成完整 36 层数值验收。完整合同、更新记录和报告在运行目录的 `fused_input_both_tp4_comparison.json` 与 `fused_input_both_tp4_reports/`。
