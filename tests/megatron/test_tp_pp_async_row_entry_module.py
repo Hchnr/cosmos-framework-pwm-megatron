@@ -63,6 +63,11 @@ torch.set_num_threads(1)
 torch.set_num_interop_threads(1)
 assert not torch.cuda.is_available()
 target = builtins._async_guard_target
+# The legacy helper and this runpy training fixture have distinct __main__
+# namespaces. Satisfy unrelated global guards so the negative control reaches
+# the specific missing finish closure; never install finish itself here.
+for name in ('F', 'launch', 'gate_up'):
+    globals()[name] = target.__globals__[name]
 assert not hasattr(sys.modules['__main__'], 'finish')
 expected_module = '__main__' if os.environ['ASYNC_ENTRY_CASE'] == 'legacy' else 'tools.run_tp_pp_async_row_reduction'
 assert target.__module__ == expected_module
