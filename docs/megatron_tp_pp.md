@@ -660,3 +660,9 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
 
 多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
+
+### 2026-11-20：跨 microstep VAE 预取的串行 RNG 前置检查
+
+针对当前 Wan2.2 tokenizer 的四卡真实 AOT 资格，三个 raw fixture 分别预热一次、检查一次；原串行与分片编码的 latent 和完整 prepared payload 均逐位一致。四 rank 分别记录 86、16、16、14 次单项编码，每次均命中 AOT chunk，检查的 CPU/CUDA、Python、NumPy RNG 以及显式创建的 model-parallel tracker 状态均在编码前后一致。报告与 SHA-256 清单保存在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_cross_slot_rng_qualification_20261120/`。
+
+这一结果只覆盖上述 Wan2.2 配置、输入和串行执行；model-parallel tracker 为测试中创建的实例，不能推广到其他 tracker 或 tokenizer。VAE 权重和 fixture 经过内容校验，大型 HF 模型分片仅检查运行前后文件 stat，不能据此认证其历史字节。跨 microstep 并发的流、通信顺序、RNG 隔离、显存和吞吐尚未通过验证，因此该资格不是性能提升或完整模型正确性结论。
