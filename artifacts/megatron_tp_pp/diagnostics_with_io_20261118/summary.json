@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "scope": "FP32 small-capacity three-tower mechanism diagnostics, 12 logical slots",
+  "rank_reports": 32,
+  "maximum_global_gradient_relative_l2": 3.0076978465234017e-07,
+  "minimum_global_gradient_cosine": 0.9999999999999568,
+  "source_full_checkpoint_resume_accepted": false,
+  "production_capacity_576_slot_acceptance": false,
+  "performance_accepted": false
+}

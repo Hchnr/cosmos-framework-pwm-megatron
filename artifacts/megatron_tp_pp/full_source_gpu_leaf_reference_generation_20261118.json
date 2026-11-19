@@ -1,0 +1,16 @@
+{
+  "reference_generation_passed": true,
+  "reference": "/opt/cosmos-tp-pp-full-source-real-rf-full-text-native-gpu-leaf-reference",
+  "scope": "actual full 36-layer source parameters/nonzero Adam state; full text, cropped VIDEO/Action inputs; native GPU FP32 leaves and native clipping/Adam; not original packing capacity",
+  "updates": 3,
+  "gradient_norms": [
+    123.16960906982422,
+    20.899354934692383,
+    11.721319198608398
+  ],
+  "peak_allocated_cuda_bytes": 66507893760,
+  "gpu_leaf_reference": true,
+  "runtime_constants_sha256": "32dda11a860f3e73b36441649b6cdea93d2ffacdfd093a901d3ba31743397524",
+  "tp_pp_comparison_passed": null,
+  "production_capacity_576_slot_acceptance": false
+}

@@ -1,0 +1,22 @@
+{
+  "scope": "historical four-H100 TP2/PP2, real 12 logical slots; includes two resumed trajectories; VAE AOT disabled",
+  "source": "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_real12_bf16_compile_ac_expandable/updates.rank0.jsonl",
+  "observations": 4,
+  "update_seconds_range": [
+    157.4329161643982,
+    169.83078483492136
+  ],
+  "preflight_seconds_range": [
+    36.34692098945379,
+    45.534192871302366
+  ],
+  "preflight_fraction_range": [
+    0.2165779441323044,
+    0.2849359834957335
+  ],
+  "first_update_seconds": 217.16727970167994,
+  "production_576_slot_acceptance": false,
+  "matched_native_performance_comparison": false,
+  "tp_pp_speedup_demonstrated": false,
+  "single_pass_optimization_measured": false
+}

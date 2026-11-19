@@ -1,0 +1,29 @@
+{
+  "observed_at_utc": "2026-11-19T03:51:58.468035+00:00",
+  "current_host": "job-80b338f9-5483-4d9e-86c9-26af68936cea-master-0",
+  "previous_host": "job-f98f1801-a9b4-49a5-a3f6-b707fddc5b01-master-0",
+  "previous_node_job_status": "unverified; Kubernetes pod read denied by RBAC and user is unsure",
+  "current_node_old_pids_missing": [
+    1162948,
+    1385414,
+    1404824,
+    1272836,
+    1378370,
+    982585
+  ],
+  "node_local_opt_and_tmp_artifacts_missing": true,
+  "reference_runtime_restaged": "/opt/cosmos-megatron-runtime/8eed42449a654132",
+  "torch": "2.10.0+cu130",
+  "transformer_engine": "2.12+cu130.torch210",
+  "megatron_core": "0.20.0",
+  "restored_collectives_candidate": "artifacts/megatron_tp_pp/candidates/collectives_warmup_20261119.py",
+  "candidate_sha256": "b883e1729ff85f1250f135a8240a692e86b1ee98c8c3eaf313d0c6224ae529d9",
+  "shared_training_source_modified": false,
+  "qualification_outputs_must_use_new_node_suffix": true,
+  "hardware_same_spec_user_confirmed": true,
+  "tp2_conversion_complete": true,
+  "tp4_conversion_complete": true,
+  "independent_tp4_source_verification": "passed; 1214 parameters and all copied logical state bytes",
+  "restored_path_alias": "/share/mixed -> /share-mixed",
+  "old_pod_read_only_api_status": 403
+}

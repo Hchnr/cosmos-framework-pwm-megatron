@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "scope": "actual MCore backward, compiled full AC, three native nonzero-Adam updates; artificial CUDA cycles",
+  "rows": [
+    {
+      "update": 0,
+      "gradients": true,
+      "parameters": true,
+      "exp_avg": true,
+      "exp_avg_sq": true,
+      "step": true
+    },
+    {
+      "update": 1,
+      "gradients": true,
+      "parameters": true,
+      "exp_avg": true,
+      "exp_avg_sq": true,
+      "step": true
+    },
+    {
+      "update": 2,
+      "gradients": true,
+      "parameters": true,
+      "exp_avg": true,
+      "exp_avg_sq": true,
+      "step": true
+    }
+  ],
+  "collections": [
+    {
+      "completed_backwards": 2,
+      "collected_python_objects": 131,
+      "reclaimed_allocated_bytes": 8388608,
+      "host_seconds": 0.1902352273464203
+    },
+    {
+      "completed_backwards": 4,
+      "collected_python_objects": 258,
+      "reclaimed_allocated_bytes": 8388608,
+      "host_seconds": 0.21325767412781715
+    },
+    {
+      "completed_backwards": 6,
+      "collected_python_objects": 258,
+      "reclaimed_allocated_bytes": 8388608,
+      "host_seconds": 0.18865692988038063
+    }
+  ],
+  "exception_restored_schedule": true,
+  "reclaimed_allocated_bytes": 25165824,
+  "production_capacity_576_slot_acceptance": false
+}

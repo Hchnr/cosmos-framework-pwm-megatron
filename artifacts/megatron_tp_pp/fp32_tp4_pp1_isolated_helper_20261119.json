@@ -1,0 +1,6 @@
+{
+  "base_sha256": "c04cf9f1561234aeb31e3ed6c346bf04bddd40fda5c9854ac7920aea179d4934",
+  "candidate_sha256": "b399c2c5f6b515b1eedc725151d368b8c9b2ada082944cbedfc7bda65d8c92b3",
+  "shared_helper_modified": false,
+  "scope": "allow TP4/PP1 on four GPUs; keep existing FP32 gates and all original input/optimizer comparisons"
+}

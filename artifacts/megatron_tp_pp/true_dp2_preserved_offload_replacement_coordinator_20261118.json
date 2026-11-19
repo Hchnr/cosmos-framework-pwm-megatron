@@ -1,0 +1,15 @@
+{
+  "pid": 1272836,
+  "create_time": 1795034380.53,
+  "script": "/tmp/run_tp_pp_true_dp2_preserved_offload_after_full_math_20261118.py",
+  "script_sha256": "ded00374d710c80872091afa3e9e874602b0536df61d55028f7942a610f4cbc9",
+  "log": "/tmp/cosmos_tp_pp_true_dp2_preserved_offload_after_full_math_coordinator_20261118.log",
+  "wait_for_pid": 1162948,
+  "wait_for_create_time": 1795028820.41,
+  "offload_source_hashes": {
+    "tools/run_tp_pp_with_activation_offload.py": "d412d14a7635a3d01b5f17d99f5a676e7ecf6b4867b2c6639b13e530aac18dd3",
+    "tools/tp_pp_activation_offload.py": "feaec4ad82b87448e4238a82341ce164908381e82720605d010cabe6d70abeae"
+  },
+  "scope": "true TP2 PP1 DP2, original input capacity global12, preserve-layout whole CPU offload, GC16, A3 B1+2 strict restart; not unoffloaded full576 performance",
+  "training_started": false
+}

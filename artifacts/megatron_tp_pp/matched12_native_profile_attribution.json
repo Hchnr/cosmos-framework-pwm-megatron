@@ -1,0 +1,191 @@
+{
+  "scope": "partial capture; process-local kernel windows, not entire optimizer updates",
+  "database": "/opt/cosmos-tp-pp-profiles/matched12_native_fsdp_20261118.sqlite",
+  "correlation_join_includes_process": true,
+  "nccl_kernel_time_includes_waiting_and_is_not_wire_transfer_time": true,
+  "no_kernel_time_may_include_CUDA_memops_not_counted_here": true,
+  "processes": [
+    {
+      "pid": 698622,
+      "device": [
+        0
+      ],
+      "kernel_window_seconds": 27.690280355,
+      "non_nccl_kernel_active_seconds": 23.959785736,
+      "nccl_kernel_only_seconds": 0.323637422,
+      "no_kernel_seconds": 3.406857197
+    },
+    {
+      "pid": 698623,
+      "device": [
+        1
+      ],
+      "kernel_window_seconds": 27.729855154,
+      "non_nccl_kernel_active_seconds": 23.849544393,
+      "nccl_kernel_only_seconds": 0.453264611,
+      "no_kernel_seconds": 3.42704615
+    },
+    {
+      "pid": 698624,
+      "device": [
+        2
+      ],
+      "kernel_window_seconds": 27.715184019,
+      "non_nccl_kernel_active_seconds": 23.676511236,
+      "nccl_kernel_only_seconds": 0.624370058,
+      "no_kernel_seconds": 3.414302725
+    },
+    {
+      "pid": 698625,
+      "device": [
+        3
+      ],
+      "kernel_window_seconds": 27.733243611,
+      "non_nccl_kernel_active_seconds": 23.519753941,
+      "nccl_kernel_only_seconds": 0.787753285,
+      "no_kernel_seconds": 3.425736385
+    }
+  ],
+  "phases": [
+    {
+      "pid": 698622,
+      "phase": "cosmos.forward.add_noise",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.006560827,
+      "launched_kernel_union_seconds": 0.000835427
+    },
+    {
+      "pid": 698622,
+      "phase": "cosmos.forward.prepare_inputs.vae",
+      "instances": 2,
+      "cpu_range_union_seconds": 7.126203542,
+      "launched_kernel_union_seconds": 7.77349958
+    },
+    {
+      "pid": 698622,
+      "phase": "cosmos.tp_pp.native_prepare",
+      "instances": 2,
+      "cpu_range_union_seconds": 11.668637481,
+      "launched_kernel_union_seconds": 7.781553655
+    },
+    {
+      "pid": 698622,
+      "phase": "cosmos.tp_pp.replay_hash",
+      "instances": 2,
+      "cpu_range_union_seconds": 1.115179836,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698622,
+      "phase": "cosmos.tp_pp.replay_load",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.000181086,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698623,
+      "phase": "cosmos.forward.add_noise",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.00616337,
+      "launched_kernel_union_seconds": 0.000836638
+    },
+    {
+      "pid": 698623,
+      "phase": "cosmos.forward.prepare_inputs.vae",
+      "instances": 2,
+      "cpu_range_union_seconds": 7.132750013,
+      "launched_kernel_union_seconds": 7.777695404
+    },
+    {
+      "pid": 698623,
+      "phase": "cosmos.tp_pp.native_prepare",
+      "instances": 2,
+      "cpu_range_union_seconds": 11.695293648,
+      "launched_kernel_union_seconds": 7.785744096
+    },
+    {
+      "pid": 698623,
+      "phase": "cosmos.tp_pp.replay_hash",
+      "instances": 2,
+      "cpu_range_union_seconds": 1.077896042,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698623,
+      "phase": "cosmos.tp_pp.replay_load",
+      "instances": 3,
+      "cpu_range_union_seconds": 0.000501841,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698624,
+      "phase": "cosmos.forward.add_noise",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.006044377,
+      "launched_kernel_union_seconds": 0.000837955
+    },
+    {
+      "pid": 698624,
+      "phase": "cosmos.forward.prepare_inputs.vae",
+      "instances": 2,
+      "cpu_range_union_seconds": 7.105337886,
+      "launched_kernel_union_seconds": 7.74831053
+    },
+    {
+      "pid": 698624,
+      "phase": "cosmos.tp_pp.native_prepare",
+      "instances": 2,
+      "cpu_range_union_seconds": 11.653149475,
+      "launched_kernel_union_seconds": 7.756371509
+    },
+    {
+      "pid": 698624,
+      "phase": "cosmos.tp_pp.replay_hash",
+      "instances": 2,
+      "cpu_range_union_seconds": 1.09645199,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698624,
+      "phase": "cosmos.tp_pp.replay_load",
+      "instances": 3,
+      "cpu_range_union_seconds": 0.000396086,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698625,
+      "phase": "cosmos.forward.add_noise",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.006612609,
+      "launched_kernel_union_seconds": 0.000841187
+    },
+    {
+      "pid": 698625,
+      "phase": "cosmos.forward.prepare_inputs.vae",
+      "instances": 2,
+      "cpu_range_union_seconds": 7.107554954,
+      "launched_kernel_union_seconds": 7.749342013
+    },
+    {
+      "pid": 698625,
+      "phase": "cosmos.tp_pp.native_prepare",
+      "instances": 2,
+      "cpu_range_union_seconds": 11.661044969,
+      "launched_kernel_union_seconds": 7.757405682
+    },
+    {
+      "pid": 698625,
+      "phase": "cosmos.tp_pp.replay_hash",
+      "instances": 2,
+      "cpu_range_union_seconds": 1.075446465,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 698625,
+      "phase": "cosmos.tp_pp.replay_load",
+      "instances": 2,
+      "cpu_range_union_seconds": 0.000258839,
+      "launched_kernel_union_seconds": 0.0
+    }
+  ]
+}

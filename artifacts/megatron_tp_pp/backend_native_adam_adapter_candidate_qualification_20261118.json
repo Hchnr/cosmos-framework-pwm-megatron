@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "scope": "three actual811-parameter gradient-sample updates through new backend adapter; full production trajectory remains unaccepted",
+  "candidate_rows": [
+    {
+      "update": 0,
+      "comparison": "native_streamed_vs_te_adapter",
+      "bitexact": true,
+      "differences": []
+    },
+    {
+      "update": 1,
+      "comparison": "native_streamed_vs_te_adapter",
+      "bitexact": true,
+      "differences": []
+    },
+    {
+      "update": 2,
+      "comparison": "native_streamed_vs_te_adapter",
+      "bitexact": true,
+      "differences": []
+    }
+  ],
+  "complete_report": "native_vs_mcore_backend_adapter_actual_samples_20261118.json",
+  "negative_control_in_complete_report_retained": true
+}

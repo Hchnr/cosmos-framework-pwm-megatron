@@ -1,0 +1,11 @@
+{
+  "pid": 1255305,
+  "create_time": 1795033616.53,
+  "script": "/tmp/run_tp_pp_gc16_default_full576_after_native_20261118.py",
+  "script_sha256": "9e33c53b70dea9769f4cb1133effaad2f171e3ec28a9dfcb750847f2d7d443ea",
+  "log": "/tmp/cosmos_tp_pp_gc16_default_full576_after_native_coordinator_20261118.log",
+  "scope": "wait for native baseline and optimizer CPU-state roundtrip; guarded default-runtime patch application, CPU checks, GPU offload entry qualification then original capacity GC16 global576 strict restart, without activation offload in formal training",
+  "training_started": false,
+  "legacy_reservation_pid": 1102667,
+  "next_fp32_flex_waits_legacy_reservation": 1162948
+}

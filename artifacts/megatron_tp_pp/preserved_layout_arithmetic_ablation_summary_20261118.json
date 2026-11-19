@@ -1,0 +1,94 @@
+{
+  "scope": "full 36-layer source/nonzero optimizer, native preserved-layout reference, full text and cropped VIDEO/Action, three continuous updates with unchanged gates",
+  "cases": [
+    {
+      "case": "TP1 native Linear, native Adam, legacy clip",
+      "passed": false,
+      "global_gradient_relative_l2": [
+        0.0,
+        1.6532201175464037e-05,
+        0.0004225016196297354
+      ],
+      "compute_master_checks": 2439,
+      "compute_master_mismatches": 0,
+      "state_comparisons": 7317,
+      "state_failures": 986
+    },
+    {
+      "case": "TP1 native Linear, native Adam, native clip",
+      "passed": true,
+      "global_gradient_relative_l2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "compute_master_checks": 2439,
+      "compute_master_mismatches": 0,
+      "state_comparisons": 7317,
+      "state_failures": 0
+    },
+    {
+      "case": "TP2 MCore Linear, default Adam, legacy clip",
+      "passed": false,
+      "global_gradient_relative_l2": [
+        1.1138564906456042e-05,
+        0.00013761413248516722,
+        0.0007821094380576709
+      ],
+      "compute_master_checks": 4866,
+      "compute_master_mismatches": 0,
+      "state_comparisons": 14598,
+      "state_failures": 2496
+    },
+    {
+      "case": "TP2 MCore Linear, native Adam, legacy clip",
+      "passed": false,
+      "global_gradient_relative_l2": [
+        1.1138564906456042e-05,
+        0.00015230985273102354,
+        0.0011659027597917032
+      ],
+      "compute_master_checks": 4866,
+      "compute_master_mismatches": 0,
+      "state_comparisons": 14598,
+      "state_failures": 2665
+    },
+    {
+      "case": "TP2 MCore Linear, native Adam, native clip",
+      "passed": false,
+      "global_gradient_relative_l2": [
+        1.1138564906456042e-05,
+        0.00012424177275074252,
+        0.0009129102220521272
+      ],
+      "compute_master_checks": 4866,
+      "compute_master_mismatches": 0,
+      "state_comparisons": 14598,
+      "state_failures": 2501
+    }
+  ],
+  "source_report_hashes": {
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp1_native_linear_fp32.rank0.json": "ced604be9d73c5240881916e915bd31d7eb59beb2c6e56cb40204c992cdb7031",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp1_native_linear_fp32.rank1.json": "9bbf2a8f9a9a98b9c4533e6eec971a147894fb49651a6c79b83faf951f227194",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp1_native_linear_fp32.rank2.json": "9ec9f29275a30dcc2ef00ee06c9924a4288752c856d3522a32a5a3d833c81b1b",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp1_native_linear_fp32.rank3.json": "aa546eca7f044feddbcb2a987fceac91b4e8cffabe7968d2183b318029af5340",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp1_native_linear_fp32.rank0.json": "b2f1d0c0b4f5385e50bce1072a8e710513938f05b0db97913128d353a61a2988",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp1_native_linear_fp32.rank1.json": "6f703175ddcac2f943e1b0d12d7ebed152b8ce8ea479cf45fe041be59c001e25",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp1_native_linear_fp32.rank2.json": "e12fb0870cca7b806b3640d0337b64668954f18a759d2494a3174816eaa3df80",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp1_native_linear_fp32.rank3.json": "8c59a55fca45cee2f266b60aef49d2fe1e7da18ad4816489d3d09a8597d2c740",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_default_fp32.rank0.json": "093b052e30059e4496f09d2a34dac550bb88c13ad01dd9648b498edcecf9af59",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_default_fp32.rank1.json": "832d8b468c00332213cd42ce30a57493efd2eb9b0a23fdd2b975299dd0e1258a",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_default_fp32.rank2.json": "342476c180864ff2b87e7e51b7deb1f9261c04b4e40205ce76e298cc70439d67",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_default_fp32.rank3.json": "769cb2e8b08a8662d4e7abf81912dbd884df46bb8e90e2252d847d75181daf63",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_native_adam_fp32.rank0.json": "d34a784eca15ccb19526238d39274552a617ac2f38cc39a4c673d21cc409cc4b",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_native_adam_fp32.rank1.json": "cd7675be2f00a8ea96592547e1e41523ba1a92d4190bf1c7e6cfde0c250bb6a3",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_native_adam_fp32.rank2.json": "cf060c03696b9f54338b3bddaf19c30ffca3f58f976eb61242a63582076be52a",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_tp2_native_adam_fp32.rank3.json": "c4fa6115e9b8ac3e0b9a7f88485b8ec51522eff07171842c5dc908c91f8dabd3",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp2_native_adam_fp32.rank0.json": "6e678913bf59bcf735cc91973d43c4cd65ec3562f0cb06e0ccddddf0e3d88607",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp2_native_adam_fp32.rank1.json": "ae5ecb36e401999a9546cad5960fcb9dfbfdb8949ddd67e88af666d792ffb9cb",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp2_native_adam_fp32.rank2.json": "e82f187e9e82f268b9705f9eef4751c3e36cbdb87a9c608afc1331ca4475ff6c",
+    "artifacts/megatron_tp_pp/full_source_real_rf_preserved_layout_native_clip_tp2_native_adam_fp32.rank3.json": "53815b5e4abd766776520cc5d81092dcc56d9abc9a3281ba92bf29a3c9133f3f"
+  },
+  "tp2_native_linear_pending": true,
+  "production_capacity_576_slot_acceptance": false
+}

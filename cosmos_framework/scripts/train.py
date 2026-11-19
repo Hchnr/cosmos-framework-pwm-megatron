@@ -208,6 +208,14 @@ def _run_training(config: Config, args: argparse.Namespace) -> None:
     # construction and let PyTorch manage the native cache tree directly.
     configure_compile_cache(config, deterministic=args.deterministic)
 
+    if getattr(getattr(config.model, "config", None), "parallelism", None) is not None and (
+        config.model.config.parallelism.backend == "megatron_tp_pp"
+    ):
+        from cosmos_framework.training_backends.megatron_tp_pp.train import run
+
+        run(config, args)
+        return
+
     # Freeze the config so developers don't change it during training.
     config.freeze()  # type: ignore
     trainer = config.trainer.type(config)

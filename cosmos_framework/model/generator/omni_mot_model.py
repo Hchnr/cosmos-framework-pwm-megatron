@@ -275,7 +275,10 @@ class OmniMoTModel(ImaginaireModel):
         # leave the VAE unloaded.
         self.tokenizer_vision_gen: VideoTokenizerInterface | None = None
         if self.config.load_vision_tokenizer:
-            self.tokenizer_vision_gen = lazy_instantiate(self.config.tokenizer)
+            tokenizer_kwargs = {}
+            if getattr(self, "_tokenizer_process_group", None) is not None:
+                tokenizer_kwargs["process_group"] = self._tokenizer_process_group
+            self.tokenizer_vision_gen = lazy_instantiate(self.config.tokenizer, **tokenizer_kwargs)
             assert self.tokenizer_vision_gen.latent_ch == self.config.state_ch, (
                 f"vision tokenizer latent_ch {self.tokenizer_vision_gen.latent_ch} != state_shape {self.config.state_ch}"
             )
@@ -297,6 +300,66 @@ class OmniMoTModel(ImaginaireModel):
             log.info(f"Sound tokenizer initialized: {type(self.tokenizer_sound_gen).__name__}")
         else:
             self.tokenizer_sound_gen = None
+
+    def build_network_config(self, language_model_config):
+        """Build native network options without constructing decoder parameters."""
+        # NOTE: We pass "RF timesteps" to the network in the same scale as the scheduler
+        # (i.e., roughly [0, num_train_timesteps]). The MoT network expects to internally
+        # rescale timesteps before embedding; avoid hard-coding 1e-3 by computing it from
+        # the configured scheduler resolution.
+        num_train_timesteps = self.config.rectified_flow_inference_config.num_train_timesteps
+        network_config = Cosmos3VFMNetworkConfig(
+            vlm_config=language_model_config,
+            latent_patch_size=self.config.diffusion_expert_config.patch_spatial,
+            latent_downsample_factor=self.config.latent_downsample_factor,
+            latent_channel_size=self.config.state_ch,
+            max_latent_h=self.config.diffusion_expert_config.max_vae_latent_side_after_patchify,
+            max_latent_w=self.config.diffusion_expert_config.max_vae_latent_side_after_patchify,
+            max_latent_t=self.config.state_t,
+            enable_fps_modulation=self.config.diffusion_expert_config.enable_fps_modulation,
+            enable_vision_modality_embeddings=(self.config.diffusion_expert_config.enable_vision_modality_embeddings),
+            enable_media_modality_embedding=(self.config.diffusion_expert_config.enable_media_modality_embedding),
+            base_fps=self.config.diffusion_expert_config.base_fps,
+            vision_gen=self.config.vision_gen,
+            predict_text_tokens=self.config.predict_text_tokens,
+            action_gen=self.config.action_gen,
+            tower_structure=self.config.tower_structure,
+            action_tower_init=self.config.action_tower_init,
+            action_tower_preset=self.config.action_tower_preset,
+            action_tower_execution=self.config.action_tower_execution,
+            action_tower_attention_backend=self.config.action_tower_attention_backend,
+            action_tower_und_short_tokens=self.config.action_tower_und_short_tokens,
+            action_tower_projection_mode=self.config.action_tower_projection_mode,
+            sound_gen=self.config.sound_gen,
+            joint_attn_implementation=self.config.joint_attn_implementation,
+            joint_attn_backend=self.config.joint_attn_backend,
+            use_multiview_flex_attention=self.config.flex_attention.enabled,
+            flex_attention_backend=self.config.flex_attention.backend,
+            noisy_attention_scope=self.config.flex_attention.mask.noisy_attention_scope,
+            timestep_scale=1.0 / float(num_train_timesteps) * self.config.diffusion_expert_config.timestep_range,
+            action_dim=self.config.max_action_dim,
+            num_embodiment_domains=self.config.num_embodiment_domains,
+            action128_spec=getattr(self.config, "action128_spec", None),
+            vision_spatial_position_mode=self.config.diffusion_expert_config.vision_spatial_position_mode,
+            temporal_compression_factor_vision=(
+                self.tokenizer_vision_gen.temporal_compression_factor
+                if self.tokenizer_vision_gen is not None
+                else self.config.tokenizer.temporal_compression_factor
+            ),
+            natten_parameter_list=self.config.natten_parameter_list,
+            video_temporal_causal=self.config.video_temporal_causal,
+            fixed_sequence_length_enabled=self.config.fixed_sequence_length.enabled,
+            fixed_understanding_tokens=self.config.fixed_sequence_length.understanding_tokens,
+            fixed_und_tokens=self.config.fixed_sequence_length.und_tokens,
+            fixed_gen_tokens=self.config.fixed_sequence_length.gen_tokens,
+            fixed_action_tokens=self.config.fixed_sequence_length.action_tokens,
+            # Sound generation parameters
+            sound_dim=self.config.sound_dim,
+            sound_latent_fps=self.config.sound_latent_fps,
+            enable_input_bias=self.config.enable_input_bias,
+        )
+        network_config._attn_implementation_internal = "eager"
+        return network_config
 
     def build_net(self, dtype: torch.dtype, *, lora_enabled: bool | None = None) -> torch.nn.Module:
         backend = getattr(self.config.parallelism, "backend", "pytorch")
@@ -370,64 +433,7 @@ class OmniMoTModel(ImaginaireModel):
                 train_vlm_visual=self.config.train_vlm_visual,
             )
 
-            # NOTE: We pass "RF timesteps" to the network in the same scale as the scheduler
-            # (i.e., roughly [0, num_train_timesteps]). The MoT network expects to internally
-            # rescale timesteps before embedding; avoid hard-coding 1e-3 by computing it from
-            # the configured scheduler resolution.
-            num_train_timesteps = self.config.rectified_flow_inference_config.num_train_timesteps
-            network_config = Cosmos3VFMNetworkConfig(
-                vlm_config=language_model.config,
-                latent_patch_size=self.config.diffusion_expert_config.patch_spatial,
-                latent_downsample_factor=self.config.latent_downsample_factor,
-                latent_channel_size=self.config.state_ch,
-                max_latent_h=self.config.diffusion_expert_config.max_vae_latent_side_after_patchify,
-                max_latent_w=self.config.diffusion_expert_config.max_vae_latent_side_after_patchify,
-                max_latent_t=self.config.state_t,
-                enable_fps_modulation=self.config.diffusion_expert_config.enable_fps_modulation,
-                enable_vision_modality_embeddings=(
-                    self.config.diffusion_expert_config.enable_vision_modality_embeddings
-                ),
-                enable_media_modality_embedding=(self.config.diffusion_expert_config.enable_media_modality_embedding),
-                base_fps=self.config.diffusion_expert_config.base_fps,
-                vision_gen=self.config.vision_gen,
-                predict_text_tokens=self.config.predict_text_tokens,
-                action_gen=self.config.action_gen,
-                tower_structure=self.config.tower_structure,
-                action_tower_init=self.config.action_tower_init,
-                action_tower_preset=self.config.action_tower_preset,
-                action_tower_execution=self.config.action_tower_execution,
-                action_tower_attention_backend=self.config.action_tower_attention_backend,
-                action_tower_und_short_tokens=self.config.action_tower_und_short_tokens,
-                action_tower_projection_mode=self.config.action_tower_projection_mode,
-                sound_gen=self.config.sound_gen,
-                joint_attn_implementation=self.config.joint_attn_implementation,
-                joint_attn_backend=self.config.joint_attn_backend,
-                use_multiview_flex_attention=self.config.flex_attention.enabled,
-                flex_attention_backend=self.config.flex_attention.backend,
-                noisy_attention_scope=self.config.flex_attention.mask.noisy_attention_scope,
-                timestep_scale=1.0 / float(num_train_timesteps) * self.config.diffusion_expert_config.timestep_range,
-                action_dim=self.config.max_action_dim,
-                num_embodiment_domains=self.config.num_embodiment_domains,
-                action128_spec=getattr(self.config, "action128_spec", None),
-                vision_spatial_position_mode=self.config.diffusion_expert_config.vision_spatial_position_mode,
-                temporal_compression_factor_vision=(
-                    self.tokenizer_vision_gen.temporal_compression_factor
-                    if self.tokenizer_vision_gen is not None
-                    else self.config.tokenizer.temporal_compression_factor
-                ),
-                natten_parameter_list=self.config.natten_parameter_list,
-                video_temporal_causal=self.config.video_temporal_causal,
-                fixed_sequence_length_enabled=self.config.fixed_sequence_length.enabled,
-                fixed_understanding_tokens=self.config.fixed_sequence_length.understanding_tokens,
-                fixed_und_tokens=self.config.fixed_sequence_length.und_tokens,
-                fixed_gen_tokens=self.config.fixed_sequence_length.gen_tokens,
-                fixed_action_tokens=self.config.fixed_sequence_length.action_tokens,
-                # Sound generation parameters
-                sound_dim=self.config.sound_dim,
-                sound_latent_fps=self.config.sound_latent_fps,
-                enable_input_bias=self.config.enable_input_bias,
-            )
-            network_config._attn_implementation_internal = "eager"
+            network_config = self.build_network_config(language_model.config)
             with torch.device("cpu" if meta_initialization else "meta"):
                 net = Cosmos3VFMNetwork(
                     language_model=language_model,
@@ -1487,29 +1493,11 @@ class OmniMoTModel(ImaginaireModel):
             "batch_size": len(packed_sequence.sample_lens),
         }, loss
 
-    def _training_step_gen(
-        self, data_batch: dict[str, torch.Tensor], iteration: int
-    ) -> tuple[dict[str, torch.Tensor], torch.Tensor]:
-        """
-        Performs a single training step for the rectified-flow (flow-matching) model.
+    def prepare_generation_training_inputs(self, data_batch: dict, iteration: int) -> dict:
+        """Run the native tokenization, packing and noising before trainable decoder work.
 
-        This method executes one iteration of the model's training. It involves:
-        1. Tokenizing generation modalities (vision/action/sound) into latents (tokens).
-        2. Sampling a training timestep (t) for each modality and constructing noised latents (xt)
-           per the rectified-flow formulation.
-        3. Packing text + generation tokens into a single sequence and running the MoT network to predict
-           the flow field velocity at the given t.
-        4. Computing flow-matching loss (plus optional auxiliary load-balancing losses).
-
-        Args:
-            data_batch (dict): raw data batch draw from the training data loader.
-            iteration (int): Current iteration number.
-
-        Returns:
-            tuple: A tuple containing two elements:
-                - dict: additional data that used to debug / logging / callbacks
-                - Tensor: The computed loss for the training step as a PyTorch Tensor.
-
+        Shared by the native trainer and the TP/PP data owner so their random
+        draws, masks and modality targets follow the same implementation.
         """
         with nvtx_range("forward.prepare_inputs"):
             (
@@ -1695,6 +1683,60 @@ class OmniMoTModel(ImaginaireModel):
                 iteration=iteration,
             )
             self._replace_clean_with_noised(packed_sequence, gen_data_noised)
+
+        return {
+            "packed_sequence": packed_sequence,
+            "memory_info": memory_info,
+            "vlm_inputs": vlm_inputs,
+            "gen_data_clean": gen_data_clean,
+            "gen_data_noised": gen_data_noised,
+            "timesteps_vision": timesteps_vision,
+            "sigmas_vision": sigmas_vision,
+            "timesteps_action": timesteps_action,
+            "sigmas_action": sigmas_action,
+            "timesteps_sound": timesteps_sound,
+            "sigmas_sound": sigmas_sound,
+            "vae_pixel_shapes": vae_pixel_shapes,
+        }
+
+    def _training_step_gen(
+        self, data_batch: dict[str, torch.Tensor], iteration: int
+    ) -> tuple[dict[str, torch.Tensor], torch.Tensor]:
+        """
+        Performs a single training step for the rectified-flow (flow-matching) model.
+
+        This method executes one iteration of the model's training. It involves:
+        1. Tokenizing generation modalities (vision/action/sound) into latents (tokens).
+        2. Sampling a training timestep (t) for each modality and constructing noised latents (xt)
+           per the rectified-flow formulation.
+        3. Packing text + generation tokens into a single sequence and running the MoT network to predict
+           the flow field velocity at the given t.
+        4. Computing flow-matching loss (plus optional auxiliary load-balancing losses).
+
+        Args:
+            data_batch (dict): raw data batch draw from the training data loader.
+            iteration (int): Current iteration number.
+
+        Returns:
+            tuple: A tuple containing two elements:
+                - dict: additional data that used to debug / logging / callbacks
+                - Tensor: The computed loss for the training step as a PyTorch Tensor.
+
+        """
+        prepared = self.prepare_generation_training_inputs(data_batch, iteration)
+        packed_sequence = prepared["packed_sequence"]
+        memory_info = prepared["memory_info"]
+        vlm_inputs = prepared["vlm_inputs"]
+        gen_data_clean = prepared["gen_data_clean"]
+        gen_data_noised = prepared["gen_data_noised"]
+        timesteps_vision = prepared["timesteps_vision"]
+        sigmas_vision = prepared["sigmas_vision"]
+        timesteps_action = prepared["timesteps_action"]
+        sigmas_action = prepared["sigmas_action"]
+        timesteps_sound = prepared["timesteps_sound"]
+        sigmas_sound = prepared["sigmas_sound"]
+        vae_pixel_shapes = prepared["vae_pixel_shapes"]
+        rf_cfg = self.config.rectified_flow_training_config
 
         # Network forward pass
         with nvtx_range("forward.network"):
@@ -1899,6 +1941,7 @@ class OmniMoTModel(ImaginaireModel):
         is_image_batch: bool,
         timesteps_action: torch.Tensor | None = None,
         timesteps_sound: torch.Tensor | None = None,
+        sample_level_scale_override: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Compute flow matching loss and auxiliary load balancing losses.
 
@@ -1909,6 +1952,11 @@ class OmniMoTModel(ImaginaireModel):
 
         ``timesteps_sound`` is an optional dense sound timestep tensor, matching
         ``data_batch_packed.sound.*``. When None, sound reuses ``timesteps``.
+
+        ``sample_level_scale_override`` supplies a prepared logical micro-step
+        sample weight for model-parallel replay. It bypasses the physical-rank
+        count collective while preserving this loss formula. Native training
+        leaves it unset and retains its existing reduction.
         """
         total_loss = 0.0
         losses_dict = {}
@@ -2031,12 +2079,19 @@ class OmniMoTModel(ImaginaireModel):
         # audio balance is preserved and the auxiliary load-balancing losses stay unscaled.
         if rf_cfg.sample_level_loss_averaging and self.config.vision_gen:
             num_samples = len(out_net["preds_vision"])
-            sample_level_scale = self._sample_level_loss_scale(
-                is_image_batch=is_image_batch,
-                num_samples=num_samples,
-                device=self.tensor_kwargs_fp32["device"],
-            )
+            if sample_level_scale_override is not None:
+                if sample_level_scale_override.numel() != 1:
+                    raise ValueError("Prepared sample-level loss scale must be scalar")
+                sample_level_scale = sample_level_scale_override
+            else:
+                sample_level_scale = self._sample_level_loss_scale(
+                    is_image_batch=is_image_batch,
+                    num_samples=num_samples,
+                    device=self.tensor_kwargs_fp32["device"],
+                )
             total_loss = total_loss * sample_level_scale.to(dtype=total_loss.dtype)
+        elif sample_level_scale_override is not None:
+            raise ValueError("Prepared sample scale requires sample-level vision loss averaging")
 
         # 2. Load balancing auxiliary losses
         device_mesh, context_parallel_mesh = self._get_load_balancing_loss_meshes()

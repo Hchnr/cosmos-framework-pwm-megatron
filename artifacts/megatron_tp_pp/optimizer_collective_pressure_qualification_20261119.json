@@ -1,0 +1,134 @@
+{
+  "scope": "artificial cached CUDA pressure and compiled small-network qualification; not full576 production acceptance",
+  "host": "job-80b338f9-5483-4d9e-86c9-26af68936cea-master-0",
+  "observed_at_utc": "2026-11-19T04:01:17.092931+00:00",
+  "hardware_same_spec_user_confirmed": true,
+  "ranks": [
+    {
+      "rank": 0,
+      "cold": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 0,
+        "warm_collectives": false,
+        "warmup_applied": false,
+        "requested_raw_headroom_mib": 256,
+        "passed": false,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 251592704,
+        "allocated_cuda_bytes_before_norm": 84794368,
+        "reserved_cuda_bytes_before_norm": 79479963648,
+        "error_type": "DistBackendError",
+        "error": "NCCL error in: /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:3754, unhandled cuda error (run with NCCL_DEBUG=INFO for details), NCCL version 2.28.9\nncclUnhandledCudaError: Call to CUDA function failed.\nLast error:\nCuda failure 2 'out of memory'"
+      },
+      "warm": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 0,
+        "warm_collectives": true,
+        "warmup_applied": true,
+        "requested_raw_headroom_mib": 256,
+        "passed": true,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 251592704,
+        "allocated_cuda_bytes_before_norm": 84794368,
+        "reserved_cuda_bytes_before_norm": 78934704128,
+        "gradient_norm": 0.8427986150099243
+      },
+      "compiled_network_passed": true
+    },
+    {
+      "rank": 1,
+      "cold": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 1,
+        "warm_collectives": false,
+        "warmup_applied": false,
+        "requested_raw_headroom_mib": 256,
+        "passed": false,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 251592704,
+        "allocated_cuda_bytes_before_norm": 84825088,
+        "reserved_cuda_bytes_before_norm": 79479963648,
+        "error_type": "DistBackendError",
+        "error": "NCCL error in: /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:3754, unhandled cuda error (run with NCCL_DEBUG=INFO for details), NCCL version 2.28.9\nncclUnhandledCudaError: Call to CUDA function failed.\nLast error:\nCuda failure 2 'out of memory'"
+      },
+      "warm": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 1,
+        "warm_collectives": true,
+        "warmup_applied": true,
+        "requested_raw_headroom_mib": 256,
+        "passed": true,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 251592704,
+        "allocated_cuda_bytes_before_norm": 84825088,
+        "reserved_cuda_bytes_before_norm": 78934704128,
+        "gradient_norm": 0.8427986150099243
+      },
+      "compiled_network_passed": true
+    },
+    {
+      "rank": 2,
+      "cold": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 2,
+        "warm_collectives": false,
+        "warmup_applied": false,
+        "requested_raw_headroom_mib": 256,
+        "passed": false,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 257884160,
+        "allocated_cuda_bytes_before_norm": 84369408,
+        "reserved_cuda_bytes_before_norm": 79205236736,
+        "error_type": "DistBackendError",
+        "error": "NCCL error in: /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:3754, unhandled cuda error (run with NCCL_DEBUG=INFO for details), NCCL version 2.28.9\nncclUnhandledCudaError: Call to CUDA function failed.\nLast error:\nCuda failure 2 'out of memory'"
+      },
+      "warm": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 2,
+        "warm_collectives": true,
+        "warmup_applied": true,
+        "requested_raw_headroom_mib": 256,
+        "passed": true,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 257884160,
+        "allocated_cuda_bytes_before_norm": 84369408,
+        "reserved_cuda_bytes_before_norm": 78659977216,
+        "gradient_norm": 0.8427986150099243
+      },
+      "compiled_network_passed": true
+    },
+    {
+      "rank": 3,
+      "cold": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 3,
+        "warm_collectives": false,
+        "warmup_applied": false,
+        "requested_raw_headroom_mib": 256,
+        "passed": false,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 257884160,
+        "allocated_cuda_bytes_before_norm": 84369408,
+        "reserved_cuda_bytes_before_norm": 79205236736,
+        "error_type": "DistBackendError",
+        "error": "NCCL error in: /pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:3754, unhandled cuda error (run with NCCL_DEBUG=INFO for details), NCCL version 2.28.9\nncclUnhandledCudaError: Call to CUDA function failed.\nLast error:\nCuda failure 2 'out of memory'"
+      },
+      "warm": {
+        "scope": "actual MCore optimizer norm under artificial cached CUDA memory pressure; no production acceptance",
+        "rank": 3,
+        "warm_collectives": true,
+        "warmup_applied": true,
+        "requested_raw_headroom_mib": 256,
+        "passed": true,
+        "stage": "norm",
+        "free_cuda_bytes_before_norm": 257884160,
+        "allocated_cuda_bytes_before_norm": 84369408,
+        "reserved_cuda_bytes_before_norm": 78659977216,
+        "gradient_norm": 0.8427986150099243
+      },
+      "compiled_network_passed": true
+    }
+  ],
+  "passed": true,
+  "shared_training_source_modified": false
+}

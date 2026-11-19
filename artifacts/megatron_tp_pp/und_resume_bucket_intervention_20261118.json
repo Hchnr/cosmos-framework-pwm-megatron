@@ -1,0 +1,12 @@
+{
+  "scope": "one-variable UND warmup intervention, checkpoint writes disabled; not strict restart acceptance",
+  "input_slots_checked": 12,
+  "input_mismatches": [],
+  "reference_gradient_norm": 0.15368276020317817,
+  "intervention_gradient_norm": 0.13759589156893406,
+  "gradient_norm_exact": false,
+  "reference_metadata_bytes": 2220676440,
+  "intervention_metadata_bytes": 2220676440,
+  "strict_restart_accepted": false,
+  "production_576_slot_acceptance": false
+}

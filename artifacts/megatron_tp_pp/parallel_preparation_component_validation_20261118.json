@@ -1,0 +1,7 @@
+{
+  "command": "LD_LIBRARY_PATH='' .venv/bin/python -m pytest tests/megatron/tp_pp_*_test.py --no-cov -q",
+  "result": "65 passed, 1 warning in 29.39s",
+  "log": "/tmp/tp_pp_components_with_parallel_preparation_20261118.log",
+  "production_parallel_preparation_gpu_test_pending": true,
+  "production_576_slot_acceptance": false
+}

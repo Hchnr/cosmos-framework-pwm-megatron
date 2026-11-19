@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "scope": "actual source layer 0, synthetic packed inputs, FP32",
+  "groups": {
+    "tp": [
+      0,
+      1
+    ],
+    "pp": [
+      0
+    ],
+    "dp": [
+      0,
+      2
+    ],
+    "microbatches": 1
+  },
+  "updates": 3,
+  "source_step": 1200,
+  "gradient_relative_l2": {
+    "0/layers.0.action_block_moe_gen_action.down_proj.weight": 5.862618905752973e-07,
+    "0/layers.0.action_block_moe_gen_action.up_proj.weight": 7.917035170766259e-07,
+    "0/layers.0.action_block_moe_gen_action.gate_proj.weight": 5.986826072656594e-07,
+    "0/layers.0.action_block_moe_gen_action.o_proj.weight": 6.089696424166921e-07,
+    "0/layers.0.action_block_moe_gen_action.v_proj.weight": 7.124713598855467e-07,
+    "0/layers.0.action_block_moe_gen_action.k_proj.weight": 4.680008928444599e-07,
+    "0/layers.0.action_block_moe_gen_action.q_proj.weight": 7.403658863715052e-07,
+    "0/layers.0.mlp_moe_gen.down_proj.weight": 9.531529262920544e-07,
+    "0/layers.0.mlp_moe_gen.up_proj.weight": 8.905185193683938e-07,
+    "0/layers.0.action_block_moe_gen_action.k_norm.weight": 5.197239401012551e-07,
+    "0/layers.0.action_block_moe_gen_action.q_norm.weight": 2.399579569325752e-06,
+    "0/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 4.7676305865150796e-07,
+    "0/layers.0.action_block_moe_gen_action.input_layernorm.weight": 5.168697281184195e-07,
+    "0/layers.0.post_attention_layernorm_moe_gen.weight": 6.030685995157086e-07,
+    "0/layers.0.input_layernorm_moe_gen.weight": 8.706823431969561e-07,
+    "1/layers.0.action_block_moe_gen_action.down_proj.weight": 5.071091371825894e-07,
+    "1/layers.0.action_block_moe_gen_action.up_proj.weight": 6.292948485555227e-07,
+    "1/layers.0.action_block_moe_gen_action.gate_proj.weight": 6.18952280733276e-07,
+    "1/layers.0.action_block_moe_gen_action.o_proj.weight": 5.862393379627938e-07,
+    "1/layers.0.action_block_moe_gen_action.v_proj.weight": 2.8990550357307774e-07,
+    "1/layers.0.action_block_moe_gen_action.k_proj.weight": 6.484512841071523e-07,
+    "1/layers.0.action_block_moe_gen_action.q_proj.weight": 5.810030380122748e-07,
+    "1/layers.0.mlp_moe_gen.down_proj.weight": 1.2067509741847843e-06,
+    "1/layers.0.mlp_moe_gen.up_proj.weight": 1.3696615544931992e-06,
+    "1/layers.0.action_block_moe_gen_action.k_norm.weight": 3.4992991019168017e-07,
+    "1/layers.0.action_block_moe_gen_action.q_norm.weight": 1.4369673021577272e-06,
+    "1/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 5.989121809593183e-07,
+    "1/layers.0.action_block_moe_gen_action.input_layernorm.weight": 3.6558185157821535e-07,
+    "1/layers.0.post_attention_layernorm_moe_gen.weight": 9.113071008803818e-07,
+    "1/layers.0.input_layernorm_moe_gen.weight": 7.415113371224122e-07,
+    "2/layers.0.action_block_moe_gen_action.down_proj.weight": 5.614314249493337e-07,
+    "2/layers.0.action_block_moe_gen_action.up_proj.weight": 7.060296496771677e-07,
+    "2/layers.0.action_block_moe_gen_action.gate_proj.weight": 7.098687390222545e-07,
+    "2/layers.0.action_block_moe_gen_action.o_proj.weight": 6.176239938332355e-07,
+    "2/layers.0.action_block_moe_gen_action.v_proj.weight": 5.997086160714309e-07,
+    "2/layers.0.action_block_moe_gen_action.k_proj.weight": 4.196326985992493e-07,
+    "2/layers.0.action_block_moe_gen_action.q_proj.weight": 5.139195702375345e-07,
+    "2/layers.0.mlp_moe_gen.down_proj.weight": 1.5141436691440212e-06,
+    "2/layers.0.mlp_moe_gen.up_proj.weight": 1.3674187895809199e-06,
+    "2/layers.0.action_block_moe_gen_action.k_norm.weight": 3.3077319081442363e-07,
+    "2/layers.0.action_block_moe_gen_action.q_norm.weight": 4.5036727844862174e-07,
+    "2/layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": 4.3443997425936274e-07,
+    "2/layers.0.action_block_moe_gen_action.input_layernorm.weight": 4.6709929310386516e-07,
+    "2/layers.0.post_attention_layernorm_moe_gen.weight": 5.333945275337239e-07,
+    "2/layers.0.input_layernorm_moe_gen.weight": 8.235476438712009e-07
+  }
+}

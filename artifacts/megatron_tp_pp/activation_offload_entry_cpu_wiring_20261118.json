@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "scope": "CPU production-entry wiring with test-double driver, exact output/gradient, invalid-policy no mutation, duplicate install rejected, legacy policy available; no CUDA transfer or full-model qualification",
+  "full_model_dp2_restart_accepted": false,
+  "source_sha256": {
+    "tools/run_tp_pp_with_activation_offload.py": "d412d14a7635a3d01b5f17d99f5a676e7ecf6b4867b2c6639b13e530aac18dd3",
+    "tools/tp_pp_activation_offload.py": "feaec4ad82b87448e4238a82341ce164908381e82720605d010cabe6d70abeae"
+  }
+}

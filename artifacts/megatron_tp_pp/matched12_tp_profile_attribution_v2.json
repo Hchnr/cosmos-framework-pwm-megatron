@@ -1,0 +1,86 @@
+{
+  "scope": "partial capture; process-local kernel windows, not entire optimizer updates",
+  "database": "/opt/cosmos-tp-pp-profiles/matched12_tp_singlepass_20261118.sqlite",
+  "correlation_join_includes_process": true,
+  "nccl_kernel_time_includes_waiting_and_is_not_wire_transfer_time": true,
+  "no_kernel_time_may_include_CUDA_memops_not_counted_here": true,
+  "processes": [
+    {
+      "pid": 686910,
+      "device": [
+        0
+      ],
+      "kernel_window_seconds": 62.859124429,
+      "non_nccl_kernel_active_seconds": 46.848885539,
+      "nccl_kernel_only_seconds": 2.050075642,
+      "no_kernel_seconds": 13.960163248
+    },
+    {
+      "pid": 686911,
+      "device": [
+        1
+      ],
+      "kernel_window_seconds": 63.624568248,
+      "non_nccl_kernel_active_seconds": 15.352424569,
+      "nccl_kernel_only_seconds": 48.0236506,
+      "no_kernel_seconds": 0.248493079
+    },
+    {
+      "pid": 686912,
+      "device": [
+        2
+      ],
+      "kernel_window_seconds": 56.92264822,
+      "non_nccl_kernel_active_seconds": 15.595675366,
+      "nccl_kernel_only_seconds": 41.047104687,
+      "no_kernel_seconds": 0.279868167
+    },
+    {
+      "pid": 686913,
+      "device": [
+        3
+      ],
+      "kernel_window_seconds": 56.92317232,
+      "non_nccl_kernel_active_seconds": 15.387633932,
+      "nccl_kernel_only_seconds": 41.24996529,
+      "no_kernel_seconds": 0.285573098
+    }
+  ],
+  "phases": [
+    {
+      "pid": 686910,
+      "phase": "cosmos.forward.add_noise",
+      "instances": 8,
+      "cpu_range_union_seconds": 0.025734288,
+      "launched_kernel_union_seconds": 0.003358935
+    },
+    {
+      "pid": 686910,
+      "phase": "cosmos.forward.prepare_inputs.vae",
+      "instances": 8,
+      "cpu_range_union_seconds": 28.651438137,
+      "launched_kernel_union_seconds": 31.247189117
+    },
+    {
+      "pid": 686910,
+      "phase": "cosmos.tp_pp.native_prepare",
+      "instances": 8,
+      "cpu_range_union_seconds": 44.114476,
+      "launched_kernel_union_seconds": 31.279393185
+    },
+    {
+      "pid": 686910,
+      "phase": "cosmos.tp_pp.replay_hash",
+      "instances": 8,
+      "cpu_range_union_seconds": 4.368850157,
+      "launched_kernel_union_seconds": 0.0
+    },
+    {
+      "pid": 686910,
+      "phase": "cosmos.tp_pp.replay_load",
+      "instances": 8,
+      "cpu_range_union_seconds": 0.001098539,
+      "launched_kernel_union_seconds": 0.0
+    }
+  ]
+}

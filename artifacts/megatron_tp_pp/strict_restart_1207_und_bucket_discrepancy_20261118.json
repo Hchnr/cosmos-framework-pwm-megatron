@@ -1,0 +1,15 @@
+{
+  "scope": "actual strict restart, same inputs, observed numerical trajectory discrepancy; causal fix not yet tested",
+  "passed": false,
+  "input_slots_checked": 24,
+  "input_mismatches": [],
+  "uninterrupted_gradient_norm": 0.15368276020317817,
+  "restarted_gradient_norm": 0.137753710977169,
+  "metadata_byte_difference": 6868998,
+  "expected_extra_und_tensor_bytes": 6868992,
+  "suspected_uncheckpointed_state": "FirstStageInputs._warm_full_und: build_stage resets it True; first forward clears it False",
+  "evidence_type_for_cause": "code path plus metadata size; intervention verification still required",
+  "complete_state_comparison_pending": true,
+  "source_mutated_during_fixed_run": false,
+  "production_576_slot_acceptance": false
+}

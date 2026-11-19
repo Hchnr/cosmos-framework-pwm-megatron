@@ -1,0 +1,118 @@
+{
+  "scope": "historical global slot/sample-count comparison; sample counts do not prove exact content identity",
+  "tp_update_executions": 5,
+  "tp_unique_completed_iterations": [
+    1201,
+    1202,
+    1203
+  ],
+  "tp_runs": "1200->1201, then two separate 1201->1203 resumes",
+  "tp_observations": [
+    {
+      "completed_iteration": 1201,
+      "logical_slots": 12,
+      "samples": 155,
+      "seconds": 217.16727970167994,
+      "included_in_quoted_timing": false
+    },
+    {
+      "completed_iteration": 1202,
+      "logical_slots": 12,
+      "samples": 97,
+      "seconds": 169.83078483492136,
+      "included_in_quoted_timing": true
+    },
+    {
+      "completed_iteration": 1203,
+      "logical_slots": 12,
+      "samples": 100,
+      "seconds": 159.8049930818379,
+      "included_in_quoted_timing": true
+    },
+    {
+      "completed_iteration": 1202,
+      "logical_slots": 12,
+      "samples": 97,
+      "seconds": 167.31851375475526,
+      "included_in_quoted_timing": true
+    },
+    {
+      "completed_iteration": 1203,
+      "logical_slots": 12,
+      "samples": 100,
+      "seconds": 157.4329161643982,
+      "included_in_quoted_timing": true
+    }
+  ],
+  "baseline_updates": {
+    "pytorch": [
+      {
+        "completed_iteration": 1201,
+        "logical_slots": 12,
+        "samples": 155,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1202,
+        "logical_slots": 12,
+        "samples": 97,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1203,
+        "logical_slots": 12,
+        "samples": 100,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1204,
+        "logical_slots": 12,
+        "samples": 85,
+        "included_in_quoted_timing": true
+      },
+      {
+        "completed_iteration": 1205,
+        "logical_slots": 12,
+        "samples": 124,
+        "included_in_quoted_timing": true
+      }
+    ],
+    "megatron": [
+      {
+        "completed_iteration": 1201,
+        "logical_slots": 12,
+        "samples": 155,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1202,
+        "logical_slots": 12,
+        "samples": 97,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1203,
+        "logical_slots": 12,
+        "samples": 100,
+        "included_in_quoted_timing": false
+      },
+      {
+        "completed_iteration": 1204,
+        "logical_slots": 12,
+        "samples": 85,
+        "included_in_quoted_timing": true
+      },
+      {
+        "completed_iteration": 1205,
+        "logical_slots": 12,
+        "samples": 124,
+        "included_in_quoted_timing": true
+      }
+    ]
+  },
+  "sources": [
+    "outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_real12_bf16_compile_ac_expandable/updates.rank0.jsonl",
+    "artifacts/megatron/nsys_attribution_20261117/pytorch_inputs_rank_*.json",
+    "artifacts/megatron/nsys_attribution_20261117/megatron_inputs_rank_*.json"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "backend": "megatron_tp_pp",
+  "rank": 0,
+  "groups": {
+    "tp": [
+      0,
+      1
+    ],
+    "pp": [
+      0,
+      2
+    ],
+    "dp": [
+      0
+    ],
+    "microbatches": 12
+  },
+  "stage_layers": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17"
+  ],
+  "parameters": 4066240768,
+  "canonical_tensors": 612,
+  "iteration": 1201,
+  "logical_slots": 12,
+  "microbatches": 12,
+  "runtime_restart": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp/cosmos3_action/action128/tp_pp_real12_bf16_compile_ac_expandable/checkpoints/iter_000001201",
+  "compute_precision": "torch.bfloat16",
+  "optimizer_types": [
+    "transformer_engine.pytorch.optimizers.fused_adam.FusedAdam"
+  ],
+  "logical_data_ranks": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "logical_loader_states": 4,
+  "logical_training_rng_states": 4,
+  "source_trainer": {
+    "source_trainer_iteration": 1200,
+    "source_training_precision": {
+      "enabled": false,
+      "version": 1
+    },
+    "action128_data_extension_reset": true
+  }
+}

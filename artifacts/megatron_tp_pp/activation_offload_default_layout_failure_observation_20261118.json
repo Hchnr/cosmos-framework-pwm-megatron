@@ -1,0 +1,17 @@
+{
+  "passed": false,
+  "scope": "strict bitexact activation offload qualification, stopped at first gradient mismatch",
+  "update": 0,
+  "parameter_index": 0,
+  "preserve_layout": false,
+  "changed_saved_tensor_layouts": 2,
+  "gradient_difference": {
+    "passed": true,
+    "relative_l2": 1.0045953010293145e-07,
+    "cosine": 0.9999999999999952,
+    "maximum_absolute_error": 3.725290298461914e-09,
+    "worst_chunk_relative_l2": 1.0045953010293145e-07,
+    "local_windows_checked": true
+  },
+  "full_model_dp2_restart_accepted": false
+}

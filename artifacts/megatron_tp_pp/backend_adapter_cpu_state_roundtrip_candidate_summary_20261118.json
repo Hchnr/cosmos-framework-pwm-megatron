@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "scope": "actual811-parameter gradient samples, CPU serialization and fresh optimizer reconstruction after first update; not process-exit/DDP full-state acceptance",
+  "rows": [
+    {
+      "update": 0,
+      "comparison": "native_streamed_vs_te_adapter_restart",
+      "bitexact": true,
+      "differences": []
+    },
+    {
+      "update": 1,
+      "comparison": "native_streamed_vs_te_adapter_restart",
+      "bitexact": true,
+      "differences": []
+    },
+    {
+      "update": 2,
+      "comparison": "native_streamed_vs_te_adapter_restart",
+      "bitexact": true,
+      "differences": []
+    }
+  ],
+  "source_unchanged": true,
+  "source_hashes": {
+    "tools/qualify_tp_pp_adam_real_values.py": "4a46b8ca1d054bb5c087f2d46d0f8830b940fd3ac65de6e455c1444aa0dcd7b7",
+    "cosmos_framework/training_backends/megatron_tp_pp/optimizer_math.py": "084acd4eed0d39cf38f6649a23166070c1a2e03cf9a3889ec89f297c5ab059ea"
+  },
+  "complete_report_returncode": 1,
+  "noncapturable_negative_control_retained": true
+}

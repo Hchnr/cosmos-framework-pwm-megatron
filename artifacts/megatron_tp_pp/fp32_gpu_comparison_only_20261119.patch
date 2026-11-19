@@ -1,0 +1,51 @@
+--- a/tests/megatron/tp_pp_full_source_math.py
++++ b/tests/megatron/tp_pp_full_source_math_cuda_compare.py
+@@ -28,7 +28,14 @@
+ from cosmos_framework.training_backends.megatron_tp_pp.planning import batch_fingerprint
+ from cosmos_framework.training_backends.megatron_tp_pp.source import release_file_cache
+ from cosmos_framework.utils.lazy_config import instantiate
+-from tools.compare_tp_pp_runtime_checkpoints import tensor_difference
++from tools.compare_tp_pp_runtime_checkpoints import tensor_difference as _tensor_difference
++
++
++def tensor_difference(left, right, **kwargs):
++    # Validation only: retain FP64 error arithmetic and all original thresholds.
++    # No training tensor, optimizer state, or gradient is modified.
++    return _tensor_difference(left.to(right.device), right, **kwargs)
++
+ 
+ 
+ def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):
+@@ -553,7 +560,7 @@
+                 for actual, target in zip(output[key], expected[key], strict=True):
+                     difference = tensor_difference(
+                         target,
+-                        actual.cpu(),
++                        actual,
+                         relative_tolerance=1e-4,
+                         absolute_tolerance=2e-6,
+                         exact=False,
+@@ -577,8 +584,8 @@
+             spec = manifest[entry.name]
+             index = indices[spec.canonical_name.removeprefix("net.")]
+             saved = torch.load(parameter_file(args.reference_dir, update, index), weights_only=False, mmap=True)
+-            actual = entry.select(entry.model_parameter.main_grad).cpu()
+-            target = entry.select(spec.select(saved["gradient"]))
++            actual = entry.select(entry.model_parameter.main_grad)
++            target = entry.select(spec.select(saved["gradient"])).to(actual.device)
+             rel = (actual.double() - target.double()).norm() / target.double().norm().clamp_min(1e-20)
+             absolute = (actual - target).abs().max()
+             difference = tensor_difference(
+@@ -667,10 +674,10 @@
+                 assert model_master_match, (update, entry.name, "FP32 compute/master mismatch")
+             for key in ("master", "exp_avg", "exp_avg_sq"):
+                 actual = entry.master if key == "master" else entry.state[key]
+-                target = entry.select(spec.select(saved[key]))
++                target = entry.select(spec.select(saved[key])).to(actual.device)
+                 difference = tensor_difference(
+                     target,
+-                    actual.cpu(),
++                    actual,
+                     relative_tolerance=1e-4,
+                     absolute_tolerance=2e-6,
+                     exact=False,

@@ -1,0 +1,194 @@
+[
+  {
+    "slot": [
+      1201,
+      0,
+      0
+    ],
+    "source": "InternData-M1-eef:33",
+    "samples": 8,
+    "image": false,
+    "sha256": "b9af2dbfd17b8bc214fe529792606ffed79f3688c43eff051963deb7b2836720",
+    "tokens": {
+      "text": 2508,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      0,
+      1
+    ],
+    "source": "InternData-M1-eef:33",
+    "samples": 8,
+    "image": false,
+    "sha256": "f6dcafbae8b04f3dd6aa9338c71ef12aa899a0403721c3e96ffd6c45c7d96127",
+    "tokens": {
+      "text": 2204,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      0,
+      2
+    ],
+    "source": "InternData-M1-eef:33",
+    "samples": 8,
+    "image": false,
+    "sha256": "42c8549a7cb25c43bf513eaa9768989005cc7a1ab7673eec862beacedaf89b6f",
+    "tokens": {
+      "text": 2326,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      0,
+      3
+    ],
+    "source": "InternData-M1-eef:33",
+    "samples": 8,
+    "image": false,
+    "sha256": "fb4e36540fce339e0e4dfc38bcc5b3c17a272a506ddba8545ce690778335bfca",
+    "tokens": {
+      "text": 2357,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      1,
+      0
+    ],
+    "source": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "samples": 8,
+    "image": false,
+    "sha256": "bb52a9686f4e42a3ca795dccc8a041c83dbee51607f071e64a8d74f639f4a139",
+    "tokens": {
+      "text": 2555,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      1,
+      1
+    ],
+    "source": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "samples": 8,
+    "image": false,
+    "sha256": "b0d2bdf8aa158df43302bc4ee56ecc978a2bde1babb81d84cf154471d813dad5",
+    "tokens": {
+      "text": 2410,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      1,
+      2
+    ],
+    "source": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "samples": 8,
+    "image": false,
+    "sha256": "0b18343b23d2be3171b4e677bb3ce43f4dab585a6f8d6f15e19f4892a6e83e82",
+    "tokens": {
+      "text": 2679,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      1,
+      3
+    ],
+    "source": "AgiBotWorld-Beta-eef--deformable_textiles:12",
+    "samples": 8,
+    "image": false,
+    "sha256": "2d577c16efa8a4f0712c316e70bc44a26d29aa4ff46f8176c87dd71226f1aed7",
+    "tokens": {
+      "text": 2932,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      2,
+      0
+    ],
+    "source": "legacy:44",
+    "samples": 9,
+    "image": false,
+    "sha256": "ac9bd95fab3b3da556fede2c6b3a908b79519af76756660a6a18b0cb610db9f0",
+    "tokens": {
+      "text": 2361,
+      "vision": 58320,
+      "action": 549
+    }
+  },
+  {
+    "slot": [
+      1201,
+      2,
+      1
+    ],
+    "source": "legacy:44",
+    "samples": 7,
+    "image": false,
+    "sha256": "2859cbee09c84a4ef711f85950413406f786286c4db9eb66943569b89f2bf21a",
+    "tokens": {
+      "text": 2090,
+      "vision": 53760,
+      "action": 427
+    }
+  },
+  {
+    "slot": [
+      1201,
+      2,
+      2
+    ],
+    "source": "legacy:44",
+    "samples": 8,
+    "image": false,
+    "sha256": "e782302a0a6f0a137a7fa655d65254e03fd30fa74dd71f5e774010d01418625b",
+    "tokens": {
+      "text": 2443,
+      "vision": 58880,
+      "action": 488
+    }
+  },
+  {
+    "slot": [
+      1201,
+      2,
+      3
+    ],
+    "source": "legacy:44",
+    "samples": 9,
+    "image": false,
+    "sha256": "e5f499e3e58adc7e431f776f9066849116adb558964e581ddba852779f95ee4f",
+    "tokens": {
+      "text": 2781,
+      "vision": 58320,
+      "action": 549
+    }
+  }
+]

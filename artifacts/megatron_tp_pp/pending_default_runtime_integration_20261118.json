@@ -1,0 +1,25 @@
+{
+  "scope": "default driver/train patch applied after native source guard terminal success; full production acceptance still required",
+  "patch": "/tmp/cosmos_tp_pp_default_runtime_policy_20261118.patch",
+  "base_hashes": {
+    "cosmos_framework/training_backends/megatron_tp_pp/driver.py": "81c4431ffb56d5c15b40ee988f1c1992badbcb3960a00b39954857ecd0690b84",
+    "cosmos_framework/training_backends/megatron_tp_pp/train.py": "42e8ba07038edb8a8447f13754fe4518585124fe0ee2c43ee0c5e06600a0d898"
+  },
+  "candidate_hashes": {
+    "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/driver.py": "41472d32953bf502d0f02ed64e1af3daa4ed06518d5a3c429be275200382564d",
+    "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/train.py": "3291484395e9fff8ced22bf6637377fe0404364f02bc4ec412d187fc27984e00",
+    "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/test_driver_gc_integration.py": "a7024b6979cb6b571a55e5c23db183b82dbc5ac0335b8ee31e1b52cd20012b21"
+  },
+  "cpu_integration_tests_passed": 2,
+  "qualification_log": "/tmp/cosmos_tp_pp_pending_runtime_driver_cpu_qualification_20261118.log",
+  "default_gc_interval": 16,
+  "override_env": "COSMOS_TP_PP_MICROBATCH_GC_INTERVAL",
+  "native_optimizer_and_clip_adapter": true,
+  "required_before_apply": "Native full576 coordinator1071709 and all training children must exit; revalidate base hashes and all active source guards",
+  "full_model_acceptance_after_apply_still_required": true,
+  "applied": true,
+  "applied_at_observation_utc": "2026-11-18T21:26:01.055866+00:00",
+  "cpu_workspace_integration_tests_passed": 21,
+  "applied_runtime_hashes_path": "outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118_coordinator/applied_runtime_hashes.json",
+  "optimizer_cpu_state_roundtrip_candidate_passed": true
+}

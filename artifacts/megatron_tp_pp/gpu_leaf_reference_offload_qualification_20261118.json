@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "updates": [
+    {
+      "update": 0,
+      "output_gradient_norm_master_moments_exact": true
+    },
+    {
+      "update": 1,
+      "output_gradient_norm_master_moments_exact": true
+    },
+    {
+      "update": 2,
+      "output_gradient_norm_master_moments_exact": true
+    }
+  ],
+  "full_model_acceptance": false
+}

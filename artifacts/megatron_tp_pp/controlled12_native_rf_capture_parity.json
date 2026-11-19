@@ -1,0 +1,150 @@
+{
+  "passed": true,
+  "scope": "separate native per-logical-rank loaders and optional native VAE/noising versus TP/PP replay",
+  "logical_data_parallel_size": 4,
+  "checked_logical_data_ranks": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "checked_slots": 12,
+  "slots": [
+    {
+      "slot": [
+        1203,
+        0,
+        0
+      ],
+      "source": "egolive:53",
+      "sha256": "aa0dcb420f4e203e937d1b32befaf7f6d54008bcb1dae9ef75abf0e3c01e34be",
+      "prepared_noise_sha256": "815c3622b217646c583ff88a89443a1594b75c46069831e0357d981ec09af1ba",
+      "prepared_packed_sha256": "a40ddbe58a1c8a088fa8845bcb5266a89b46361cf72dca3817bb7699da6e9be1"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        0
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "e280fd834525f2925289c6f6ab20393eeefd9c865009595f0e97d510e5805024",
+      "prepared_noise_sha256": "486869e3b07ea35669a21287ebf07952fc82080c78da8c81805472f72ab66449",
+      "prepared_packed_sha256": "22e74b6c7db648cf85ef2ef450706e883ed294ae9b0b25ef7f05be27d5260a9c"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        0
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "263b3bf4101f79e140bfc5208e378a09f762ae7f256f3ccdf5483cc822b928a2",
+      "prepared_noise_sha256": "eb8e72a11272e49964645f955fd6ffcc4ecf148efd7379f57313eed3cb92cba3",
+      "prepared_packed_sha256": "7dd55c18991ab2a1c49a1a8b8e8e9fdbb3e74c36d3fa7d22685c51efb0b05610"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        1
+      ],
+      "source": "egolive:53",
+      "sha256": "d84fc22a383599bed47e6cf8c750376cb6e368d7e02b7ffb62b56f546742a60b",
+      "prepared_noise_sha256": "745d3dab94b4be26e75003b87655162aa81f732113ca105a8d23c0470bde70d8",
+      "prepared_packed_sha256": "96c8ef1215b889b98dda83e3dd4d5feca1a986acfc986f99756dea167de52ea3"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        1
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "22fd293e0459f9deb4b32298259102a564f3311544d5b89892d621bc13e3fe19",
+      "prepared_noise_sha256": "60705d35630a2690e2332018685398219343952ea229f19806ccbada4b5f4968",
+      "prepared_packed_sha256": "66d96078882d2ded1741b46d77a1c77cb8f228a00375210ab4fbb9a3e6971590"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        1
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "2d5a8f5abf7eaab97e5fee361f6bafd2ceaeb4c5872bf329f15fc966c8177414",
+      "prepared_noise_sha256": "885eb03c54c6e9f7c13ba8c7337f9d2b497851da1f64074eb363d17360761857",
+      "prepared_packed_sha256": "9c27643e91a02f46984627fae8b5757258418b3a0132b5e1cf4dc0e097e3b775"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        2
+      ],
+      "source": "egolive:53",
+      "sha256": "2f8a786adaf429bdc1e992ec34e3b87781f5a253ea8114312e715e9bf1747075",
+      "prepared_noise_sha256": "c3aa7f48d082468803df91c9bab1adcdc61e14c2bc64a87ea9bdcbe60b729026",
+      "prepared_packed_sha256": "af4515d804cfc86c80c6e3651cf83fe8a3e1fcedf9b89792015c20cb56330abc"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        2
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "229584aaaa8056137dfd5b6def0bd940a05f745c9592653601ef8a0c595b1518",
+      "prepared_noise_sha256": "f8c5c0fdcd237b2b9470f0da0a5c3c31c675a867d7cb68ae0a3ae027e04daa80",
+      "prepared_packed_sha256": "fd6fe4a5d964835f3e486dda43b28d6825f1016a6a232b53a5d2401b3a9ece87"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        2
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "82a658d86771370de6ff75d81f0ffbe415f9262d1d3f75066310fdd3c9183de6",
+      "prepared_noise_sha256": "f3dbdf8afb4d00704c80dc87ff9cc3da00a5683b4401ae9d24f601bfba8752aa",
+      "prepared_packed_sha256": "80ccda4596b83e2179946d6de0f7fa76cdd84d6787062d6fee141a919d9b6aa6"
+    },
+    {
+      "slot": [
+        1203,
+        0,
+        3
+      ],
+      "source": "egolive:53",
+      "sha256": "58a17289efaded97884e53e2bfd54761380eb882d172f49969d12c37421415b7",
+      "prepared_noise_sha256": "cabed6c7048680c89f48315247d24ccab66919941f1fee6b0bef4a91df0d0f77",
+      "prepared_packed_sha256": "a67507fd91b8b2869decd9f76a4822a3e6a702c47107958596587cc49900e272"
+    },
+    {
+      "slot": [
+        1203,
+        1,
+        3
+      ],
+      "source": "Galbot-joint:31",
+      "sha256": "4f9b53bb1bffe50749169ccfc482a16c63e41319824d76ae9fcb35de8353769b",
+      "prepared_noise_sha256": "71f3589768b6d712c32799429b290a20f6de5d5eeb0394c375c81fd788e6c3f0",
+      "prepared_packed_sha256": "ea3ad298cae3e9795c9fb81cc8384d83653dabd769f2514396ac65600028ac60"
+    },
+    {
+      "slot": [
+        1203,
+        2,
+        3
+      ],
+      "source": "InternData-A1-eef--household_daily:0",
+      "sha256": "a834cfc5f1560eebb68ceb898f6094adbdbf8da9323756849f4054a87ca82016",
+      "prepared_noise_sha256": "036f90d46d3f009e4abd9daca4ef9b57d82ce8b039ae4aa8dc74140c93840c86",
+      "prepared_packed_sha256": "fd55a465c0da37896433409b188fb67c1d7e72679c3fd54981e221d4673f1e5c"
+    }
+  ],
+  "noise_equality_independently_checked": true,
+  "native_tokenizer_compile_requested": false,
+  "production_576_slot_raw_data_accepted": false,
+  "production_capacity_576_slot_acceptance": false
+}

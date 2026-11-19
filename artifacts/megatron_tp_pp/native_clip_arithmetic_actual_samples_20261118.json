@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "scope": "elementwise clipping of actual gradient samples; first uses measured identical-gradient norm pair, later use actual native norms; no full trajectory acceptance",
+  "fixture": "artifacts/megatron_tp_pp/native_vs_mcore_adam_actual_value_samples_20261118.samples.pt",
+  "parameters": 811,
+  "rows": [
+    {
+      "update": 0,
+      "native_fp32_norm": 123.16944885253906,
+      "provided_mcore_float_norm": 123.16945184252262,
+      "legacy_different_parameter_samples": 810,
+      "candidate_different_parameter_samples": 0,
+      "candidate_bitexact": true
+    },
+    {
+      "update": 1,
+      "native_fp32_norm": 20.898557662963867,
+      "provided_mcore_float_norm": 20.898557662963867,
+      "legacy_different_parameter_samples": 810,
+      "candidate_different_parameter_samples": 0,
+      "candidate_bitexact": true
+    },
+    {
+      "update": 2,
+      "native_fp32_norm": 11.720803260803223,
+      "provided_mcore_float_norm": 11.720803260803223,
+      "legacy_different_parameter_samples": 0,
+      "candidate_different_parameter_samples": 0,
+      "candidate_bitexact": true
+    }
+  ],
+  "peak_allocated_cuda_bytes": 6588416,
+  "full_model_trajectory_accepted": false
+}

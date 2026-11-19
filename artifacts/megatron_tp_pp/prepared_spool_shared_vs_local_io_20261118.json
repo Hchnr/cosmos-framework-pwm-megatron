@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "scope": "single real encoded CPU payload, buffered publication and warm readback only; concurrent diagnostics, not production throughput",
+  "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.68mltzk1/update000001200.micro000.rank001.pt",
+  "payload_sha256": "168bd69f25b93794e121cd2c0efb029381b6435b62521de2f49cbd5b0661091e",
+  "source_file_bytes": 101321049,
+  "source_unchanged": true,
+  "cuda_initialized": false,
+  "rows": [
+    {
+      "storage": "shared",
+      "directory": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_spool_io_benchmark_20261118",
+      "write_seconds": [
+        0.2210385538637638,
+        0.24102721735835075,
+        0.21334916353225708
+      ],
+      "read_seconds": [
+        0.05944272130727768,
+        0.0599345900118351,
+        0.05348190665245056
+      ],
+      "median_write_seconds": 0.2210385538637638,
+      "median_read_seconds": 0.05944272130727768,
+      "all_readback_payloads_exact": true
+    },
+    {
+      "storage": "local",
+      "directory": "/opt/cosmos-tp-pp-spool-io-benchmark_20261118",
+      "write_seconds": [
+        0.08187639713287354,
+        0.0821743905544281,
+        0.08351336047053337
+      ],
+      "read_seconds": [
+        0.051996808499097824,
+        0.052619609981775284,
+        0.05104914680123329
+      ],
+      "median_write_seconds": 0.0821743905544281,
+      "median_read_seconds": 0.051996808499097824,
+      "all_readback_payloads_exact": true
+    }
+  ],
+  "production_performance_accepted": false
+}

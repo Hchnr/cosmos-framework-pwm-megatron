@@ -1,0 +1,95 @@
+{
+  "passed": false,
+  "scope": "full source TP1/PP2/DP2 with native local Linear autograd and native Adam arithmetic; GPU-leaf reference with original default saved-tensor offload; full text and cropped VIDEO/Action inputs",
+  "rows": [
+    {
+      "rank": 0,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.6822736752779258e-06,
+          "cosine": 0.999999999999403
+        },
+        {
+          "relative_l2": 9.476417408439518e-05,
+          "cosine": 0.9999999962528264
+        },
+        {
+          "relative_l2": 0.0010008329933529757,
+          "cosine": 0.9999995005475382
+        }
+      ],
+      "native_linear_autograd": true,
+      "failed_parameter_gradients": 233,
+      "failed_parameter_states": 290,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_native_gpu_leaf_native_linear_tp1_fp32.rank0.json"
+    },
+    {
+      "rank": 1,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.6822736752779258e-06,
+          "cosine": 0.999999999999403
+        },
+        {
+          "relative_l2": 9.476417408439518e-05,
+          "cosine": 0.9999999962528264
+        },
+        {
+          "relative_l2": 0.0010008329933529757,
+          "cosine": 0.9999995005475382
+        }
+      ],
+      "native_linear_autograd": true,
+      "failed_parameter_gradients": 358,
+      "failed_parameter_states": 314,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_native_gpu_leaf_native_linear_tp1_fp32.rank1.json"
+    },
+    {
+      "rank": 2,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.6822736752779258e-06,
+          "cosine": 0.999999999999403
+        },
+        {
+          "relative_l2": 9.476417408439518e-05,
+          "cosine": 0.9999999962528264
+        },
+        {
+          "relative_l2": 0.0010008329933529757,
+          "cosine": 0.9999995005475382
+        }
+      ],
+      "native_linear_autograd": true,
+      "failed_parameter_gradients": 192,
+      "failed_parameter_states": 308,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_native_gpu_leaf_native_linear_tp1_fp32.rank2.json"
+    },
+    {
+      "rank": 3,
+      "passed": false,
+      "gradient_summary": [
+        {
+          "relative_l2": 1.6822736752779258e-06,
+          "cosine": 0.999999999999403
+        },
+        {
+          "relative_l2": 9.476417408439518e-05,
+          "cosine": 0.9999999962528264
+        },
+        {
+          "relative_l2": 0.0010008329933529757,
+          "cosine": 0.9999995005475382
+        }
+      ],
+      "native_linear_autograd": true,
+      "failed_parameter_gradients": 201,
+      "failed_parameter_states": 316,
+      "path": "artifacts/megatron_tp_pp/full_source_real_rf_native_gpu_leaf_native_linear_tp1_fp32.rank3.json"
+    }
+  ],
+  "production_capacity_576_slot_acceptance": false
+}

@@ -1,0 +1,112 @@
+{
+  "passed": true,
+  "scope": "TP1/PP2/DP2 native Linear/native Adam/native clip arithmetic; full 36-layer source/nonzero Adam states, full text with cropped VIDEO/Action, fixed gates, continuous three updates",
+  "ranks": [
+    {
+      "rank": 0,
+      "passed": true,
+      "gradient_summary": [
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 0.9999999999999999
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0000000000000002
+        }
+      ],
+      "state_comparisons": 1818,
+      "state_failures": 0,
+      "maximum_state_relative_l2": 0.0,
+      "maximum_state_absolute_error": 0.0,
+      "compute_master_checks": 606,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 199,
+      "native_clip_source_unchanged": true
+    },
+    {
+      "rank": 1,
+      "passed": true,
+      "gradient_summary": [
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 0.9999999999999999
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0000000000000002
+        }
+      ],
+      "state_comparisons": 1872,
+      "state_failures": 0,
+      "maximum_state_relative_l2": 0.0,
+      "maximum_state_absolute_error": 0.0,
+      "compute_master_checks": 624,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 199,
+      "native_clip_source_unchanged": true
+    },
+    {
+      "rank": 2,
+      "passed": true,
+      "gradient_summary": [
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 0.9999999999999999
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0000000000000002
+        }
+      ],
+      "state_comparisons": 1800,
+      "state_failures": 0,
+      "maximum_state_relative_l2": 0.0,
+      "maximum_state_absolute_error": 0.0,
+      "compute_master_checks": 600,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 200,
+      "native_clip_source_unchanged": true
+    },
+    {
+      "rank": 3,
+      "passed": true,
+      "gradient_summary": [
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 0.9999999999999999
+        },
+        {
+          "relative_l2": 0.0,
+          "cosine": 1.0000000000000002
+        }
+      ],
+      "state_comparisons": 1827,
+      "state_failures": 0,
+      "maximum_state_relative_l2": 0.0,
+      "maximum_state_absolute_error": 0.0,
+      "compute_master_checks": 609,
+      "compute_master_mismatches": 0,
+      "frozen_parameters_exact": 200,
+      "native_clip_source_unchanged": true
+    }
+  ],
+  "tp2_accepted": false,
+  "production_576_slot_acceptance": false
+}

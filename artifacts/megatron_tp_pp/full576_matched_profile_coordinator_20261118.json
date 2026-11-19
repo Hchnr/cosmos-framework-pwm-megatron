@@ -1,0 +1,18 @@
+{
+  "pid": 1378370,
+  "create_time": 1795039026.61,
+  "script": "/tmp/run_tp_pp_full576_matched_profile_after_dp2_20261118.py",
+  "script_sha256": "d6bd8b3c3ee89476683e2ea606e99559b0c6d46c7ae1f1af963b70fc079a9b74",
+  "log": "/tmp/cosmos_tp_pp_full576_matched_profile_after_dp2_coordinator_v2_20261118.log",
+  "wait_for_pid": 1272836,
+  "wait_for_create_time": 1795034380.53,
+  "profile_tool_hashes": {
+    "tools/run_tp_pp_full_update_profile.py": "4a65542e42334ca075242202b46c88dea5caf8b2e0f6bdd8dc44c2c0046c9a72",
+    "tests/megatron/tp_pp_full_update_profile_test.py": "f812d3a2f1ddd52fdfc602114f34de3e0d4853a1e17924aa98b0d212d34a7c8d"
+  },
+  "scope": "one original-capacity global576 update per backend, preparation-through-optimizer Nsight diagnostics, native DP4/M144 vs TP2 PP2 DP1/M576, GC16 and AOT consume; first-update profiling, not steady-state throughput",
+  "cpu_capture_boundary_tests_passed": 4,
+  "actual_nsys_profile_executed": false,
+  "training_started": false,
+  "supersedes_pid": 1377380
+}

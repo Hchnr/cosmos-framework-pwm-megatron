@@ -1,0 +1,227 @@
+{
+  "observed_at_utc": "2026-11-18T22:25:31.051638+00:00",
+  "scope": "navigation only; revalidate PID identity/status before acting, never infer a live wait from this file alone",
+  "jobs": [
+    {
+      "name": "raw_native_audit",
+      "pid": 982585,
+      "script": "/tmp/run_tp_pp_raw576_native_audit_20261118.py",
+      "waits_for_pid": null,
+      "create_time": 1795017551.13,
+      "observed_status": "sleeping",
+      "descendants": 25
+    },
+    {
+      "name": "dp2_activation_offload_restart",
+      "pid": 1006111,
+      "script": "/tmp/run_tp_pp_true_dp2_offload_after_full576_20261118.py",
+      "waits_for_pid": null,
+      "create_time": 1795019004.63,
+      "observed_status": "terminal",
+      "descendants": 0
+    },
+    {
+      "name": "preserved_layout_math",
+      "pid": 1028695,
+      "script": "/tmp/run_tp_pp_preserved_layout_math_after_full_runs_20261118.py",
+      "waits_for_pid": 1006111,
+      "create_time": 1795020184.11,
+      "observed_status": "terminal",
+      "descendants": 0
+    },
+    {
+      "name": "prepared_decoder_memory",
+      "pid": 1063649,
+      "script": "/tmp/run_tp_pp_prepared_memory_after_layout_math_20261118.py",
+      "waits_for_pid": 1028695,
+      "create_time": 1795021998.39,
+      "observed_status": "terminal",
+      "descendants": 0,
+      "scheduling_note": "temporarily SIGSTOP until native clip math coordinator/supervisor exits; both restore SIGCONT"
+    },
+    {
+      "name": "native_full576_reference",
+      "pid": 1071709,
+      "script": "/tmp/run_tp_pp_native_full576_consume_after_memory_replay_20261118.py",
+      "waits_for_pid": 1063649,
+      "create_time": 1795022504.57,
+      "observed_status": "sleeping",
+      "descendants": 102,
+      "scheduling_note": "temporarily SIGSTOP until original-capacity DP2 selective2 strict restart finishes; coordinator and supervisor both restore SIGCONT"
+    },
+    {
+      "name": "native_clip_math_supervisor",
+      "pid": 1118491,
+      "script": "/tmp/supervise_tp_pp_clip_before_memory_20261118.py",
+      "waits_for_pid": 1118492,
+      "create_time": 1795025964.62,
+      "observed_status": "terminal",
+      "descendants": 0
+    },
+    {
+      "name": "native_clip_math_before_memory",
+      "pid": 1118492,
+      "script": "/tmp/run_tp_pp_native_clip_before_memory_20261118.py",
+      "waits_for_pid": 1028695,
+      "create_time": 1795025964.69,
+      "observed_status": "terminal",
+      "descendants": 0
+    },
+    {
+      "name": "dp2_selective2_before_native",
+      "pid": 1137640,
+      "create_time": 1795027188.21,
+      "script": "/tmp/supervise_tp_pp_true_dp2_selective2_before_native_20261118.py",
+      "observed_status": "terminal",
+      "waits_for_pid": 1063649,
+      "descendants": 0
+    },
+    {
+      "name": "dp2_selective2_before_native",
+      "pid": 1137646,
+      "create_time": 1795027188.25,
+      "script": "/tmp/run_tp_pp_true_dp2_selective2_before_native_full576_20261118.py",
+      "observed_status": "terminal",
+      "waits_for_pid": 1063649,
+      "descendants": 0,
+      "scheduling_note": "temporarily SIGSTOP until GC16 decoder replay coordinator/supervisor exits; both restore SIGCONT"
+    },
+    {
+      "name": "original_capacity_flex_fp32_math",
+      "pid": 1162948,
+      "create_time": 1795028820.41,
+      "script": "/tmp/run_tp_pp_original_capacity_flex_after_full_runs_20261118.py",
+      "observed_status": "sleeping",
+      "waits_for_pid": 1102667,
+      "descendants": 0
+    },
+    {
+      "name": "gc16_decoder_supervisor",
+      "pid": 1171760,
+      "create_time": 1795029430.65,
+      "script": "/tmp/supervise_tp_pp_decoder_gc16_before_true_dp2_20261118.py",
+      "observed_status": "terminal",
+      "waits_for_pid": 1171766,
+      "descendants": 0
+    },
+    {
+      "name": "gc16_decoder_before_dp2",
+      "pid": 1171766,
+      "create_time": 1795029430.71,
+      "script": "/tmp/run_tp_pp_decoder_gc16_before_true_dp2_20261118.py",
+      "observed_status": "terminal",
+      "waits_for_pid": 1063649,
+      "descendants": 0
+    },
+    {
+      "name": "native_adam_adapter_cpu_state_roundtrip",
+      "pid": 1219114,
+      "create_time": 1795032117.03,
+      "script": "/tmp/run_tp_pp_optimizer_roundtrip_after_native_20261118.py",
+      "observed_status": "sleeping",
+      "waits_for_pid": 1071709,
+      "descendants": 0
+    },
+    {
+      "name": "default_gc16_full576_replacement",
+      "pid": 1255305,
+      "create_time": 1795033616.53,
+      "script": "/tmp/run_tp_pp_gc16_default_full576_after_native_20261118.py",
+      "script_sha256": "9e33c53b70dea9769f4cb1133effaad2f171e3ec28a9dfcb750847f2d7d443ea",
+      "log": "/tmp/cosmos_tp_pp_gc16_default_full576_after_native_coordinator_20261118.log",
+      "scope": "wait for native baseline and optimizer CPU-state roundtrip; guarded default-runtime patch application, CPU checks, GPU offload entry qualification then original capacity GC16 global576 strict restart, without activation offload in formal training",
+      "training_started": false,
+      "legacy_reservation_pid": 1102667,
+      "next_fp32_flex_waits_legacy_reservation": 1162948
+    },
+    {
+      "name": "true_dp2_preserved_offload",
+      "pid": 1272836,
+      "create_time": 1795034380.53,
+      "script": "/tmp/run_tp_pp_true_dp2_preserved_offload_after_full_math_20261118.py",
+      "script_sha256": "ded00374d710c80872091afa3e9e874602b0536df61d55028f7942a610f4cbc9",
+      "log": "/tmp/cosmos_tp_pp_true_dp2_preserved_offload_after_full_math_coordinator_20261118.log",
+      "wait_for_pid": 1162948,
+      "wait_for_create_time": 1795028820.41,
+      "offload_source_hashes": {
+        "tools/run_tp_pp_with_activation_offload.py": "d412d14a7635a3d01b5f17d99f5a676e7ecf6b4867b2c6639b13e530aac18dd3",
+        "tools/tp_pp_activation_offload.py": "feaec4ad82b87448e4238a82341ce164908381e82720605d010cabe6d70abeae"
+      },
+      "scope": "true TP2 PP1 DP2, original input capacity global12, preserve-layout whole CPU offload, GC16, A3 B1+2 strict restart; not unoffloaded full576 performance",
+      "training_started": false
+    },
+    {
+      "name": "full576_matched_profile",
+      "pid": 1378370,
+      "create_time": 1795039026.61,
+      "script": "/tmp/run_tp_pp_full576_matched_profile_after_dp2_20261118.py",
+      "script_sha256": "d6bd8b3c3ee89476683e2ea606e99559b0c6d46c7ae1f1af963b70fc079a9b74",
+      "log": "/tmp/cosmos_tp_pp_full576_matched_profile_after_dp2_coordinator_v2_20261118.log",
+      "wait_for_pid": 1272836,
+      "wait_for_create_time": 1795034380.53,
+      "profile_tool_hashes": {
+        "tools/run_tp_pp_full_update_profile.py": "4a65542e42334ca075242202b46c88dea5caf8b2e0f6bdd8dc44c2c0046c9a72",
+        "tests/megatron/tp_pp_full_update_profile_test.py": "f812d3a2f1ddd52fdfc602114f34de3e0d4853a1e17924aa98b0d212d34a7c8d"
+      },
+      "scope": "one original-capacity global576 update per backend, preparation-through-optimizer Nsight diagnostics, native DP4/M144 vs TP2 PP2 DP1/M576, GC16 and AOT consume; first-update profiling, not steady-state throughput",
+      "cpu_capture_boundary_tests_passed": 4,
+      "actual_nsys_profile_executed": false,
+      "training_started": false,
+      "supersedes_pid": 1377380
+    },
+    {
+      "name": "optimizer_collective_warmup_qualification",
+      "pid": 1404824,
+      "create_time": 1795040597.28,
+      "script": "/tmp/run_tp_pp_collective_warmup_qualification_after_math_20261118.py",
+      "script_sha256": "9c571c63e40a2f4c77ca2be5c48333a7da8251b0037f07f53764e6b96f7b3d44",
+      "log": "/tmp/cosmos_tp_pp_collective_warmup_qualification_after_math_20261118.log",
+      "wait_for_pid": 1162948,
+      "wait_for_create_time": 1795028820.41,
+      "scope": "cold/warm actual MCore FP32 norm under cache pressure then compiled native-Adam network and BF16 master restore PP2/DP1 and PP1/DP2; not production acceptance",
+      "gpu_tests_started": false,
+      "default_patch_applied": false,
+      "held_idle_dp2_pid": 1272836
+    }
+  ],
+  "current_gpu_phase": "original-capacity FP32/Flex native reference under coordinator1162948; GC16 full576 schedule completed but optimizer grad-norm NCCL CUDA OOM, no update",
+  "pending_core_integration": {
+    "scope": "default driver/train patch applied after native source guard terminal success; full production acceptance still required",
+    "patch": "/tmp/cosmos_tp_pp_default_runtime_policy_20261118.patch",
+    "base_hashes": {
+      "cosmos_framework/training_backends/megatron_tp_pp/driver.py": "81c4431ffb56d5c15b40ee988f1c1992badbcb3960a00b39954857ecd0690b84",
+      "cosmos_framework/training_backends/megatron_tp_pp/train.py": "42e8ba07038edb8a8447f13754fe4518585124fe0ee2c43ee0c5e06600a0d898"
+    },
+    "candidate_hashes": {
+      "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/driver.py": "41472d32953bf502d0f02ed64e1af3daa4ed06518d5a3c429be275200382564d",
+      "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/train.py": "3291484395e9fff8ced22bf6637377fe0404364f02bc4ec412d187fc27984e00",
+      "/tmp/cosmos_tp_pp_default_runtime_policy_20261118/test_driver_gc_integration.py": "a7024b6979cb6b571a55e5c23db183b82dbc5ac0335b8ee31e1b52cd20012b21"
+    },
+    "cpu_integration_tests_passed": 2,
+    "qualification_log": "/tmp/cosmos_tp_pp_pending_runtime_driver_cpu_qualification_20261118.log",
+    "default_gc_interval": 16,
+    "override_env": "COSMOS_TP_PP_MICROBATCH_GC_INTERVAL",
+    "native_optimizer_and_clip_adapter": true,
+    "required_before_apply": "Native full576 coordinator1071709 and all training children must exit; revalidate base hashes and all active source guards",
+    "full_model_acceptance_after_apply_still_required": true,
+    "applied": true,
+    "applied_at_observation_utc": "2026-11-18T21:26:01.055866+00:00",
+    "cpu_workspace_integration_tests_passed": 21,
+    "applied_runtime_hashes_path": "outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118_coordinator/applied_runtime_hashes.json",
+    "optimizer_cpu_state_roundtrip_candidate_passed": true
+  },
+  "active_full576_runner": {
+    "pid": 1333101,
+    "create_time": 1795037131.49,
+    "root": "outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118",
+    "source_guard": "outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/source_hashes.json",
+    "terminal_failure": "grad_norm_nccl_cuda_oom_before_first_optimizer_update"
+  },
+  "held_idle_dp2_coordinator": {
+    "pid": 1272836,
+    "create_time": 1795034380.53,
+    "status": "intentionally stopped with no children",
+    "reason": "reserve next GPU/source window for collective warmup qualification and full576 retry; profile1378370 waits this PID"
+  },
+  "optimizer_collective_warmup_candidate": "artifacts/megatron_tp_pp/optimizer_collective_warmup_candidate_20261118.json"
+}

@@ -1,0 +1,154 @@
+{
+  "measurement_completed": true,
+  "scope": "real immutable prepared input replay; training compute, communication and optimizer; media/VAE excluded",
+  "per_microstep_batches_exact": true,
+  "global_batch_matched": false,
+  "numerical_acceptance": false,
+  "tp": {
+    "contract": {
+      "scope": "Compare TP4 and native FSDP4 with equal batches per rank/microstep.\n\nReplays immutable real prepared payloads through the production training loops.\nMedia loading, VAE/noising and their initialization are excluded. Global batch\nsizes deliberately differ by four. This is a training-compute benchmark, not\nan end-to-end data-pipeline benchmark or a numerical equivalence acceptance.\n",
+      "backend": "tp",
+      "tp": 4,
+      "pp": 1,
+      "dp": 1,
+      "precision": "bfloat16",
+      "microsteps_per_update": 3,
+      "warmup_updates": 2,
+      "measured_updates": 5,
+      "per_rank_microbatches": [
+        {
+          "microstep": 0,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro000.rank000.pt",
+          "payload_sha256": "55f2f27c8200c629c6ad955b12181a94fb4462aef732e0ceed83fa6cfa0d6105",
+          "samples": 9,
+          "image": false,
+          "tokens": {
+            "text": 1807,
+            "vision": 54720,
+            "action": 549
+          }
+        },
+        {
+          "microstep": 1,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro001.rank000.pt",
+          "payload_sha256": "701172a8f5c4e33ace0e039daf16dfcade57dcde2cc35d6d046a1cf0a50e4de3",
+          "samples": 11,
+          "image": false,
+          "tokens": {
+            "text": 1833,
+            "vision": 59400,
+            "action": 671
+          }
+        },
+        {
+          "microstep": 2,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro002.rank000.pt",
+          "payload_sha256": "8735b55617bf61e303d1265f790840abb97f6c80c65de22518475ce32c29506f",
+          "samples": 13,
+          "image": false,
+          "tokens": {
+            "text": 4183,
+            "vision": 56160,
+            "action": 403
+          }
+        }
+      ],
+      "global_sample_count_matched": false,
+      "numerical_acceptance": false,
+      "checkpoint_writes": false
+    },
+    "slowest_rank_update_seconds": [
+      93.66124576702714,
+      8.469900220632553,
+      8.397215880453587,
+      8.41340384632349,
+      8.493753343820572,
+      8.409844607114792,
+      8.415182784199715
+    ],
+    "measured_mean_update_seconds": 8.425880092382432,
+    "measured_median_update_seconds": 8.41340384632349,
+    "amortized_microstep_seconds": 2.8086266974608107,
+    "global_samples_per_update": 33,
+    "global_samples_per_second": 3.916504820645886,
+    "real_tokens_per_second": {
+      "text": 928.449006421599,
+      "vision": 20209.164874532773,
+      "action": 192.6208279972204
+    }
+  },
+  "fsdp": {
+    "contract": {
+      "scope": "Compare TP4 and native FSDP4 with equal batches per rank/microstep.\n\nReplays immutable real prepared payloads through the production training loops.\nMedia loading, VAE/noising and their initialization are excluded. Global batch\nsizes deliberately differ by four. This is a training-compute benchmark, not\nan end-to-end data-pipeline benchmark or a numerical equivalence acceptance.\n",
+      "backend": "fsdp",
+      "tp": 1,
+      "pp": 1,
+      "dp": 4,
+      "precision": "bfloat16",
+      "microsteps_per_update": 3,
+      "warmup_updates": 2,
+      "measured_updates": 5,
+      "per_rank_microbatches": [
+        {
+          "microstep": 0,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro000.rank000.pt",
+          "payload_sha256": "55f2f27c8200c629c6ad955b12181a94fb4462aef732e0ceed83fa6cfa0d6105",
+          "samples": 9,
+          "image": false,
+          "tokens": {
+            "text": 1807,
+            "vision": 54720,
+            "action": 549
+          }
+        },
+        {
+          "microstep": 1,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro001.rank000.pt",
+          "payload_sha256": "701172a8f5c4e33ace0e039daf16dfcade57dcde2cc35d6d046a1cf0a50e4de3",
+          "samples": 11,
+          "image": false,
+          "tokens": {
+            "text": 1833,
+            "vision": 59400,
+            "action": 671
+          }
+        },
+        {
+          "microstep": 2,
+          "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron/outputs/megatron_tp_pp_default_gc16_full576_strict_restart_20261118/training/cosmos3_action/action128/uninterrupted/prepared_spool/iter000001200.t4z9_emx/update000001200.micro002.rank000.pt",
+          "payload_sha256": "8735b55617bf61e303d1265f790840abb97f6c80c65de22518475ce32c29506f",
+          "samples": 13,
+          "image": false,
+          "tokens": {
+            "text": 4183,
+            "vision": 56160,
+            "action": 403
+          }
+        }
+      ],
+      "global_sample_count_matched": false,
+      "numerical_acceptance": false,
+      "checkpoint_writes": false
+    },
+    "slowest_rank_update_seconds": [
+      80.22224647551775,
+      22.819803848862648,
+      22.839455865323544,
+      22.868768997490406,
+      22.77833767235279,
+      22.80952912941575,
+      22.825527358800173
+    ],
+    "measured_mean_update_seconds": 22.82432380467653,
+    "measured_median_update_seconds": 22.825527358800173,
+    "amortized_microstep_seconds": 7.608107934892177,
+    "global_samples_per_update": 132,
+    "global_samples_per_second": 5.783303861687863,
+    "real_tokens_per_second": {
+      "text": 1370.9935184843682,
+      "vision": 29841.847926309372,
+      "action": 284.43339901573944
+    }
+  },
+  "tp_over_fsdp_sample_throughput": 0.6772088955227142
+}

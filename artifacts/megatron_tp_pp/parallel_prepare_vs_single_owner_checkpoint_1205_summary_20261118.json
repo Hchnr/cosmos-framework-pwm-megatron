@@ -1,0 +1,32 @@
+{
+  "scope": "five-update parallel-preparation versus single-owner TP2/PP2 at iteration1205",
+  "complete_comparison_passed": false,
+  "all_model_master_moment_tensor_payloads_exact_finite": true,
+  "exact_finite_tensor_payload_count": 1226,
+  "failed_objects": [
+    {
+      "name": "rank_state/shard_1_4",
+      "passed": false,
+      "differences": [
+        "rank_state/shard_1_4.source_trainer.keys"
+      ]
+    },
+    {
+      "name": "rank_state/shard_2_4",
+      "passed": false,
+      "differences": [
+        "rank_state/shard_2_4.source_trainer.keys"
+      ]
+    },
+    {
+      "name": "rank_state/shard_3_4",
+      "passed": false,
+      "differences": [
+        "rank_state/shard_3_4.source_trainer.keys"
+      ]
+    }
+  ],
+  "remaining_difference": "duplicate source_trainer metadata on three nonowner ranks; no tensor differences",
+  "layout_fix": "save source_trainer only on original data owner; new strict restart will exercise corrected saves",
+  "production_576_slot_acceptance": false
+}

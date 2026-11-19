@@ -1,0 +1,80 @@
+{
+  "scope": "interim first two updates, including first update after all-ranks exit/new-process restore; final checkpoint gate still pending",
+  "completed_prefix_passed": true,
+  "updates": [
+    {
+      "iteration": 1206,
+      "slots": 12,
+      "slot_sets_equal": true,
+      "input_mismatches": [],
+      "rank_reports": [
+        {
+          "rank": 0,
+          "gradient_norm": 0.3214834025520088,
+          "gradient_norm_exact": true,
+          "reported_loss": null,
+          "loss_exact": true
+        },
+        {
+          "rank": 1,
+          "gradient_norm": 0.3214834025520088,
+          "gradient_norm_exact": true,
+          "reported_loss": null,
+          "loss_exact": true
+        },
+        {
+          "rank": 2,
+          "gradient_norm": 0.3214834025520088,
+          "gradient_norm_exact": true,
+          "reported_loss": 0.14950407141198715,
+          "loss_exact": true
+        },
+        {
+          "rank": 3,
+          "gradient_norm": 0.3214834025520088,
+          "gradient_norm_exact": true,
+          "reported_loss": 0.14950405371685824,
+          "loss_exact": true
+        }
+      ]
+    },
+    {
+      "iteration": 1207,
+      "slots": 12,
+      "slot_sets_equal": true,
+      "input_mismatches": [],
+      "rank_reports": [
+        {
+          "rank": 0,
+          "gradient_norm": 0.11519503325968233,
+          "gradient_norm_exact": true,
+          "reported_loss": null,
+          "loss_exact": true
+        },
+        {
+          "rank": 1,
+          "gradient_norm": 0.11519503325968233,
+          "gradient_norm_exact": true,
+          "reported_loss": null,
+          "loss_exact": true
+        },
+        {
+          "rank": 2,
+          "gradient_norm": 0.11519503325968233,
+          "gradient_norm_exact": true,
+          "reported_loss": 0.27572260207186144,
+          "loss_exact": true
+        },
+        {
+          "rank": 3,
+          "gradient_norm": 0.11519503325968233,
+          "gradient_norm_exact": true,
+          "reported_loss": 0.27572261200596887,
+          "loss_exact": true
+        }
+      ]
+    }
+  ],
+  "strict_restart_accepted": false,
+  "full576_accepted": false
+}

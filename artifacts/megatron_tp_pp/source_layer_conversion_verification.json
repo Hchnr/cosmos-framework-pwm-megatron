@@ -1,0 +1,273 @@
+{
+  "passed": true,
+  "source": "/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm/outputs/pretrain52src_state_h1_nano_192gpu_ga3_from17200_run01/cosmos3_action/action128/action128_wam_nano_52src_state_h1/checkpoints/iter_000001200",
+  "bundle": "/opt/cosmos-tp-pp-source-layer0",
+  "full_conversion": false,
+  "checked_parameters": {
+    "net.language_model.model.layers.0.self_attn.q_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.k_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.v_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.o_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.q_norm.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.self_attn.k_norm.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.self_attn.q_norm_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.self_attn.k_norm_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.self_attn.q_proj_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.k_proj_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.v_proj_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.self_attn.o_proj_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp.gate_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp.up_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp.down_proj.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp_moe_gen.gate_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp_moe_gen.up_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.mlp_moe_gen.down_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.input_layernorm.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.input_layernorm_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.post_attention_layernorm.weight": {
+      "fields": [
+        "model"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.post_attention_layernorm_moe_gen.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.input_layernorm.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.post_attention_layernorm.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.q_norm.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.k_norm.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 1
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.q_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.k_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.v_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.o_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.gate_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.up_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    },
+    "net.language_model.model.layers.0.action_block_moe_gen_action.down_proj.weight": {
+      "fields": [
+        "model",
+        "master_param",
+        "exp_avg",
+        "exp_avg_sq"
+      ],
+      "tp_shards": 2
+    }
+  },
+  "training_resume_accepted": false
+}

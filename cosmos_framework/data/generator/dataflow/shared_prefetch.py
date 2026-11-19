@@ -224,6 +224,7 @@ def _worker_main(
     collect_timing=False,
     assigned_streams=(),
     media_budget=None,
+    runner_factory=_StreamRunner,
 ):
     # Physical workers already parallelize tokenization. A Rayon pool per
     # worker creates thousands of idle threads and is unsafe across forks.
@@ -237,7 +238,7 @@ def _worker_main(
     torch.set_num_threads(1)
     torch.set_grad_enabled(False)
     policy = MicrobatchTimeoutPolicy(*timeout_config, physical) if timeout_config is not None else None
-    runner = _StreamRunner(streams, base_seeds, resume_rng, policy, names)
+    runner = runner_factory(streams, base_seeds, resume_rng, policy, names)
     try:
         runner.prepare_media_lookaheads(assigned_streams, media_budget)
         while True:
@@ -632,6 +633,7 @@ class SharedPrefetchDataLoader(JointCosmosDataLoader):
                             self._collect_timing,
                             [key for key, assigned in self._affinity.items() if assigned == physical],
                             self._media_budget,
+                            getattr(self, "_runner_factory", _StreamRunner),
                         ),
                         daemon=True,
                         name=f"cosmos-data-{physical}",
@@ -664,7 +666,9 @@ class SharedPrefetchDataLoader(JointCosmosDataLoader):
                 self.close()
                 raise
         else:
-            self._runner = _StreamRunner(self._loaders, self._base_seeds, self._resume_rng)
+            self._runner = getattr(self, "_runner_factory", _StreamRunner)(
+                self._loaders, self._base_seeds, self._resume_rng
+            )
         self._started = True
 
     def _plan_task(self):

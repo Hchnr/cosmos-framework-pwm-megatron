@@ -1,0 +1,19 @@
+--- a/tests/megatron/tp_pp_full_source_math.py
++++ b/tests/megatron/tp_pp_full_source_math.py
+@@ -381,6 +381,7 @@
+     torch.backends.cuda.matmul.allow_tf32 = False
+     topology = ModelParallelConfig(
+         tensor_model_parallel_size=args.tp,
++        pipeline_model_parallel_size=1 if args.tp == 4 else 2,
+         global_packed_microbatches_per_update=2,
+         logical_data_parallel_size=2,
+         reference_micro_steps_per_update=1,
+@@ -748,7 +749,7 @@
+     parser.add_argument("--native-optimizer", choices=("torch_cpu", "native_cuda"), default="torch_cpu")
+     parser.add_argument("--gpu-leaf-reference", action="store_true")
+     parser.add_argument("--preserve-saved-layout", action="store_true")
+-    parser.add_argument("--tp", type=int, choices=(1, 2), default=2)
++    parser.add_argument("--tp", type=int, choices=(1, 2, 4), default=2)
+     parser.add_argument("--objective", choices=("prediction_square", "native_rf"), default="prediction_square")
+     parser.add_argument("--deterministic", action="store_true")
+     parser.add_argument("--retain-full-text", action="store_true")

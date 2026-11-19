@@ -1,0 +1,55 @@
+{
+  "scope": "provenance for completed five-update four-H100 comparison",
+  "launch_record": "artifacts/megatron_tp_pp/matched12_20261118_launch_record.py.txt",
+  "launch_record_sha256": "24637e4787be88c12d535f916e6df72b9229afe551dbce9200dc21cb0f1435bb",
+  "source_iteration": 1200,
+  "completed_iterations": [
+    1201,
+    1202,
+    1203,
+    1204,
+    1205
+  ],
+  "logical_dp": 4,
+  "global_slots_per_update": 12,
+  "physical_layouts": {
+    "tp": {
+      "tp": 2,
+      "pp": 2,
+      "dp": 1,
+      "microbatches": 12
+    },
+    "native": {
+      "dp": 4,
+      "microbatches": 3
+    }
+  },
+  "warmup_updates": 3,
+  "measured_updates": 2,
+  "profiled_completed_iteration": 1204,
+  "profiled_global_slots": 8,
+  "shared_flags": {
+    "bf16": true,
+    "fa3_flex": true,
+    "block_compile": true,
+    "full_activation_checkpointing": true,
+    "tokenizer_aot": false,
+    "raw_sha_and_prepared_sha": true,
+    "raw_preflight": false,
+    "attention_deterministic": true,
+    "cublas_workspace_config": ":4096:8",
+    "cudnn_deterministic": true,
+    "cudnn_benchmark": false
+  },
+  "timing": "max rank update_seconds, excludes checkpoint write, includes acceptance hashing and profiling overhead",
+  "normalization_of_legacy_loss": {
+    "scale": 12,
+    "cause": "detached logging tensor aliases loss scaled in place by MCore",
+    "raw_logs_unchanged": true,
+    "regression_test": "tests/megatron/tp_pp_loss_test.py::test_mcore_schedule_scaling_does_not_modify_reported_loss"
+  },
+  "optimizer_state_comparison_complete": false,
+  "full576_complete": false,
+  "source_code_snapshot_at_launch_preserved": false,
+  "source_snapshot_limitation": "worktree continued changing after launch; config, command record, update logs, plans, checkpoints and profiles retained"
+}

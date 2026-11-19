@@ -1,0 +1,346 @@
+{
+  "passed": true,
+  "scope": "structural canvas/temporal coverage under the cache's declared tokenizer configuration",
+  "checks": {
+    "all_catalogs_use_audited_layout": true,
+    "recipe_covers_all_structural_canvases": true,
+    "cache_covers_all_structural_variants": true,
+    "cache_compiler_canvases_match_recipe": true,
+    "cache_identity_matches": true,
+    "cache_tokenizer_source_matches": true
+  },
+  "layout_source_sha256": "2d287b1ab5a5fa6d6622cdb085b1425237ba7ddea55020ead03acd59f6583e3c",
+  "catalogs": [
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/household_daily/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/household_daily/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/functional_cooperation/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/functional_cooperation/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/basic_transfer/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/basic_transfer/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/target_tracking/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/target_tracking/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/other_unclassified/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/other_unclassified/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/household_appliances/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/household_appliances/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/deformable_textiles/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/deformable_textiles/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/precision_tools/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/precision_tools/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/retail_industrial/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/retail_industrial/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/other_basic/eef/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/other_basic/joint/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/household_storage_cleaning/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/textiles_deformable/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/precision_assembly_tools/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/repetitive_tabletop/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/other_workbench/catalog.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboCasa365-eef/RoboCasa365-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboCasa365-joint/RoboCasa365-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Cosmos3-DROID-eef/Cosmos3-DROID-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/FastUMI-eef/FastUMI-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboDojo-eef/RoboDojo-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboDojo-joint/RoboDojo-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Galbot-joint/Galbot-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Galaxea-joint/Galaxea-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/InternData-M1-eef/InternData-M1-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/AgiBotWorld2026-eef/AgiBotWorld2026-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/AgiBotWorld2026-joint/AgiBotWorld2026-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND2.0-eef/RoboMIND2.0-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND2.0-joint/RoboMIND2.0-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND-v1-eef/RoboMIND-v1-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND-v1-joint/RoboMIND-v1-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboTwin2.0-eef/RoboTwin2.0-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboTwin2.0-joint/RoboTwin2.0-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/libero-eef/libero-eef.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/libero-joint/libero-joint.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/legacy/legacy.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/bench2dex/bench2dex.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/hrdexdb/hrdexdb.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/psibot_glove/psibot_glove.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/omnivitac/omnivitac.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/openloong/openloong.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/tacverse/tacverse.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/univtac/univtac.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egodex/egodex_media1024_g16.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egolive/egolive.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egopro/egopro.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egostandard/egostandard.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egoverse/egoverse.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    },
+    {
+      "path": "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/lightwheel/lightwheel_media1024_g16.parquet",
+      "rows": 1,
+      "all_unified_action128": true
+    }
+  ],
+  "unknown_catalogs": [],
+  "structural_canvases": [
+    [
+      480,
+      640
+    ],
+    [
+      480,
+      720
+    ],
+    [
+      480,
+      848
+    ],
+    [
+      640,
+      640
+    ],
+    [
+      640,
+      752
+    ],
+    [
+      720,
+      640
+    ],
+    [
+      848,
+      640
+    ],
+    [
+      960,
+      640
+    ]
+  ],
+  "missing_canvases": [],
+  "expected_variant_count": 32,
+  "missing_variants": [],
+  "media_decoded": false,
+  "sampling_state_consumed": false,
+  "actual_training_accepted": false
+}

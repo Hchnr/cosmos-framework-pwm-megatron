@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "scope": "12 raw packed slots replayed from the same runtime checkpoint in two separate process launches",
+  "identical_slots": 12,
+  "raw_samples_packing_augmentation_sha256_equal": true,
+  "noise_equality_independently_checked": false,
+  "production_576_slots_accepted": false
+}

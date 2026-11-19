@@ -7,6 +7,7 @@ The optional VIDEO Flash3 path groups KV by sample; UND/ACTION keep Flex.
 Unpadded inference can use FA3 for all three streams, with causal UND attention.
 """
 
+import os
 from typing import NamedTuple
 
 import torch
@@ -14,6 +15,7 @@ import torch.nn.functional as F
 from torch.nn.attention.flex_attention import create_block_mask, flex_attention
 
 _compiled_attention = torch.compile(flex_attention, dynamic=False)
+_deterministic_attention = os.environ.get("COSMOS_ATTENTION_DETERMINISTIC", "0") == "1"
 
 
 class VideoVarlenMask(NamedTuple):
@@ -69,6 +71,7 @@ def video_varlen_attend(q, k, v, mask):
         max_seqlen_KV=mask.max_kv,
         is_causal=mask.causal,
         causal_type=CausalType.BottomRight if mask.causal else None,
+        deterministic=_deterministic_attention,
     )
     return out[0].flatten(1)
 

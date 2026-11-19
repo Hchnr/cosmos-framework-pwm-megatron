@@ -1,0 +1,21 @@
+{
+  "format": "cosmos_megatron_tp_pp",
+  "format_version": 1,
+  "mcore_checkpoint_version": 3.1,
+  "topology": {
+    "tensor_model_parallel_size": 2,
+    "pipeline_model_parallel_size": 2,
+    "global_packed_microbatches_per_update": 12,
+    "logical_data_parallel_size": 4,
+    "reference_micro_steps_per_update": 3,
+    "sequence_parallel": false,
+    "pipeline_schedule": "1f1b",
+    "use_distributed_optimizer": true,
+    "overlap_grad_reduce": false,
+    "overlap_param_gather": false
+  },
+  "world_size": 4,
+  "iteration": 1201,
+  "optimizer": true,
+  "rank_state": true
+}

@@ -1,0 +1,404 @@
+{
+  "scope": "native original capacity global576 first update only; remaining two updates active; not steady state or matched TP/PP performance",
+  "iteration": 1201,
+  "rank_updates": {
+    "outputs/megatron_tp_pp_native_full576_consume_three_updates_20261118/updates.rank2.jsonl": [
+      {
+        "iteration": 1201,
+        "loss": 0.3195436308160425,
+        "gradient_norm": 0.10888671875,
+        "update_seconds": 1813.7213961444795,
+        "preflight_seconds": 1.0143965482711792e-05,
+        "raw_data_preflight": false,
+        "raw_data_fingerprints": true,
+        "prepared_noise_trace": true,
+        "tokenizer_setup_seconds": 28.670030813664198,
+        "samples_by_original_microstep": [
+          [
+            0.0,
+            1809.0
+          ],
+          [
+            0.0,
+            2115.0
+          ],
+          [
+            0.0,
+            3054.0
+          ]
+        ],
+        "peak_cuda_allocated_bytes": 77910151168,
+        "logical_slots": 576,
+        "physical_dp": 4,
+        "source_trainer": {
+          "source_trainer_iteration": 1200,
+          "source_training_precision": {
+            "enabled": false,
+            "version": 1
+          },
+          "action128_data_extension_reset": true
+        },
+        "scope": "native PyTorch FSDP, original logical data/noising, baseline compute/optimizer/Trainer step",
+        "native_unvirtualized_data_oracle_still_required": true,
+        "measurement_batch_callbacks_omitted": true,
+        "microbatch_gc_interval": 16,
+        "microbatch_gc_collections": [
+          {
+            "completed_backwards": 16,
+            "collected_python_objects": 38357,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.822204940021038
+          },
+          {
+            "completed_backwards": 32,
+            "collected_python_objects": 945,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.781772717833519
+          },
+          {
+            "completed_backwards": 48,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.850648857653141
+          },
+          {
+            "completed_backwards": 64,
+            "collected_python_objects": 945,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8424555696547031
+          },
+          {
+            "completed_backwards": 80,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8528202958405018
+          },
+          {
+            "completed_backwards": 96,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8230291791260242
+          },
+          {
+            "completed_backwards": 112,
+            "collected_python_objects": 1164,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8331865109503269
+          },
+          {
+            "completed_backwards": 128,
+            "collected_python_objects": 1223,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8521177507936954
+          },
+          {
+            "completed_backwards": 144,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8146446719765663
+          }
+        ]
+      }
+    ],
+    "outputs/megatron_tp_pp_native_full576_consume_three_updates_20261118/updates.rank3.jsonl": [
+      {
+        "iteration": 1201,
+        "loss": 0.3195436308160425,
+        "gradient_norm": 0.10888671875,
+        "update_seconds": 1813.7229329757392,
+        "preflight_seconds": 1.0363757610321045e-05,
+        "raw_data_preflight": false,
+        "raw_data_fingerprints": true,
+        "prepared_noise_trace": true,
+        "tokenizer_setup_seconds": 28.669659607112408,
+        "samples_by_original_microstep": [
+          [
+            0.0,
+            1809.0
+          ],
+          [
+            0.0,
+            2115.0
+          ],
+          [
+            0.0,
+            3054.0
+          ]
+        ],
+        "peak_cuda_allocated_bytes": 77908949504,
+        "logical_slots": 576,
+        "physical_dp": 4,
+        "source_trainer": {
+          "source_trainer_iteration": 1200,
+          "source_training_precision": {
+            "enabled": false,
+            "version": 1
+          },
+          "action128_data_extension_reset": true
+        },
+        "scope": "native PyTorch FSDP, original logical data/noising, baseline compute/optimizer/Trainer step",
+        "native_unvirtualized_data_oracle_still_required": true,
+        "measurement_batch_callbacks_omitted": true,
+        "microbatch_gc_interval": 16,
+        "microbatch_gc_collections": [
+          {
+            "completed_backwards": 16,
+            "collected_python_objects": 35724,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8306026794016361
+          },
+          {
+            "completed_backwards": 32,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.7913502752780914
+          },
+          {
+            "completed_backwards": 48,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8505087234079838
+          },
+          {
+            "completed_backwards": 64,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.842038955539465
+          },
+          {
+            "completed_backwards": 80,
+            "collected_python_objects": 1176,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8625971227884293
+          },
+          {
+            "completed_backwards": 96,
+            "collected_python_objects": 1176,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8317395485937595
+          },
+          {
+            "completed_backwards": 112,
+            "collected_python_objects": 132,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8419944196939468
+          },
+          {
+            "completed_backwards": 128,
+            "collected_python_objects": 921,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8436024338006973
+          },
+          {
+            "completed_backwards": 144,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8169843964278698
+          }
+        ]
+      }
+    ],
+    "outputs/megatron_tp_pp_native_full576_consume_three_updates_20261118/updates.rank1.jsonl": [
+      {
+        "iteration": 1201,
+        "loss": 0.3195436308160425,
+        "gradient_norm": 0.10888671875,
+        "update_seconds": 1813.724744386971,
+        "preflight_seconds": 9.249895811080933e-06,
+        "raw_data_preflight": false,
+        "raw_data_fingerprints": true,
+        "prepared_noise_trace": true,
+        "tokenizer_setup_seconds": 28.670180875808,
+        "samples_by_original_microstep": [
+          [
+            0.0,
+            1809.0
+          ],
+          [
+            0.0,
+            2115.0
+          ],
+          [
+            0.0,
+            3054.0
+          ]
+        ],
+        "peak_cuda_allocated_bytes": 77910055936,
+        "logical_slots": 576,
+        "physical_dp": 4,
+        "source_trainer": {
+          "source_trainer_iteration": 1200,
+          "source_training_precision": {
+            "enabled": false,
+            "version": 1
+          },
+          "action128_data_extension_reset": true
+        },
+        "scope": "native PyTorch FSDP, original logical data/noising, baseline compute/optimizer/Trainer step",
+        "native_unvirtualized_data_oracle_still_required": true,
+        "measurement_batch_callbacks_omitted": true,
+        "microbatch_gc_interval": 16,
+        "microbatch_gc_collections": [
+          {
+            "completed_backwards": 16,
+            "collected_python_objects": 34911,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8312944360077381
+          },
+          {
+            "completed_backwards": 32,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.7842524610459805
+          },
+          {
+            "completed_backwards": 48,
+            "collected_python_objects": 435,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8391549326479435
+          },
+          {
+            "completed_backwards": 64,
+            "collected_python_objects": 916,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8462487757205963
+          },
+          {
+            "completed_backwards": 80,
+            "collected_python_objects": 940,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8510776236653328
+          },
+          {
+            "completed_backwards": 96,
+            "collected_python_objects": 945,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8412856869399548
+          },
+          {
+            "completed_backwards": 112,
+            "collected_python_objects": 1276,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8308552652597427
+          },
+          {
+            "completed_backwards": 128,
+            "collected_python_objects": 2323,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8525777906179428
+          },
+          {
+            "completed_backwards": 144,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.81686020642519
+          }
+        ]
+      }
+    ],
+    "outputs/megatron_tp_pp_native_full576_consume_three_updates_20261118/updates.rank0.jsonl": [
+      {
+        "iteration": 1201,
+        "loss": 0.3195436308160425,
+        "gradient_norm": 0.10888671875,
+        "update_seconds": 1813.73456543684,
+        "preflight_seconds": 2.1208077669143677e-05,
+        "raw_data_preflight": false,
+        "raw_data_fingerprints": true,
+        "prepared_noise_trace": true,
+        "tokenizer_setup_seconds": 28.67091466113925,
+        "samples_by_original_microstep": [
+          [
+            0.0,
+            1809.0
+          ],
+          [
+            0.0,
+            2115.0
+          ],
+          [
+            0.0,
+            3054.0
+          ]
+        ],
+        "peak_cuda_allocated_bytes": 77910142464,
+        "logical_slots": 576,
+        "physical_dp": 4,
+        "source_trainer": {
+          "source_trainer_iteration": 1200,
+          "source_training_precision": {
+            "enabled": false,
+            "version": 1
+          },
+          "action128_data_extension_reset": true
+        },
+        "scope": "native PyTorch FSDP, original logical data/noising, baseline compute/optimizer/Trainer step",
+        "native_unvirtualized_data_oracle_still_required": true,
+        "measurement_batch_callbacks_omitted": true,
+        "microbatch_gc_interval": 16,
+        "microbatch_gc_collections": [
+          {
+            "completed_backwards": 16,
+            "collected_python_objects": 35114,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8787973634898663
+          },
+          {
+            "completed_backwards": 32,
+            "collected_python_objects": 309,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8029983676970005
+          },
+          {
+            "completed_backwards": 48,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8389117047190666
+          },
+          {
+            "completed_backwards": 64,
+            "collected_python_objects": 127,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8582630418241024
+          },
+          {
+            "completed_backwards": 80,
+            "collected_python_objects": 945,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.855378620326519
+          },
+          {
+            "completed_backwards": 96,
+            "collected_python_objects": 1171,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8055316470563412
+          },
+          {
+            "completed_backwards": 112,
+            "collected_python_objects": 132,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8140572868287563
+          },
+          {
+            "completed_backwards": 128,
+            "collected_python_objects": 952,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8442649729549885
+          },
+          {
+            "completed_backwards": 144,
+            "collected_python_objects": 132,
+            "reclaimed_allocated_bytes": 0,
+            "host_seconds": 0.8272402137517929
+          }
+        ]
+      }
+    ]
+  },
+  "max_rank_update_seconds": 1813.73456543684,
+  "full_three_update_run_accepted": false,
+  "tp_pp_performance_accepted": false,
+  "source_guard_files": 838,
+  "source_guard_unchanged_at_observation": true,
+  "media_failure_file_count_at_observation": 0
+}

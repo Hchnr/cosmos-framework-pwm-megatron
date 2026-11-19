@@ -1,0 +1,437 @@
+# 58-source State128 Megatron TP/PP. Four-GPU default TP2/PP2; 576 logical slots per update.
+# Paths/ratios match the 58-source workbook mixture (sum 100000; Ego 40%).
+# Preserve the 52-source production runtime; extend its full-state checkpoint.
+[job]
+task = "vfm"
+experiment = "action_policy_droid_nano"
+project = "cosmos3_action"
+group = "action128"
+name = "pretrain58src_state_h1_nano_megatron_tp2_pp2"
+wandb_mode = "disabled"
+
+[model]
+vision_spatial_position_mode = "action128_seam"
+tower_structure = "three_tower"
+action_tower_init = "checkpoint"
+action_tower_preset = "width_only_1b"
+action_tower_execution = "native"
+action_tower_attention_backend = "flash3_video"
+action_tower_und_short_tokens = 5120
+action_tower_projection_mode = "routed"
+precision = "bfloat16"
+action_gen = true
+vlm_tokenizer_path = "${oc.env:HF_MODEL_PATH}"
+load_vlm_visual = false
+max_num_tokens_after_packing = 74368
+
+[model.rectified_flow_training_config]
+loss_scale = 1.0
+action_loss_weight = 1.0
+
+[model.ema]
+enabled = false
+
+[model.fixed_sequence_length]
+enabled = true
+und_tokens = 11776
+gen_tokens = 62592
+action_tokens = 2944
+
+[model.compile]
+enabled = true
+compiled_region = "language"
+compile_dynamic = false
+mix_order_reduction_split_size = 32
+
+[model.activation_checkpointing]
+mode = "full"
+
+[model.parallelism]
+backend = "megatron_tp_pp"
+data_parallel_shard_degree = 1
+data_parallel_replicate_degree = 1
+context_parallel_shard_degree = 1
+
+[model.parallelism.megatron]
+tensor_model_parallel_size = 2
+pipeline_model_parallel_size = 2
+global_packed_microbatches_per_update = 576
+logical_data_parallel_size = 192
+reference_micro_steps_per_update = 3
+sequence_parallel = false
+pipeline_schedule = "1f1b"
+use_distributed_optimizer = true
+
+[model.tokenizer]
+vae_path = "${oc.env:WAN_VAE_PATH}"
+
+[optimizer]
+lr = 0.0001
+
+[scheduler]
+cycle_lengths = [100000]
+warm_up_steps = [100]
+f_start = [0.0]
+f_max = [1.0]
+f_min = [1.0]
+
+[dataloader_train]
+action_use_state = true
+action_state_normalization_paths = {"/share-mixed/projset/eai_pwm/datasets/action_tactile_pretraining_20261026/bench2dex" = "examples/normalization/bench2dex_state_prephysical_20261102.json"}
+first_frame_color_jitter = true
+action_video_fps_default = 30.0
+max_samples_per_batch = 92
+max_sequence_length = 74368
+execution_backend = "shared_prefetch"
+# Bound concurrent preparation and host-memory pressure across eight GPU ranks.
+# Logical source streams and their deterministic sample order stay unchanged.
+num_workers = 16
+prefetch_factor = 8
+# Allow the decoder's 300s request deadline, but report a stalled batch before
+# the DP-replicate process group's 600s collective timeout aborts other ranks.
+worker_timeout = 450
+# Abandon slow worker-side batches and refill the same schedule slot (0 disables).
+microbatch_timeout_sec = 120
+# Prefetched work may replace several batches before the trainer requests it.
+# Bound actual trainer waiting with worker_timeout rather than a retry count.
+microbatch_timeout_max_skips = 0
+microbatch_skip_log_dir = "${oc.env:OUTPUT_ROOT}/logs/skipped_samples"
+logical_workers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+# Pinning the full prefetch window retained ~39 GiB/rank of host mappings in
+# production, alongside memory pressure and repeated decode timeouts. Keep
+# queued video pageable; transfer the same tensors when the model consumes them.
+pin_memory = false
+seed = 42
+
+[dataloader_train.media]
+action_max_row_group_bytes = 2147483648
+decode_timeout_sec = 300
+reuse_seek_groups = true
+# Bounded MP4 frame decoding for high-resolution Ego views.
+video_decode_threads = 4
+# Record corrupt media windows and refill batches from subsequent samples.
+action_skip_media_errors = true
+action_max_consecutive_skips = 100
+
+# InternData-A1 / 家庭日常 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/household_daily/eef/catalog.parquet"
+ratio = 2400
+
+# InternData-A1 / 家庭日常 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/household_daily/joint/catalog.parquet"
+ratio = 2400
+
+# InternData-A1 / 功能性协作与整理 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/functional_cooperation/eef/catalog.parquet"
+ratio = 1350
+
+# InternData-A1 / 功能性协作与整理 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/functional_cooperation/joint/catalog.parquet"
+ratio = 1350
+
+# InternData-A1 / 基础抓放 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/basic_transfer/eef/catalog.parquet"
+ratio = 600
+
+# InternData-A1 / 基础抓放 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/basic_transfer/joint/catalog.parquet"
+ratio = 600
+
+# InternData-A1 / 目标跟踪 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/target_tracking/eef/catalog.parquet"
+ratio = 60
+
+# InternData-A1 / 目标跟踪 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/target_tracking/joint/catalog.parquet"
+ratio = 60
+
+# InternData-A1 / 其他／未分类 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/other_unclassified/eef/catalog.parquet"
+ratio = 90
+
+# InternData-A1 / 其他／未分类 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/InternData-A1/subsets/task_v1/other_unclassified/joint/catalog.parquet"
+ratio = 90
+
+# AgiBotWorld-Beta / 家电家务 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/household_appliances/eef/catalog.parquet"
+ratio = 3240
+
+# AgiBotWorld-Beta / 家电家务 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/household_appliances/joint/catalog.parquet"
+ratio = 2160
+
+# AgiBotWorld-Beta / 衣物／柔性材料 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/deformable_textiles/eef/catalog.parquet"
+ratio = 1980
+
+# AgiBotWorld-Beta / 衣物／柔性材料 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/deformable_textiles/joint/catalog.parquet"
+ratio = 1320
+
+# AgiBotWorld-Beta / 精细／工具 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/precision_tools/eef/catalog.parquet"
+ratio = 720
+
+# AgiBotWorld-Beta / 精细／工具 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/precision_tools/joint/catalog.parquet"
+ratio = 480
+
+# AgiBotWorld-Beta / 零售／工业 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/retail_industrial/eef/catalog.parquet"
+ratio = 144
+
+# AgiBotWorld-Beta / 零售／工业 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/retail_industrial/joint/catalog.parquet"
+ratio = 96
+
+# AgiBotWorld-Beta / 其他基础任务 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/other_basic/eef/catalog.parquet"
+ratio = 36
+
+# AgiBotWorld-Beta / 其他基础任务 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/action_processed_r2/AgiBotWorld-Beta/subsets/task_v1/other_basic/joint/catalog.parquet"
+ratio = 24
+
+# OpenNeoData / 家庭收纳／清洁 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/household_storage_cleaning/catalog.parquet"
+ratio = 2400
+
+# OpenNeoData / 织物／柔性材料 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/textiles_deformable/catalog.parquet"
+ratio = 480
+
+# OpenNeoData / 精细装配／工具 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/precision_assembly_tools/catalog.parquet"
+ratio = 840
+
+# OpenNeoData / 重复桌面操作 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/repetitive_tabletop/catalog.parquet"
+ratio = 360
+
+# OpenNeoData / 其他工作台任务 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/projset/eai_pwm/datasets/tactile/OpenNeoData_legacy_20261025/action_processed_r2/OpenNeoData/subsets/task_v1/other_workbench/catalog.parquet"
+ratio = 120
+
+# RoboCasa365 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboCasa365-eef/RoboCasa365-eef.parquet"
+ratio = 6245
+
+# RoboCasa365 / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboCasa365-joint/RoboCasa365-joint.parquet"
+ratio = 1625
+
+# Cosmos3-DROID / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Cosmos3-DROID-eef/Cosmos3-DROID-eef.parquet"
+ratio = 3000
+
+# FastUMI / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/FastUMI-eef/FastUMI-eef.parquet"
+ratio = 2400
+
+# RoboDojo / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboDojo-eef/RoboDojo-eef.parquet"
+ratio = 750
+
+# RoboDojo / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboDojo-joint/RoboDojo-joint.parquet"
+ratio = 750
+
+# Galbot / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Galbot-joint/Galbot-joint.parquet"
+ratio = 3900
+
+# Galaxea / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/Galaxea-joint/Galaxea-joint.parquet"
+ratio = 2400
+
+# InternData-M1 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/InternData-M1-eef/InternData-M1-eef.parquet"
+ratio = 2100
+
+# AgiBotWorld2026 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/AgiBotWorld2026-eef/AgiBotWorld2026-eef.parquet"
+ratio = 750
+
+# AgiBotWorld2026 / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/AgiBotWorld2026-joint/AgiBotWorld2026-joint.parquet"
+ratio = 750
+
+# RoboMIND2.0 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND2.0-eef/RoboMIND2.0-eef.parquet"
+ratio = 990
+
+# RoboMIND2.0 / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND2.0-joint/RoboMIND2.0-joint.parquet"
+ratio = 2010
+
+# RoboMIND v1 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND-v1-eef/RoboMIND-v1-eef.parquet"
+ratio = 162
+
+# RoboMIND v1 / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboMIND-v1-joint/RoboMIND-v1-joint.parquet"
+ratio = 738
+
+# RoboTwin2.0 / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboTwin2.0-eef/RoboTwin2.0-eef.parquet"
+ratio = 630
+
+# RoboTwin2.0 / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/RoboTwin2.0-joint/RoboTwin2.0-joint.parquet"
+ratio = 620
+
+# LIBERO / 全库 / eef
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/libero-eef/libero-eef.parquet"
+ratio = 18
+
+# LIBERO / 全库 / joint
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/libero-joint/libero-joint.parquet"
+ratio = 12
+
+# legacy / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/legacy/legacy.parquet"
+ratio = 4890
+
+# Bench2Dex / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/bench2dex/bench2dex.parquet"
+ratio = 300
+
+# HRDexDB / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/hrdexdb/hrdexdb.parquet"
+ratio = 180
+
+# PsiBot Glove / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/psibot_glove/psibot_glove.parquet"
+ratio = 600
+
+# OmniViTac / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/omnivitac/omnivitac.parquet"
+ratio = 300
+
+# OpenLoong / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/openloong/openloong.parquet"
+ratio = 240
+
+# TacVerse / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/tacverse/tacverse.parquet"
+ratio = 210
+
+# UniVTac / 全库 / mixed
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/univtac/univtac.parquet"
+ratio = 30
+
+# EgoDex / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egodex/egodex_media1024_g16.parquet"
+ratio = 2637
+
+# EgoLive / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egolive/egolive.parquet"
+ratio = 10404
+
+# EgoPro / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egopro/egopro.parquet"
+ratio = 3733
+
+# EgoStandard / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egostandard/egostandard.parquet"
+ratio = 16176
+
+# EgoVerse / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/egoverse/egoverse.parquet"
+ratio = 1226
+
+# Lightwheel / 全库 / ego128
+[[dataloader_train.datasets]]
+path = "/share-mixed/project/liyue/data/parquet-data/action-pretraining-20261029/lightwheel/lightwheel_media1024_g16.parquet"
+ratio = 5824
+
+[trainer]
+max_iter = 100000
+logging_iter = 1
+grad_accum_iter = 1
+
+[trainer.callbacks.compile_tokenizer]
+enabled = true
+compile_after_iterations = 3
+spatial_sizes = [[480, 848], [720, 640], [640, 752], [480, 720], [848, 640], [640, 640], [480, 640], [960, 640]]
+require_full_coverage = true
+
+[trainer.compile_config]
+recompile_limit = 128
+use_duck_shape = false
+
+[trainer.compile_cache]
+enabled = false
+path = "${oc.env:ACTION128_COMPILE_CACHE_ROOT,/tmp/cosmos_compile_cache/action128_state_h1_58src}/rank${oc.env:LOCAL_RANK,0}"
+
+[checkpoint]
+load_path = "${oc.env:BASE_CHECKPOINT_PATH}"
+action128_load_mode = "extend"
+action128_preserve_source_normalization = true
+megatron_tp_pp_import_path = "${oc.env:MEGATRON_TP_PP_IMPORT_PATH}"
+keys_to_skip_loading = []
+load_training_state = true
+save_iter = 200
+keep_last_n = 3
+keep_every_n_steps = 2000
+dcp_async_mode_enabled = false
+keys_not_to_resume = []
+strict_resume = true

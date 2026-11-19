@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "scope": "tiny mixed frozen/trainable CUDA model, compiled per-block full AC, two microbatches and three nonzero native Adam updates; CPU saved-tensor offload only",
+  "updates": [
+    {
+      "update": 0,
+      "outputs_gradients_norm_parameters_moments_step_bitexact": true
+    },
+    {
+      "update": 1,
+      "outputs_gradients_norm_parameters_moments_step_bitexact": true
+    },
+    {
+      "update": 2,
+      "outputs_gradients_norm_parameters_moments_step_bitexact": true
+    }
+  ],
+  "saved_cuda_bytes": 7584,
+  "saved_cuda_tensor_calls": 24,
+  "changed_saved_tensor_layouts": 0,
+  "preserve_layout": true,
+  "peak_allocated_cuda_bytes": 68201472,
+  "full_model_dp2_restart_accepted": false,
+  "production_performance_accepted": false
+}

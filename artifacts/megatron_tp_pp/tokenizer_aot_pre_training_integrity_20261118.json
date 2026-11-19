@@ -1,0 +1,171 @@
+{
+  "scope": "read-only AOT artifact identity/package validation; not actual full-model training acceptance",
+  "identity_matches": true,
+  "tokenizer_source_matches": true,
+  "ready_matches": true,
+  "fingerprint": "da9951409c97712889c8fd0d112be3dbf17cc68bd8fab759acd638d4c8add8c4",
+  "variants": [
+    {
+      "variant": "1,240,320,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,240,360,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,240,424,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,320,320,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,320,376,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,360,320,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,424,320,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "1,480,320,0",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,320,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,360,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,360,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,424,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,240,424,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,320,320,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,320,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,320,376,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,320,376,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,360,320,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,360,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,424,320,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,424,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,480,320,1",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "24,480,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,240,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,240,360,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,240,424,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,320,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,320,376,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,360,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,424,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "variant": "8,480,320,2",
+      "bytes_match": true,
+      "sha256_match": true
+    }
+  ],
+  "actual_training_consumed": false,
+  "passed": true
+}

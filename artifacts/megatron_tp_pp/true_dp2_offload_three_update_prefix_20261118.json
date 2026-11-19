@@ -1,0 +1,35 @@
+{
+  "scope": "actual complete DP2 three-update branches before final full state comparison",
+  "observed_input_slots": 36,
+  "input_mismatches": [],
+  "all_rank_losses_exact": false,
+  "norm_keys": [
+    "grad_norm"
+  ],
+  "all_rank_norms_exact": false,
+  "final_state_comparison_pending": true,
+  "strict_restart_accepted": false,
+  "scalar_comparisons": [
+    {
+      "iteration": 1201,
+      "mean_loss_a": 0.33807151702543103,
+      "mean_loss_b": 0.33807151702543103,
+      "mean_loss_relative_error": 0.0,
+      "max_rank_norm_relative_error": 3.34255566034284e-05
+    },
+    {
+      "iteration": 1202,
+      "mean_loss_a": 0.14657722413539886,
+      "mean_loss_b": 0.14656343994041285,
+      "mean_loss_relative_error": 9.404049685975267e-05,
+      "max_rank_norm_relative_error": 0.0809196029614305
+    },
+    {
+      "iteration": 1203,
+      "mean_loss_a": 0.4680525766064723,
+      "mean_loss_b": 0.46793465067942935,
+      "mean_loss_relative_error": 0.0002519501717049845,
+      "max_rank_norm_relative_error": 0.03511049648663882
+    }
+  ]
+}

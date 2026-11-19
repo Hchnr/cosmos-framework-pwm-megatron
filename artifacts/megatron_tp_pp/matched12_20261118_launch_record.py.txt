@@ -1,0 +1,73 @@
+import json,os,subprocess,time
+from pathlib import Path
+import psutil
+repo=Path('/share-mixed/project/eai_pwm/repos/cosmos-framework-pwm-megatron')
+os.chdir(repo)
+math_code=1  # completed FP32 gate failed; retain all observations, do not launch full576
+def named_running(name):
+    for item in psutil.process_iter(['cmdline']):
+        args = item.info['cmdline'] or []
+        if any(arg.endswith('/monitor_tp_pp_job.py') for arg in args):
+            continue
+        if 'job.name=' + name in args:
+            return True
+        if '--job-name' in args and args.index('--job-name') + 1 < len(args):
+            if args[args.index('--job-name') + 1] == name:
+                return True
+    return False
+
+def profile_job(name, command, environment, profile_name):
+    assert not named_running(name)
+    profiling = ['nsys', 'profile', '--trace=cuda,nvtx,nccl', '--sample=none', '--cpuctxsw=none',
+                 '--capture-range=cudaProfilerApi', '--capture-range-end=stop-shutdown', '--kill=none',
+                 '--wait=primary', '--force-overwrite=false',
+                 '--output=/opt/cosmos-tp-pp-profiles/' + profile_name, *command]
+    with open('/tmp/' + profile_name + '.log', 'x') as log:
+        process = subprocess.Popen(profiling, env=environment, stdout=log, stderr=subprocess.STDOUT)
+        print(json.dumps({'launched_job':name,'nsys_pid':process.pid,'command':command}), flush=True)
+        code=process.wait()
+        print(json.dumps({'job':name,'nsys_exit_code':code,'job_still_running':named_running(name)}), flush=True)
+        while named_running(name):
+            time.sleep(30)
+
+common=os.environ.copy()
+common.update(CUDA_VISIBLE_DEVICES='0,1,2,3', CUDA_DEVICE_MAX_CONNECTIONS='1',
+              OMP_NUM_THREADS='2', MKL_NUM_THREADS='2', OPENBLAS_NUM_THREADS='1',
+              PYTORCH_ALLOC_CONF='expandable_segments:True',
+              TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC='7200', COSMOS_NCCL_SUBGROUP_TIMEOUT_SEC='7200',
+              COSMOS_ATTENTION_DETERMINISTIC='1', CUBLAS_WORKSPACE_CONFIG=':4096:8',
+              COSMOS_TP_PP_TRACE_PREPARED='1', COSMOS_TP_PP_PROFILE_ITERATION='1203')
+for key in ('COSMOS_TOKENIZER_AOT_CACHE_MODE','COSMOS_TOKENIZER_AOT_ARTIFACT_DIR',
+            'COSMOS_TOKENIZER_AOT_FINGERPRINT','COSMOS_TP_PP_CAPTURE_PREPARED_DIR',
+            'COSMOS_TP_PP_CAPTURE_ITERATION','COSMOS_TP_PP_VERIFY_RAW_REPLAY'):
+    common.pop(key,None)
+job12='tp_pp_matched12_singlepass_5updates_20261118'
+tp_environment=common.copy()
+tp_environment.update(OUTPUT_ROOT=str(repo/'outputs/megatron_tp_pp'),
+                      IMAGINAIRE_OUTPUT_ROOT=str(repo/'outputs/megatron_tp_pp'),
+                      COSMOS_TP_PP_PROFILE_SLOTS='0:8')
+profile_job(job12, ['bash','examples/launch_pretrain_state_h1_58src_megatron_tp_pp.sh',
+                   'job.name='+job12,'trainer.max_iter=1205','checkpoint.save_iter=100000',
+                   'model.config.parallelism.megatron.logical_data_parallel_size=4',
+                   'model.config.parallelism.megatron.global_packed_microbatches_per_update=12',
+                   'trainer.callbacks.compile_tokenizer.enabled=false',
+                   'trainer.cudnn.deterministic=true','trainer.cudnn.benchmark=false'],
+            tp_environment,'matched12_tp_singlepass_20261118')
+tp_root=repo/'outputs/megatron_tp_pp/cosmos3_action/action128'/job12
+assert (tp_root/'checkpoints/iter_000001205/.save_complete').is_file(), 'TP matched12 did not complete five updates'
+native_root=repo/'outputs/megatron_tp_pp_native_matched12_20261118'
+native_environment=common.copy()
+native_environment.update(OUTPUT_ROOT=str(native_root/'stock_trainer'),
+                          IMAGINAIRE_OUTPUT_ROOT=str(native_root/'stock_trainer'),
+                          COSMOS_TP_PP_PROFILE_SLOTS='0:2')
+profile_job('native_fsdp_matched12_20261118',
+            [str(repo/'.venv/bin/python'),'-m','torch.distributed.run','--standalone','--nproc-per-node=4',
+             'tools/run_tp_pp_native_reference.py','--toml',
+             'examples/toml/sft_config/action128_pretrain_state_h1_58src_megatron_tp_pp.toml',
+             '--bundle','/opt/cosmos-tp-pp-canonical-iter1200','--output',str(native_root),
+             '--logical-dp','4','--updates','5','--job-name','native_fsdp_matched12_20261118',
+             '--disable-tokenizer-compile','--save-final-numerical-state'],
+            native_environment,'matched12_native_fsdp_20261118')
+assert (native_root/'math_state_000001205/.math_complete').is_file(), 'Native matched12 did not complete'
+print(json.dumps({'matched12_runs_completed':True,'tp_root':str(tp_root),'native_root':str(native_root),
+                  'full_source_math_exit_code':math_code,'full576_acceptance_pending':True}),flush=True)
