@@ -5,6 +5,7 @@
 
 import json
 import os
+from functools import partial
 from pathlib import Path
 
 import torch
@@ -35,10 +36,31 @@ def finalize_grads(models, num_tokens=None, **kwargs):
 
 
 class ModelParallelDriver:
-    def __init__(self, stage, topology, optimizer_config, *, scheduler=None, config_overrides=None, gc_trace_root=None):
+    def __init__(
+        self,
+        stage,
+        topology,
+        optimizer_config,
+        *,
+        scheduler=None,
+        config_overrides=None,
+        gc_trace_root=None,
+        native_fp32_norm_order=None,
+        _native_norm_consensus_checked=False,
+    ):
         from megatron.core.distributed import DistributedDataParallel, DistributedDataParallelConfig
         from megatron.core.optimizer import get_megatron_optimizer
 
+        if not _native_norm_consensus_checked:
+            from .native_fp32_norm import agree_requested
+
+            agree_requested(
+                "1" if native_fp32_norm_order is not None else "0",
+                dtype=stage.config.params_dtype,
+                dp_size=topology.data_parallel_size(dist.get_world_size()),
+                optimizer_config=optimizer_config,
+                device="cuda",
+            )
         if optimizer_config.use_distributed_optimizer != topology.use_distributed_optimizer:
             raise ValueError("DDP and optimizer must agree on distributed optimizer ownership")
         if optimizer_config.bf16 != (stage.config.params_dtype == torch.bfloat16):
@@ -70,6 +92,41 @@ class ModelParallelDriver:
             [self.model],
             config_overrides=config_overrides,
         )
+        self._native_fp32_norm_calls = 0
+        self._native_fp32_norm_enabled = native_fp32_norm_order is not None
+        if self._native_fp32_norm_enabled:
+            from megatron.core.optimizer.distrib_optimizer import DistributedOptimizer
+            from megatron.core.optimizer.optimizer import ChainedOptimizer
+
+            from .native_fp32_norm import gradient_norm, requested, supported_optimizer_config
+
+            requested(
+                "1",
+                dtype=stage.config.params_dtype,
+                dp_size=topology.data_parallel_size(dist.get_world_size()),
+                clip_grad=optimizer_config.clip_grad,
+            )
+            # The pinned MCore ChainedOptimizer.step calls get_grad_norm;
+            # other step implementations may bypass the candidate entirely.
+            valid_optimizer = isinstance(self.optimizer, ChainedOptimizer)
+            try:
+                if valid_optimizer:
+                    valid_optimizer = all(
+                        getattr(child, "is_stub_optimizer", False)
+                        or (
+                            isinstance(child, DistributedOptimizer)
+                            and child.grad_scaler is None
+                            and supported_optimizer_config(child.config)
+                        )
+                        for child in self.optimizer.chained_optimizers
+                    )
+            except (AttributeError, TypeError, ValueError, OverflowError):
+                valid_optimizer = False
+            invalid_optimizer = torch.tensor([int(not valid_optimizer)], dtype=torch.int32, device="cuda")
+            dist.all_reduce(invalid_optimizer, op=dist.ReduceOp.MAX)
+            if invalid_optimizer.item():
+                raise ValueError("Native FP32 norm requires the qualified MCore ChainedOptimizer")
+            self.optimizer.get_grad_norm = partial(gradient_norm, self, tuple(native_fp32_norm_order))
         from .optimizer_math import align_native_adam_arithmetic
 
         align_native_adam_arithmetic(self.optimizer)
@@ -207,7 +264,10 @@ class ModelParallelDriver:
         dist.all_reduce(finite, op=dist.ReduceOp.MIN)
         if not finite.item():
             return False, None, None
+        norm_calls_before = self._native_fp32_norm_calls
         success, grad_norm, zeros = self.optimizer.step()
+        if self._native_fp32_norm_enabled and success and self._native_fp32_norm_calls == norm_calls_before:
+            raise RuntimeError("MCore optimizer did not consume the requested native FP32 norm")
         # MCore norm/finiteness collectives span the complete TP/PP model;
         # distributed optimizer additionally accounts for DP-owned shards.
         if success:

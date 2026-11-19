@@ -565,3 +565,10 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 ### 2026-11-19：本地投影融合试验
 
 独立的 QKV、gate/up 及两者组合在 TP2/PP1 小模型上分别完成 compile/full AC 的四次非零 Adam 更新，各 rank 对应启用报告均有效，最大逐参数梯度相对 L2 约 **7.49e-7**。组合候选的真实 TP4/PP1 prepared 输入七更新测试，前二预热后五次平均 **7.872503 秒/更新、4.191805 样本/秒**，为同输入 FSDP4 的 **72.48%**；仅共享输入归约为 4.170132 样本/秒。rank 0 峰值 PyTorch 分配为 69,447,804,416 bytes；每个 rank 报告 108 组 QKV 和 108 组 gate/up 已安装。安装报告并不证明 GPU kernel 实际融合，需 profiler 验证；小模型结果不构成完整 36 层数值验收。完整合同、更新记录和报告在运行目录的 `fused_input_both_tp4_comparison.json` 与 `fused_input_both_tp4_reports/`。
+
+
+### 2026-11-19：实验性原生 FP32 梯度范数
+
+`COSMOS_TP_PP_NATIVE_FP32_NORM=1` 显式启用逐参数原生顺序 FP32 norm 候选，默认关闭；开启只支持已验证的 FP32、物理 DP1、正且有限的梯度裁剪和分布式 Adam 配置，不支持独立 norm group 或其他梯度变换。所有 rank 在启动时执行一次 world 协商，即使默认关闭也有一次启动 collective；之后默认训练仍使用原 norm 路径。顺序从新建的 meta 模型及 canonical 参数身份派生，不读取参考梯度或范数；各 TP 组及 PP owner 在重建梯度前做布局检查。
+
+隔离环境中，修订后候选通过 TP2/PP1 两卡和 TP2/PP2 四卡小模型各四次更新，默认关闭 TP2/PP1 冒烟也通过；另有 37 项 CPU 测试和两进程标志协商检查。候选按参数逐项通信，可能增加显存及耗时；单 rank OOM 等错误仍可能使同伴等待。它不解决已观测的全部分片计算误差，尚未通过真实 36 层、原始容量或完整轨迹验收，也未用于 BF16 性能对比。
