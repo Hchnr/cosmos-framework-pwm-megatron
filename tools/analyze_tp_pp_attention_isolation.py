@@ -90,6 +90,8 @@ def compare(reference, local):
         "rank": local["rank"],
         "tp_rank": rank,
         "tp_size": size,
+        "native_event_order": reference.get("event_order"),
+        "tp_event_order": local.get("event_order"),
         "shard_axis": axis,
         "native_shape": global_shape,
         "local_shape": local_shape,
@@ -115,7 +117,11 @@ def analyze(native_directory, tp_directory):
             raise ValueError(f"Missing or duplicated TP shards for {key}")
         for candidate in sorted(candidates, key=lambda r: r["tp_rank"]):
             rows.append({"layer": key[0], "tag": key[1], "kind": key[2], **compare(expected[0], candidate)})
-    return {"scope": "sampled operator diagnostics only; not model correctness acceptance", "rows": rows}
+    return {
+        "scope": "sampled operator diagnostics only; event order is rank-local, not a cross-rank causal order",
+        "mathematical_acceptance": False,
+        "rows": rows,
+    }
 
 
 def main():

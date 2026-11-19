@@ -7,8 +7,10 @@ import copy
 import hashlib
 import json
 
+import pytest
 import torch
 from torch import nn
+from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import checkpoint_wrapper
 
 from tools.trace_tp_pp_attention_isolation import Recorder
 
@@ -113,3 +115,49 @@ def test_attention_mask_and_dispatch_arguments_are_recorded(tmp_path):
     stored = torch.load(tmp_path / "layer32.attention_call0.mask.rank1.pt", weights_only=False)
     assert stored["dtype"] == "torch.bool"
     assert stored["scope"] == {"kind": "first_last_dim0", "rows_each_end": 1}
+
+
+@pytest.mark.parametrize("overlap_forwards", [False, True])
+def test_real_checkpoint_recomputation_keeps_target_cotangents(tmp_path, overlap_forwards):
+    class Layer(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.self_attn = nn.Module()
+            self.self_attn.q_proj_moe_gen = nn.Linear(4, 4, bias=False)
+            self.recorder = None
+
+        def forward(self, value):
+            q = self.self_attn.q_proj_moe_gen(value)
+            return self.recorder.attend(lambda q, k, v, mask: q + k + v, q, q * 2, q * 3, None)
+
+    class Network(nn.Module):
+        def __init__(self, layer):
+            super().__init__()
+            self.layer = checkpoint_wrapper(layer, preserve_rng_state=True)
+
+        def forward(self, value):
+            return self.layer(value)
+
+    torch.manual_seed(8)
+    layer = Layer()
+    recorder = Recorder(tmp_path, rank=0, tp_rank=0, tp_size=1)
+    layer.recorder = recorder
+    network = Network(layer)
+    recorder.attach(network, [(30, layer)])
+    values = [torch.randn(3, 4, requires_grad=True) for _ in range(2)]
+    first = network(values[0])
+    if not overlap_forwards:
+        first.square().sum().backward()
+    second = network(values[1])
+    if overlap_forwards:
+        first.square().sum().backward()
+    second.square().sum().backward()
+
+    def captured(tag, kind):
+        return torch.load(tmp_path / f"layer30.{tag}.{kind}.rank0.pt", weights_only=False)["value"]
+
+    torch.testing.assert_close(captured("self_attn_q_proj_moe_gen", "input"), values[1])
+    torch.testing.assert_close(captured("attention_call0", "output"), second)
+    torch.testing.assert_close(captured("attention_call0", "output_dgrad"), second * 2)
+    torch.testing.assert_close(captured("self_attn_q_proj_moe_gen", "input_dgrad"), values[1].grad)
+    assert recorder.sequence == 1
