@@ -135,6 +135,17 @@ def main():
             raise RuntimeError("Isolated snapshot does not match its source")
         for name in REQUIRED:
             shutil.copy2(ROOT / name, clone / name)
+        cloned_hashes = python_hashes(clone)
+        result["snapshot_python_files"] = len(cloned_hashes)
+
+        def sources_unchanged():
+            return (
+                queue.helper.check_kv_snapshot() == result["base_snapshot"]
+                and python_hashes(clone) == cloned_hashes
+                and {name: sha(ROOT / name) for name in REQUIRED} == source_hashes
+                and {str(path): sha(path) for path in fixed_inputs} == fixed_hashes
+            )
+
         queue.SNAP = clone
         captured = args.output / "capture"
         common = [
@@ -238,6 +249,8 @@ def main():
             args.output,
         )
         q_report = json.loads((args.output / "q_replay.json").read_text())
+        if not sources_unchanged():
+            raise RuntimeError("Source or fixed inputs changed during UND Q capture")
         if not gate_replay(q_report):
             result["skipped"] = "Captured Q difference was not reproduced by native-width versus shard-width GEMM"
             return
@@ -326,11 +339,7 @@ def main():
             )
         result["ranks"] = ranks
         result["passed"] = result["full"]["returncode"] == 0 and all(row["passed"] for row in ranks)
-        result["source_unchanged"] = (
-            queue.helper.check_kv_snapshot() == result["base_snapshot"]
-            and {name: sha(ROOT / name) for name in REQUIRED} == source_hashes
-            and {str(path): sha(path) for path in fixed_inputs} == fixed_hashes
-        )
+        result["source_unchanged"] = sources_unchanged()
         if not result["source_unchanged"]:
             raise RuntimeError("Source or fixed inputs changed during UND Q experiment")
     except BaseException as error:
