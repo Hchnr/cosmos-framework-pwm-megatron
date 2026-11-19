@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Equal-microbatch TP4/FSDP4 with real VAE/noising and training included.
 
 Uses verified CPU raw fixtures. Media decode is outside timing; fixture copying,

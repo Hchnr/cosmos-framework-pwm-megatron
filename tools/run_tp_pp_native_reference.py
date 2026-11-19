@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Native PyTorch FSDP reference with the same original logical 192 x 3 update.
 
 Keeps the native model, optimizer, clipping and Trainer.training_step. The

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Restore a completed production checkpoint and export its actual Adam state.
 
 Run with torchrun on the checkpoint's original four ranks. No updates execute;

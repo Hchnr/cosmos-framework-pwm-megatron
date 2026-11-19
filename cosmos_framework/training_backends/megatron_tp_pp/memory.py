@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Collect unreachable Python cycles at bounded microbatch intervals.
 
 This does not alter live activations, tensors, optimizer state, or CUDA caches.

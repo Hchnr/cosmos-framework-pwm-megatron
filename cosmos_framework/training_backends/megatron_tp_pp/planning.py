@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Bounded streaming inputs, optional loss-denominator preflight and replay identity.
 
 Rank-level loss streams raw media once. Sample-level averaging or explicit

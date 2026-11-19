@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Bounded tensor-schema transport, separate from differentiable pipeline P2P.
 
 No pickle/object collectives or kernel objects travel on this path. A JSON

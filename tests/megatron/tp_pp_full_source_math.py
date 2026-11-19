@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Full 36-layer source/master/Adam FP32 replay against an unsharded native model.
 
 Run native first, then four-rank tp. Uses small crops of verified real prepared

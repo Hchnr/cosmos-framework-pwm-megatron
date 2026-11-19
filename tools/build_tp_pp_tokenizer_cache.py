@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Build the native tokenizer's immutable AOT cache on spare GPUs before TP/PP.
 
 Uses the recipe's unchanged native VAE and CompileTokenizer callback. Compiling
