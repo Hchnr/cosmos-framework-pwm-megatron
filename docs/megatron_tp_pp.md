@@ -594,3 +594,13 @@ PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 
 消除逐层 FP64 trace、使用平坦 checkpoint、逐块嵌套重算和流式梯度后，原生 FP32/Flex 原始容量参考已完成两份真实微批的连续 **3 次更新**，梯度范数分别为 **0.29377660、1.10465622、0.42172375**；参考 manifest 标记完成，包含 811 个参数及全部三步状态。同输入的 TP4 对照已启动，其数值门槛与 TP2 对照尚无结果；这不是 TP 通过，也不是完整 576 槽验收。过程和输出位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/original_capacity_nested_20261119T1019/`。
 
 上文包含 VAE 的 45.47% 结果还存在配置不一致：TP 实际记录 `cudnn.deterministic=false`、`cudnn.benchmark=true`，FSDP 参考强制为 `true`、`false`；VAE 属于计时范围，二者可能选择不同卷积算法。两侧 TF32 关闭，均使用 `CUDA_DEVICE_MAX_CONNECTIONS=1`，但运行时 `torch.are_deterministic_algorithms_enabled()` 未记录。FSDP 各 rank 重复同一三份 fixture 和初始 RNG，因此每更新 132 是样本处理次数，不是 132 个不同样本；该基准不证明真实数据连续性，旧结果也没有逐次 prepared payload/RNG 哈希。旧结果除 GPU PID 监控与 CPU 重叠限制外，还应因这些合同差异标记为暂定，不用于最终性能验收。同设置、实际运行时取值及匹配输入/状态的重测仍待执行。
+
+### 2026-11-19：TP 参考中止与报告核对
+
+上述原始容量 TP4 对照在首次更新完成前由主机内存余量保护中止；协调器记录的原因是 `conservative memory headroom guard`，不能将其描述为 CUDA OOM。原生参考成功不代表 TP 对照已通过，TP2 对照也尚无结果。协调器记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/original_capacity_nested_20261119T1019/coordinator_result.json`。
+
+裁剪输入的 TP4 全宽 K/V 诊断中，将每次更新开始的 master、Adam 状态和 step 重置为对应原生状态后，三次整体梯度相对 L2 为 **4.31973e-4、2.55243e-5、8.99880e-5**；逐项比较仍有大量失败，不能视为连续训练通过。与不重置状态的结果对照表明轨迹会放大误差，但不证明具体根因。运行记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/replay_native_state_after_vae_20261119T1038/queue_result.json`。
+
+早期裁剪 FP32 报告 `fp32_tp4_standard_gpu.rank*.json` 中 `pipeline_parallel_size=2` 是报告字段硬编码错误：执行记录 `sequence_events.jsonl` 显示四卡 `--tp 4`，该次执行所用隔离测试脚本在 TP4 时实际构造 PP1。原始报告保留，不能凭错误字段推断运行拓扑，也不能将数值失败改写为通过。后续验证应从实际拓扑生成并核验报告字段。
+
+此外，原容量 TP 验证协调器的报告门槛此前仅信任顶层 `passed`：独立 CPU 反例表明，包含逐项失败和不完整覆盖的矛盾报告可能被错误接受。实际报告生成器会汇总失败，反例并不证明已有真实运行误报；在增加逐项、覆盖度和阈值一致性校验前，不应将该门槛单独作为验收证据。
