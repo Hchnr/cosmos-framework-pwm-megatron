@@ -12,7 +12,6 @@ or full-model numerical acceptance follows from using this entry point alone.
 """
 
 import argparse
-import ast
 import hashlib
 import json
 import os
@@ -47,18 +46,6 @@ def _digest(path):
     ):
         raise RuntimeError(f"File changed while hashing: {path}")
     return digest
-
-
-def _preparation_class(path):
-    tree = ast.parse(path.read_text())
-    matches = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "GenerationPreparation"]
-    if len(matches) != 1:
-        raise ValueError(f"Expected one GenerationPreparation class in {path}")
-    return ast.dump(matches[0], include_attributes=False)
-
-
-def _python_syntax(path):
-    return ast.dump(ast.parse(path.read_text()), include_attributes=False)
 
 
 def validate_qualification(directory, fixture, source_root=None, recipe=None, environment=None):
@@ -103,22 +90,28 @@ def validate_qualification(directory, fixture, source_root=None, recipe=None, en
         candidate = source_root / relative
         if _digest(old) != matches[0]["sha256"]:
             raise ValueError(f"Qualified source no longer matches its pinned hash: {relative}")
-        if relative.endswith("/preparation.py"):
-            # PR #43 changed GenerationLoss and an import, not the preparation
-            # class. Compare the actual class syntax, in addition to pinning
-            # the full old file, so that fix does not invalidate this gate.
-            equal = _preparation_class(old) == _preparation_class(candidate)
-        elif relative.endswith(("/rng.py", "/transport.py")):
-            # SPDX headers differ between the protected checkout used for the
-            # qualification and main; require their complete Python syntax to
-            # match, excluding comments and source locations.
-            equal = _python_syntax(old) == _python_syntax(candidate)
-        elif relative.endswith(".toml"):
-            equal = tomllib.loads(old.read_text()) == tomllib.loads(candidate.read_text())
-        else:
-            equal = _digest(candidate) == matches[0]["sha256"]
-        if not equal:
+        if _digest(candidate) != matches[0]["sha256"]:
             raise ValueError(f"Benchmark and qualified VAE source differ: {relative}")
+    core_root = source_root / "cosmos_framework"
+    expected_core = {
+        "cosmos_framework/" + str(path.relative_to(core_root)): path
+        for path in core_root.rglob("*.py")
+        if path.is_file()
+    }
+    qualified_core = {}
+    for entry in pinned.values():
+        marker = "/cosmos_framework/"
+        name = entry["resolved"]
+        if marker in name and name.endswith(".py"):
+            relative = "cosmos_framework/" + name.split(marker, 1)[1]
+            if relative in qualified_core:
+                raise ValueError(f"Ambiguous pinned core source: {relative}")
+            qualified_core[relative] = entry
+    if not expected_core or expected_core.keys() != qualified_core.keys():
+        raise ValueError("VAE qualification did not pin the complete core Python source set")
+    for relative, path in expected_core.items():
+        if path.is_symlink() or _digest(path) != qualified_core[relative]["sha256"]:
+            raise ValueError(f"Core source differs from VAE qualification: {relative}")
     if recipe is not None:
         qualified_recipe = (
             source_root / "examples/toml/sft_config/action128_pretrain_state_h1_58src_megatron_tp_pp.toml"

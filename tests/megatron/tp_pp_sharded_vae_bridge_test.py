@@ -128,23 +128,18 @@ def test_qualification_rejects_weak_or_failed_report(tmp_path, mutation):
         validate_qualification(qualification, fixture, source_root, environment=environment)
 
 
-def test_qualification_rejects_changed_vae_source_but_allows_unrelated_loss_change(tmp_path):
+def test_qualification_rejects_any_changed_preparation_source(tmp_path):
     fixture, qualification, source_root, environment = fixture_reports(tmp_path)
     preparation = source_root / "cosmos_framework/training_backends/megatron_tp_pp/preparation.py"
     preparation.write_text(preparation.read_text() + "\nclass GenerationLoss: pass\n")
-    validate_qualification(qualification, fixture, source_root, environment=environment)
-    preparation.write_text(preparation.read_text().replace("return 1", "return 2"))
     with pytest.raises(ValueError, match="source differ"):
         validate_qualification(qualification, fixture, source_root, environment=environment)
 
 
-def test_qualification_allows_comments_but_rejects_changed_rng_and_recipe(tmp_path):
+def test_qualification_rejects_changed_rng_and_recipe(tmp_path):
     fixture, qualification, source_root, environment = fixture_reports(tmp_path)
     rng = source_root / "cosmos_framework/training_backends/megatron_tp_pp/rng.py"
     recipe = source_root / "examples/toml/sft_config/action128_pretrain_state_h1_58src_megatron_tp_pp.toml"
-    rng.write_text("# license\n" + rng.read_text())
-    recipe.write_text("# license\n" + recipe.read_text())
-    validate_qualification(qualification, fixture, source_root, environment=environment)
     rng.write_text(rng.read_text() + "CHANGED = True\n")
     with pytest.raises(ValueError, match="source differ"):
         validate_qualification(qualification, fixture, source_root, environment=environment)
@@ -194,4 +189,12 @@ def test_qualification_rejects_changed_or_new_hf_model_file(tmp_path):
     hf_file.write_bytes(b"hf-weights")
     (hf_file.parent / "new.safetensors").write_bytes(b"extra")
     with pytest.raises(ValueError, match="must pin"):
+        validate_qualification(qualification, fixture, source_root, environment=environment)
+
+
+def test_qualification_rejects_unpinned_core_file(tmp_path):
+    fixture, qualification, source_root, environment = fixture_reports(tmp_path)
+    extra = source_root / "cosmos_framework" / "extra.py"
+    extra.write_text("value = 1\n")
+    with pytest.raises(ValueError, match="complete core"):
         validate_qualification(qualification, fixture, source_root, environment=environment)
