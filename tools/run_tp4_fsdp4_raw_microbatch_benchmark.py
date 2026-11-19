@@ -81,10 +81,85 @@ class RawMicrosteps:
         return batch
 
 
+def install_tp_runtime_audit(driver_class, audit):
+    """Measure the production TP loop with one identical check pair per slot."""
+    original_forward_backward = driver_class.forward_backward
+
+    def forward_backward(driver, batches, *positional, **keywords):
+        audit.begin_update(driver.iteration)
+
+        def checked_batches():
+            for _ in range(driver.microbatches):
+                audit.modules(driver.stage)
+                audit.check("microbatch_before")
+                batch = next(iterator)
+                audit.check("microbatch_after_prepare")
+                yield batch
+
+        iterator = iter(batches)
+        return original_forward_backward(driver, checked_batches(), *positional, **keywords)
+
+    driver_class.forward_backward = forward_backward
+    original_step = driver_class.step
+
+    def step(driver, *positional, **keywords):
+        iteration = driver.iteration
+        result = original_step(driver, *positional, **keywords)
+        audit.check("update_after_optimizer")
+        audit.end_update(iteration)
+        return result
+
+    driver_class.step = step
+
+
+def install_fsdp_runtime_audit(raw_class, trainer_class, native, audit):
+    """Measure the native loop with the same per-slot audit as TP."""
+    original_prepared_step = native.prepared_step
+    original_prepare = raw_class.prepare
+    original_training_step = trainer_class.training_step
+
+    def prepare(*positional, **keywords):
+        slot = positional[2]
+        if slot.micro_step == 0:
+            audit.begin_update(slot.update)
+        audit.check("microbatch_before")
+        result = original_prepare(*positional, **keywords)
+        audit.check("microbatch_after_prepare")
+        return result
+
+    def prepared_step(model, *positional, **keywords):
+        audit.modules(model)
+        return original_prepared_step(model, *positional, **keywords)
+
+    def training_step(trainer, *positional, **keywords):
+        result = original_training_step(trainer, *positional, **keywords)
+        if result[2] == 0:
+            audit.check("update_after_optimizer")
+            audit.end_update(keywords["iteration"])
+        return result
+
+    raw_class.prepare = prepare
+    native.prepared_step = prepared_step
+    trainer_class.training_step = training_step
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--raw-fixture", type=Path, required=True)
     args, remainder = parser.parse_known_args()
+    if remainder.count("--backend") != 1 or remainder.count("--output") != 1:
+        raise ValueError("Require one backend and output for runtime auditing")
+    backend = remainder[remainder.index("--backend") + 1]
+    output = remainder[remainder.index("--output") + 1]
+    from tools.tp_pp_fair_runtime import RuntimeAudit
+
+    audit = RuntimeAudit(output, backend)
+    if backend == "tp":
+        from cosmos_framework.training_backends.megatron_tp_pp.driver import ModelParallelDriver
+
+        install_tp_runtime_audit(ModelParallelDriver, audit)
+    elif backend != "fsdp":
+        raise ValueError(f"Unknown backend: {backend}")
     RawMicrosteps.directory = args.raw_fixture
     benchmark.PreparedMicrosteps = RawMicrosteps
     benchmark.__doc__ = __doc__
@@ -102,12 +177,32 @@ def main():
                 )
             )
         ]
-        overrides += ["model.config.load_vision_tokenizer=true", "trainer.callbacks.compile_tokenizer.enabled=true"]
-        return original(*positional, extra_overrides=overrides, **keywords)
+        overrides += [
+            "model.config.load_vision_tokenizer=true",
+            "trainer.callbacks.compile_tokenizer.enabled=true",
+            "trainer.cudnn.deterministic=true",
+            "trainer.cudnn.benchmark=false",
+        ]
+        config = original(*positional, extra_overrides=overrides, **keywords)
+        audit.config(config)
+        return config
 
     sft_config.load_experiment_from_toml = load_config
+    if backend == "fsdp":
+        # Import after installing the config hook: native captures this symbol
+        # at import time and must see the identical VAE and cuDNN overrides.
+        from cosmos_framework.trainer import ImaginaireTrainer
+        from tools import run_tp_pp_native_reference as native
+
+        install_fsdp_runtime_audit(RawMicrosteps, ImaginaireTrainer, native, audit)
     sys.argv = [sys.argv[0], *remainder]
-    benchmark.main()
+    try:
+        benchmark.main()
+    except BaseException as error:
+        audit.finish(error)
+        raise
+    else:
+        audit.finish()
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ from tools import run_tp4_fsdp4_raw_clean_coordinator as prior
 from tools import tp_pp_gpu_process_monitor as gpu_monitor
 from tools.compare_tp4_fsdp4_microbatch_benchmark import compare
 from tools.run_tp4_sharded_vae_raw_benchmark import _digest, validate_qualification
+from tools.tp_pp_fair_runtime import validate_reports
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = Path("/tmp/cosmos-tp-pp-norm-post-fused.lock")
@@ -307,7 +308,24 @@ def main():
                     if not report.get("passed") or report.get("slots") != 21 or report.get("vae_calls") != 21:
                         raise RuntimeError(f"TP sharded VAE bridge failed for rank {rank}")
             prior.save(status, result)
+        result["runtime_fairness"] = validate_reports(args.output)
         result["comparison"] = compare(args.output / "tp", args.output / "fsdp")
+        result["comparison"]["runtime_fairness"] = result["runtime_fairness"]
+        for backend in ("tp", "fsdp"):
+            window = result["runtime_fairness"]["windows"][backend]
+            comparison = result["comparison"][backend]
+            measured_samples = comparison["global_samples_per_update"] * comparison["contract"]["measured_updates"]
+            comparison["window_seconds"] = window["seconds"]
+            comparison["window_samples"] = measured_samples
+            comparison["window_global_samples_per_second"] = measured_samples / window["seconds"]
+        result["comparison"]["window_tp_over_fsdp_sample_throughput"] = (
+            result["comparison"]["tp"]["window_global_samples_per_second"]
+            / result["comparison"]["fsdp"]["window_global_samples_per_second"]
+        )
+        result["comparison"]["primary_metric"] = (
+            "five measured updates between the first raw-prepare boundary and the final optimizer boundary; "
+            "CUDA synchronize and four-rank barrier at each end; includes inter-update logging"
+        )
         result["comparison"]["peak_cuda_memory"] = {
             backend: peak_memory(args.output / backend, backend) for backend in ("tp", "fsdp")
         }
