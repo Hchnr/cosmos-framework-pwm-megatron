@@ -85,6 +85,46 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--raw-fixture", type=Path, required=True)
     args, remainder = parser.parse_known_args()
+    if remainder.count("--backend") != 1 or remainder.count("--output") != 1:
+        raise ValueError("Require one backend and output for runtime auditing")
+    backend = remainder[remainder.index("--backend") + 1]
+    output = remainder[remainder.index("--output") + 1]
+    from tools.tp_pp_fair_runtime import RuntimeAudit
+
+    audit = RuntimeAudit(output, backend)
+    if backend == "tp":
+        from cosmos_framework.training_backends.megatron_tp_pp.driver import ModelParallelDriver
+
+        original_forward_backward = ModelParallelDriver.forward_backward
+
+        def forward_backward(driver, batches, *positional, **keywords):
+            audit.begin_update(driver.iteration)
+
+            def checked_batches():
+                for _ in range(driver.microbatches):
+                    audit.modules(driver.stage)
+                    audit.check("microbatch_before")
+                    batch = next(iterator)
+                    audit.check("microbatch_after_prepare")
+                    yield batch
+
+            iterator = iter(batches)
+            result = original_forward_backward(driver, checked_batches(), *positional, **keywords)
+            audit.check("update_after_forward_backward")
+            return result
+
+        ModelParallelDriver.forward_backward = forward_backward
+        original_step = ModelParallelDriver.step
+
+        def step(driver, *positional, **keywords):
+            iteration = driver.iteration
+            result = original_step(driver, *positional, **keywords)
+            audit.end_update(iteration)
+            return result
+
+        ModelParallelDriver.step = step
+    elif backend != "fsdp":
+        raise ValueError(f"Unknown backend: {backend}")
     RawMicrosteps.directory = args.raw_fixture
     benchmark.PreparedMicrosteps = RawMicrosteps
     benchmark.__doc__ = __doc__
@@ -102,12 +142,61 @@ def main():
                 )
             )
         ]
-        overrides += ["model.config.load_vision_tokenizer=true", "trainer.callbacks.compile_tokenizer.enabled=true"]
-        return original(*positional, extra_overrides=overrides, **keywords)
+        overrides += [
+            "model.config.load_vision_tokenizer=true",
+            "trainer.callbacks.compile_tokenizer.enabled=true",
+            "trainer.cudnn.deterministic=true",
+            "trainer.cudnn.benchmark=false",
+        ]
+        config = original(*positional, extra_overrides=overrides, **keywords)
+        audit.config(config)
+        return config
 
     sft_config.load_experiment_from_toml = load_config
+    if backend == "fsdp":
+        # Import after installing the config hook: native captures this symbol
+        # at import time and must see the identical VAE and cuDNN overrides.
+        from cosmos_framework.trainer import ImaginaireTrainer
+        from tools import run_tp_pp_native_reference as native
+
+        original_prepared_step = native.prepared_step
+        original_prepare = RawMicrosteps.prepare
+        original_training_step = ImaginaireTrainer.training_step
+
+        def prepare(*positional, **keywords):
+            slot = positional[2]
+            if slot.micro_step == 0:
+                audit.begin_update(slot.update)
+            audit.check("microbatch_before")
+            result = original_prepare(*positional, **keywords)
+            audit.check("microbatch_after_prepare")
+            return result
+
+        def prepared_step(model, *positional, **keywords):
+            audit.modules(model)
+            audit.check("model_forward_before")
+            result = original_prepared_step(model, *positional, **keywords)
+            audit.check("model_forward_after")
+            return result
+
+        RawMicrosteps.prepare = prepare
+        native.prepared_step = prepared_step
+
+        def training_step(trainer, *positional, **keywords):
+            result = original_training_step(trainer, *positional, **keywords)
+            if result[2] == 0:
+                audit.end_update(keywords["iteration"])
+            return result
+
+        ImaginaireTrainer.training_step = training_step
     sys.argv = [sys.argv[0], *remainder]
-    benchmark.main()
+    try:
+        benchmark.main()
+    except BaseException as error:
+        audit.finish(error)
+        raise
+    else:
+        audit.finish()
 
 
 if __name__ == "__main__":
