@@ -17,7 +17,7 @@ from tools.tp_pp_capacity_gate import tp_gate, validate_reports
 def case(tp):
     pp = 4 // tp
     names = ["first", "second"]
-    reference = {"names": names, "runtime_constants_sha256": "a" * 64}
+    reference = {"names": names, "runtime_constants_sha256": "a" * 64, "seed": 42}
     bundle = {
         "tp": tp,
         "pp": pp,
@@ -62,6 +62,7 @@ def case(tp):
         reports.append(
             {
                 "rank": rank,
+                "seed": 42,
                 "updates": 3,
                 "original_capacity": True,
                 "attention_backend": "flex",
@@ -128,6 +129,22 @@ def test_valid_complete_trajectory_passes(tp):
     reports, reference, bundle = case(tp)
     result = validate_reports(reports, tp, {"returncode": 0}, reference, bundle)
     assert result["complete_observation"] and result["passed"]
+    assert result["rng_state_comparison_verified"] is False
+
+
+def test_missing_or_different_requested_seed_cannot_pass():
+    reports, reference, bundle = case(4)
+    for invalid in ({}, {"seed": True}, {"seed": 41}):
+        altered = dict(reference)
+        if not invalid:
+            altered.pop("seed")
+        else:
+            altered.update(invalid)
+        with pytest.raises(ValueError):
+            validate_reports(reports, 4, {"returncode": 0}, altered, bundle)
+    reports[3]["seed"] = 43
+    with pytest.raises(ValueError):
+        validate_reports(reports, 4, {"returncode": 0}, reference, bundle)
 
 
 def test_complete_numerical_failure_remains_a_failed_observation():

@@ -31,7 +31,35 @@ from cosmos_framework.model.generator.omni_mot_model import OmniMoTModel, _prepa
 from cosmos_framework.training_backends.megatron_tp_pp.planning import batch_fingerprint
 from cosmos_framework.training_backends.megatron_tp_pp.source import release_file_cache
 from cosmos_framework.utils.lazy_config import instantiate
+from cosmos_framework.utils.misc import set_random_seed
 from tools.compare_tp_pp_runtime_checkpoints import tensor_difference
+
+
+def validate_reference_seed(reference, seed):
+    """Reject references that cannot prove the same requested initial seed.
+
+    Matching seed labels alone do not prove that runtime RNG states match.
+    """
+    if (
+        type(seed) is not int
+        or not 0 <= seed < 2**32
+        or type(reference.get("seed")) is not int
+        or reference["seed"] != seed
+    ):
+        raise ValueError("Native reference must record the same requested seed as the TP diagnostic")
+
+
+def diagnostic_topology(tp):
+    """Preserve the existing TP1/TP2 setup and use PP1 for four-rank TP4."""
+    from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
+
+    return ModelParallelConfig(
+        tensor_model_parallel_size=tp,
+        pipeline_model_parallel_size=1 if tp == 4 else 2,
+        global_packed_microbatches_per_update=2,
+        logical_data_parallel_size=2,
+        reference_micro_steps_per_update=1,
+    )
 
 
 def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):
@@ -334,6 +362,8 @@ def native(args, config, instance, network, inputs):
         print(json.dumps({"native_completed_update": update, "grad_norm": norm.item()}), flush=True)
     report = {
         "passed": True,
+        "seed": args.seed,
+        "rng_state_evidence": "not_recorded",
         "names": names,
         "input_hashes": [batch_fingerprint(s) for s in inputs],
         "runtime_constants_sha256": batch_fingerprint(constants),
@@ -402,7 +432,6 @@ def tp(args, config, language, network, inputs):
     from cosmos_framework.model.generator.megatron_tp_pp.payload import PayloadLayout
     from cosmos_framework.model.generator.megatron_tp_pp.stage import PipelineStage
     from cosmos_framework.training_backends.megatron_tp_pp.bundle import CanonicalBundle
-    from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
     from cosmos_framework.training_backends.megatron_tp_pp.driver import ModelParallelDriver
     from cosmos_framework.training_backends.megatron_tp_pp.optimizer import adam_parameter_states
     from cosmos_framework.training_backends.megatron_tp_pp.parameter_map import stage_parameter_manifest
@@ -410,17 +439,20 @@ def tp(args, config, language, network, inputs):
     from cosmos_framework.training_backends.megatron_tp_pp.runtime import initialize, transformer_config
     from cosmos_framework.training_backends.megatron_tp_pp.transport import PipelineMetadata, broadcast_batch
 
+    # Reject an already-complete incompatible reference before materializing
+    # the full model. A concurrently generated reference is checked again below.
+    try:
+        existing_reference = json.loads((args.reference_dir / "manifest.json").read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    else:
+        validate_reference_seed(existing_reference, args.seed)
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl", timeout=datetime.timedelta(hours=2))
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
-    topology = ModelParallelConfig(
-        tensor_model_parallel_size=args.tp,
-        global_packed_microbatches_per_update=2,
-        logical_data_parallel_size=2,
-        reference_micro_steps_per_update=1,
-    )
-    initialize(topology)
+    topology = diagnostic_topology(args.tp)
+    initialize(topology, seed=args.seed)
     text = getattr(language, "text_config", language)
     mcore = transformer_config(
         topology, num_layers=36, hidden_size=4096, num_attention_heads=32, variable_seq_lengths=True
@@ -457,6 +489,8 @@ def tp(args, config, language, network, inputs):
                         key: torch.cat((value, right["state"][key]), dim=axis) for key, value in left["state"].items()
                     },
                 }
+
+        from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
 
         bundle = UnshardedDiagnosticBundle(args.bundle, ModelParallelConfig())
     else:
@@ -519,6 +553,7 @@ def tp(args, config, language, network, inputs):
             raise TimeoutError("Native full-source reference did not complete within two hours")
         print(json.dumps({"rank": dist.get_rank(), "waiting_for_native_reference": True}), flush=True)
         time.sleep(30)
+    validate_reference_seed(reference, args.seed)
     assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]
     assert reference.get("original_capacity", False) == args.original_capacity
     assert reference.get("attention_backend", "sdpa") == args.attention_backend
@@ -678,6 +713,8 @@ def tp(args, config, language, network, inputs):
                 {
                     "passed": failures.item() == 0,
                     "scope": "complete pre-clip gradient/output observation; optimizer state gate not yet checked",
+                    "seed": args.seed,
+                    "rng_state_evidence": "not_recorded",
                     "objective": args.objective,
                     "runtime_constants_sha256": reference["runtime_constants_sha256"],
                     "update": update,
@@ -790,6 +827,8 @@ def tp(args, config, language, network, inputs):
             {
                 "passed": passed,
                 "rank": dist.get_rank(),
+                "seed": args.seed,
+                "rng_state_evidence": "not_recorded",
                 "scope": reference["scope"],
                 "objective": args.objective,
                 "retain_full_text": args.retain_full_text,
@@ -839,11 +878,12 @@ def tp(args, config, language, network, inputs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("native", "tp"), required=True)
+    parser.add_argument("--seed", type=int, default=42, help="Initial seed used by both native and TP diagnostics")
     parser.add_argument("--native-device", choices=("cpu", "cuda"), default="cpu")
     parser.add_argument("--native-optimizer", choices=("torch_cpu", "native_cuda"), default="torch_cpu")
     parser.add_argument("--gpu-leaf-reference", action="store_true")
     parser.add_argument("--preserve-saved-layout", action="store_true")
-    parser.add_argument("--tp", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--tp", type=int, choices=(1, 2, 4), default=2, help="TP4 uses PP1 on four GPUs")
     parser.add_argument("--objective", choices=("prediction_square", "native_rf"), default="prediction_square")
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--retain-full-text", action="store_true")
@@ -894,6 +934,7 @@ def main():
         parser.error("GPU leaf reference requires native CUDA mode and the native CUDA optimizer")
     if args.preserve_saved_layout and (args.mode != "native" or args.native_device != "cuda"):
         parser.error("Saved-tensor layout qualification applies only to the native CUDA reference")
+    set_random_seed(args.seed)
     if args.deterministic:
         torch.use_deterministic_algorithms(True)
     config, instance, language, network = configuration(
