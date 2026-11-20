@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 # Four-GPU mechanism diagnostics. This does not substitute for production acceptance.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."

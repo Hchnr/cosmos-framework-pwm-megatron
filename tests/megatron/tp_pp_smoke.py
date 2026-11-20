@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Real TP sharding and 1F1B versus native simultaneous three-tower math.
 
 Run with four GPUs; supports TP/PP/DP matrix, nonzero Adam state, multiple

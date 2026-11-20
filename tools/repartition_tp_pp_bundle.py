@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Reassign PP ownership of an immutable canonical bundle without changing TP.
 
 Payloads are hard-linked, never rewritten. Both bundles must remain immutable;

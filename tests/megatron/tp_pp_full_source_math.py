@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Full 36-layer source/master/Adam FP32 replay against an unsharded native model.
 
 Run native first, then four-rank tp. Uses small crops of verified real prepared
@@ -28,7 +31,35 @@ from cosmos_framework.model.generator.omni_mot_model import OmniMoTModel, _prepa
 from cosmos_framework.training_backends.megatron_tp_pp.planning import batch_fingerprint
 from cosmos_framework.training_backends.megatron_tp_pp.source import release_file_cache
 from cosmos_framework.utils.lazy_config import instantiate
+from cosmos_framework.utils.misc import set_random_seed
 from tools.compare_tp_pp_runtime_checkpoints import tensor_difference
+
+
+def validate_reference_seed(reference, seed):
+    """Reject references that cannot prove the same requested initial seed.
+
+    Matching seed labels alone do not prove that runtime RNG states match.
+    """
+    if (
+        type(seed) is not int
+        or not 0 <= seed < 2**32
+        or type(reference.get("seed")) is not int
+        or reference["seed"] != seed
+    ):
+        raise ValueError("Native reference must record the same requested seed as the TP diagnostic")
+
+
+def diagnostic_topology(tp):
+    """Preserve the existing TP1/TP2 setup and use PP1 for four-rank TP4."""
+    from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
+
+    return ModelParallelConfig(
+        tensor_model_parallel_size=tp,
+        pipeline_model_parallel_size=1 if tp == 4 else 2,
+        global_packed_microbatches_per_update=2,
+        logical_data_parallel_size=2,
+        reference_micro_steps_per_update=1,
+    )
 
 
 def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):
@@ -331,6 +362,8 @@ def native(args, config, instance, network, inputs):
         print(json.dumps({"native_completed_update": update, "grad_norm": norm.item()}), flush=True)
     report = {
         "passed": True,
+        "seed": args.seed,
+        "rng_state_evidence": "not_recorded",
         "names": names,
         "input_hashes": [batch_fingerprint(s) for s in inputs],
         "runtime_constants_sha256": batch_fingerprint(constants),
@@ -358,6 +391,37 @@ def native(args, config, instance, network, inputs):
         close_gpu_trainables(*gpu_leaf_handles)
 
 
+def install_decoder_dtype_observer(stage):
+    """Observe decoder boundary tensors during this math diagnostic only."""
+    observations = {}
+    active_update = [None]
+    handles = []
+    for layer_name, layer in stage.layers.items():
+
+        def observe(_module, _inputs, output, layer_name=layer_name):
+            if active_update[0] is None or not isinstance(output, tuple) or not isinstance(output[0], dict):
+                raise RuntimeError("Unexpected decoder activation observation")
+            pack = output[0]
+            for stream in ("causal_seq", "full_only_seq", "action_seq"):
+                value = pack.get(stream)
+                if not torch.is_tensor(value) or not value.is_floating_point():
+                    raise RuntimeError(f"Missing floating decoder stream {stream}")
+                key = (active_update[0], layer_name, stream)
+                entry = observations.setdefault(
+                    key, {"dtype_counts": {}, "autocast_counts": {}, "matmul_tf32_counts": {}, "cudnn_tf32_counts": {}}
+                )
+                for field, observed in (
+                    ("dtype_counts", str(value.dtype)),
+                    ("autocast_counts", str(torch.is_autocast_enabled("cuda"))),
+                    ("matmul_tf32_counts", str(torch.backends.cuda.matmul.allow_tf32)),
+                    ("cudnn_tf32_counts", str(torch.backends.cudnn.allow_tf32)),
+                ):
+                    entry[field][observed] = entry[field].get(observed, 0) + 1
+
+        handles.append(layer.register_forward_hook(observe))
+    return observations, active_update, handles
+
+
 def tp(args, config, language, network, inputs):
     from megatron.core import parallel_state as ps
     from megatron.core.optimizer import OptimizerConfig
@@ -368,7 +432,6 @@ def tp(args, config, language, network, inputs):
     from cosmos_framework.model.generator.megatron_tp_pp.payload import PayloadLayout
     from cosmos_framework.model.generator.megatron_tp_pp.stage import PipelineStage
     from cosmos_framework.training_backends.megatron_tp_pp.bundle import CanonicalBundle
-    from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
     from cosmos_framework.training_backends.megatron_tp_pp.driver import ModelParallelDriver
     from cosmos_framework.training_backends.megatron_tp_pp.optimizer import adam_parameter_states
     from cosmos_framework.training_backends.megatron_tp_pp.parameter_map import stage_parameter_manifest
@@ -376,16 +439,20 @@ def tp(args, config, language, network, inputs):
     from cosmos_framework.training_backends.megatron_tp_pp.runtime import initialize, transformer_config
     from cosmos_framework.training_backends.megatron_tp_pp.transport import PipelineMetadata, broadcast_batch
 
+    # Reject an already-complete incompatible reference before materializing
+    # the full model. A concurrently generated reference is checked again below.
+    try:
+        existing_reference = json.loads((args.reference_dir / "manifest.json").read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    else:
+        validate_reference_seed(existing_reference, args.seed)
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
     dist.init_process_group("nccl", timeout=datetime.timedelta(hours=2))
     torch.backends.cuda.matmul.allow_tf32 = False
-    topology = ModelParallelConfig(
-        tensor_model_parallel_size=args.tp,
-        global_packed_microbatches_per_update=2,
-        logical_data_parallel_size=2,
-        reference_micro_steps_per_update=1,
-    )
-    initialize(topology)
+    torch.backends.cudnn.allow_tf32 = False
+    topology = diagnostic_topology(args.tp)
+    initialize(topology, seed=args.seed)
     text = getattr(language, "text_config", language)
     mcore = transformer_config(
         topology, num_layers=36, hidden_size=4096, num_attention_heads=32, variable_seq_lengths=True
@@ -423,6 +490,8 @@ def tp(args, config, language, network, inputs):
                     },
                 }
 
+        from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
+
         bundle = UnshardedDiagnosticBundle(args.bundle, ModelParallelConfig())
     else:
         bundle = CanonicalBundle(args.bundle, topology)
@@ -454,6 +523,7 @@ def tp(args, config, language, network, inputs):
     )
     driver = ModelParallelDriver(stage, topology, opt, config_overrides=bundle.optimizer_overrides(stage, opt))
     bundle.load_optimizer(stage, driver.optimizer)
+    activation_dtypes, observed_update, dtype_hook_handles = install_decoder_dtype_observer(stage)
     if args.native_adam_arithmetic:
         # Candidate arithmetic alignment, without changing production defaults
         # or enabling graph capture. Native CUDA Adam uses this TE kernel.
@@ -483,6 +553,7 @@ def tp(args, config, language, network, inputs):
             raise TimeoutError("Native full-source reference did not complete within two hours")
         print(json.dumps({"rank": dist.get_rank(), "waiting_for_native_reference": True}), flush=True)
         time.sleep(30)
+    validate_reference_seed(reference, args.seed)
     assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]
     assert reference.get("original_capacity", False) == args.original_capacity
     assert reference.get("attention_backend", "sdpa") == args.attention_backend
@@ -496,11 +567,13 @@ def tp(args, config, language, network, inputs):
     errors = []
     summaries = []
     gate_failures, compute_parameter_checks = [], []
+    norm_checks, step_checks = [], []
     parameter_errors = []
     state_errors = []
     output_errors = []
     loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None
     for update in range(3):
+        observed_update[0] = update
         if args.replay_native_state and update > 0:
             # Diagnostic only: evaluate each subsequent gradient at exactly the
             # reference's previous master/moment state. This separates a local
@@ -549,7 +622,7 @@ def tp(args, config, language, network, inputs):
         def loss_fn(output, batch):
             expected = records[update]["outputs"][batch["slot_id"][2]]
             for key in expected:
-                for actual, target in zip(output[key], expected[key], strict=True):
+                for sample_index, (actual, target) in enumerate(zip(output[key], expected[key], strict=True)):
                     difference = tensor_difference(
                         target,
                         actual.cpu(),
@@ -558,7 +631,17 @@ def tp(args, config, language, network, inputs):
                         exact=False,
                         local_windows=False,
                     )
-                    output_errors.append({"update": update, "slot": batch["slot_id"], "field": key, **difference})
+                    output_errors.append(
+                        {
+                            "update": update,
+                            "slot": batch["slot_id"],
+                            "field": key,
+                            "sample_index": sample_index,
+                            "actual_dtype": str(actual.dtype),
+                            "reference_dtype": str(target.dtype),
+                            **difference,
+                        }
+                    )
             value = loss_module(output, batch)[0] if loss_module is not None else objective(output)
             return value, {"loss": value.detach()}
 
@@ -590,6 +673,13 @@ def tp(args, config, language, network, inputs):
                     "name": spec.canonical_name,
                     "relative_l2": rel.item(),
                     "maximum_absolute_error": absolute.item(),
+                    "gradient_dtype": str(actual.dtype),
+                    "reference_dtype": str(target.dtype),
+                    "model_parameter_dtype": str(entry.model_parameter.dtype),
+                    "comparison_relative_l2": difference.get("relative_l2"),
+                    "comparison_maximum_absolute_error": difference.get("maximum_absolute_error"),
+                    "reference_squared_l2": difference.get("reference_squared_l2"),
+                    "nonfinite": difference.get("nonfinite", False),
                     "passed": difference["passed"],
                 }
             )
@@ -623,6 +713,8 @@ def tp(args, config, language, network, inputs):
                 {
                     "passed": failures.item() == 0,
                     "scope": "complete pre-clip gradient/output observation; optimizer state gate not yet checked",
+                    "seed": args.seed,
+                    "rng_state_evidence": "not_recorded",
                     "objective": args.objective,
                     "runtime_constants_sha256": reference["runtime_constants_sha256"],
                     "update": update,
@@ -647,6 +739,14 @@ def tp(args, config, language, network, inputs):
         norm_passed = bool(
             torch.isclose(torch.tensor(norm), torch.tensor(records[update]["norm"]), rtol=1e-4, atol=2e-6)
         )
+        norm_checks.append(
+            {
+                "update": update,
+                "actual": float(torch.tensor(norm).item()),
+                "reference": float(torch.tensor(records[update]["norm"]).item()),
+                "passed": norm_passed,
+            }
+        )
         if not norm_passed:
             gate_failures.append(f"update{update}.norm")
         if not args.observe_all_updates:
@@ -658,7 +758,13 @@ def tp(args, config, language, network, inputs):
             saved = torch.load(parameter_file(args.reference_dir, update, index), weights_only=False, mmap=True)
             model_master_match = torch.equal(entry.select(entry.model_parameter.detach()), entry.master)
             compute_parameter_checks.append(
-                {"update": update, "name": spec.canonical_name, "compute_equals_master": model_master_match}
+                {
+                    "update": update,
+                    "name": spec.canonical_name,
+                    "compute_equals_master": model_master_match,
+                    "compute_dtype": str(entry.model_parameter.dtype),
+                    "master_dtype": str(entry.master.dtype),
+                }
             )
             if not model_master_match:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.compute_master")
@@ -679,8 +785,26 @@ def tp(args, config, language, network, inputs):
                     gate_failures.append(f"update{update}.{spec.canonical_name}.{key}")
                 if not args.observe_all_updates:
                     assert difference["passed"], (update, entry.name, key, difference)
-                state_errors.append({"update": update, "name": spec.canonical_name, "field": key, **difference})
+                state_errors.append(
+                    {
+                        "update": update,
+                        "name": spec.canonical_name,
+                        "field": key,
+                        "actual_dtype": str(actual.dtype),
+                        "reference_dtype": str(target.dtype),
+                        **difference,
+                    }
+                )
             step_passed = entry.step == int(saved["step"].item())
+            step_checks.append(
+                {
+                    "update": update,
+                    "name": spec.canonical_name,
+                    "actual": int(entry.step),
+                    "reference": int(saved["step"].item()),
+                    "passed": step_passed,
+                }
+            )
             if not step_passed:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.step")
             if not args.observe_all_updates:
@@ -702,6 +826,9 @@ def tp(args, config, language, network, inputs):
         json.dumps(
             {
                 "passed": passed,
+                "rank": dist.get_rank(),
+                "seed": args.seed,
+                "rng_state_evidence": "not_recorded",
                 "scope": reference["scope"],
                 "objective": args.objective,
                 "retain_full_text": args.retain_full_text,
@@ -712,12 +839,19 @@ def tp(args, config, language, network, inputs):
                 "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
                 "updates": 3,
                 "tensor_parallel_size": args.tp,
-                "pipeline_parallel_size": 2,
+                "pipeline_parallel_size": topology.pipeline_model_parallel_size,
                 "maximum_parameter_gradient_relative_l2": max(errors),
                 "gradient_summary": summaries,
                 "parameter_gradient_errors": parameter_errors,
                 "parameter_state_errors": state_errors,
                 "compute_parameter_checks": compute_parameter_checks,
+                "norm_checks": norm_checks,
+                "step_checks": step_checks,
+                "activation_checks": [
+                    {"update": u, "layer": layer, "stream": stream, **details}
+                    for (u, layer, stream), details in sorted(activation_dtypes.items())
+                ],
+                "native_dtype_evidence": "historical_reference_not_recorded",
                 "observe_all_updates": args.observe_all_updates,
                 "replay_native_state": args.replay_native_state,
                 "native_adam_arithmetic": args.native_adam_arithmetic,
@@ -744,11 +878,12 @@ def tp(args, config, language, network, inputs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("native", "tp"), required=True)
+    parser.add_argument("--seed", type=int, default=42, help="Initial seed used by both native and TP diagnostics")
     parser.add_argument("--native-device", choices=("cpu", "cuda"), default="cpu")
     parser.add_argument("--native-optimizer", choices=("torch_cpu", "native_cuda"), default="torch_cpu")
     parser.add_argument("--gpu-leaf-reference", action="store_true")
     parser.add_argument("--preserve-saved-layout", action="store_true")
-    parser.add_argument("--tp", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--tp", type=int, choices=(1, 2, 4), default=2, help="TP4 uses PP1 on four GPUs")
     parser.add_argument("--objective", choices=("prediction_square", "native_rf"), default="prediction_square")
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--retain-full-text", action="store_true")
@@ -799,6 +934,7 @@ def main():
         parser.error("GPU leaf reference requires native CUDA mode and the native CUDA optimizer")
     if args.preserve_saved_layout and (args.mode != "native" or args.native_device != "cuda"):
         parser.error("Saved-tensor layout qualification applies only to the native CUDA reference")
+    set_random_seed(args.seed)
     if args.deterministic:
         torch.use_deterministic_algorithms(True)
     config, instance, language, network = configuration(

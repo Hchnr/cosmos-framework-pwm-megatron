@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Parallel frozen preparation, followed by the unchanged ordered pipeline.
 
 Each model-parallel rank advances a disjoint subset of the group's logical
@@ -168,6 +171,8 @@ class ParallelPreparation:
                 source_rank=dist.get_rank(),
                 dp_group=dist.group.WORLD,
             )
+        else:
+            totals = totals["samples"]
         gathered = [None] * len(self.members)
         dist.all_gather_object(gathered, records, group=self.cpu_group)
         ordered = sorted((row for part in gathered for row in part), key=lambda row: tuple(row["slot"]))

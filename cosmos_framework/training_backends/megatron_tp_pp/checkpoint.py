@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Synchronous complete MCore checkpoints with atomic completion publication.
 
 Model parameters use canonical global FQNs and TP axes. Optimizer fragments use

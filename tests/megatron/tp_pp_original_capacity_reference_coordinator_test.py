@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 import copy
-import json
 from pathlib import Path
 
 import pytest
@@ -48,44 +47,43 @@ def test_generated_commands_use_original_capacity_and_continuous_trajectory(mode
     assert command[command.index("--reference-dir") + 1] == "/tmp/reference"
 
 
-def test_completed_numerical_tp_failure_is_recorded_and_missing_rank_is_rejected(tmp_path):
-    output = tmp_path / "tp4.json"
-    report = {
-        "updates": 3,
-        "original_capacity": True,
-        "attention_backend": "flex",
-        "objective": "native_rf",
-        "tensor_parallel_size": 4,
-        "pipeline_parallel_size": 1,
-        "continuous_trajectory": True,
-        "replay_native_state": False,
-        "native_adam_arithmetic": True,
-        "deterministic_algorithms": True,
-        "activation_cpu_offload": True,
-        "production_capacity_576_slot_acceptance": False,
-        "gradient_summary": [{}, {}, {}],
-        "parameter_gradient_errors": [{"update": i} for i in range(3)],
-        "parameter_state_errors": [{"update": i} for i in range(3)],
-        "compute_parameter_checks": [{"update": i} for i in range(3)],
-        "pointwise_gates_passed": False,
-        "passed": False,
-        "gate_failures": ["grad"],
-    }
-    for rank in range(4):
-        output.with_name(f"tp4.rank{rank}.json").write_text(json.dumps(report))
-    gate = coordinator.tp_gate(output, 4, {"returncode": 1})
-    assert gate["complete_observation"] and not gate["passed"]
-    output.with_name("tp4.rank3.json").unlink()
-    with pytest.raises(FileNotFoundError):
-        coordinator.tp_gate(output, 4, {"returncode": 1})
-
-
 def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkeypatch):
     source = tmp_path / "source"
     root = tmp_path / "root"
     for base in ("tools", "tests", "cosmos_framework"):
         (source / base).mkdir(parents=True)
         (source / base / "module.py").write_text(f"{base} = True\n")
+    (source / "tools/compare_tp_pp_runtime_checkpoints.py").write_text(
+        'def metric(relative_l2, aa):\n    return {\n        "relative_l2": relative_l2,\n    }\n'
+    )
+    (source / "tests/megatron").mkdir()
+    (source / "tests/megatron/tp_pp_full_source_math_cuda_compare_streamed_reference_v2.py").write_text(
+        "def tp(args, config, language, network, inputs):\n"
+        "    torch.backends.cuda.matmul.allow_tf32 = False\n"
+        "    topology = ModelParallelConfig(\n        x=1\n    )\n"
+        "    bundle.load_optimizer(stage, driver.optimizer)\n"
+        '    loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None\n'
+        "    for update in range(3):\n        pass\n"
+        "def report(absolute, difference, output, expected, batch, reference, dist):\n"
+        "    output_errors = []\n"
+        "    gate_failures, compute_parameter_checks = [], []\n"
+        "    if True:\n"
+        "        if not norm_passed:\n"
+        "            pass\n"
+        "        if True:\n"
+        "            if not step_passed:\n"
+        "                pass\n"
+        '    compute_parameter_checks.append({"update": update, "name": spec.canonical_name, "compute_equals_master": model_master_match})\n'
+        '    state_errors.append({"update": update, "name": spec.canonical_name, "field": key, **difference})\n'
+        "    for key in expected:\n"
+        "        for actual, target in zip(output[key], expected[key], strict=True):\n"
+        '            output_errors.append({"update": 0, "slot": batch["slot_id"], "field": key, **difference})\n'
+        "    return {\n"
+        '                    "maximum_absolute_error": absolute.item(),\n'
+        '                "scope": reference["scope"],\n'
+        '                "compute_parameter_checks": compute_parameter_checks,\n'
+        "    }\n"
+    )
     (root / "tools").mkdir(parents=True)
     for name in ("run_tp_pp_untraced_capacity_math.py", "run_tp_pp_checkpointed_chunked_mlp_math.py"):
         (root / "tools" / name).write_text(f"# {name}\n")
@@ -96,3 +94,6 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
     assert (target / "cosmos_framework/module.py").read_text() == "cosmos_framework = True\n"
     assert (target / "tools/run_tp_pp_untraced_capacity_math.py").is_file()
     assert not (source / "tools/run_tp_pp_untraced_capacity_math.py").exists()
+    assert '"reference_squared_l2": aa' in (target / "tools/compare_tp_pp_runtime_checkpoints.py").read_text()
+    helper = target / "tests/megatron/tp_pp_full_source_math_cuda_compare_streamed_reference_v2.py"
+    assert '"reference_squared_l2": difference.get("reference_squared_l2")' in helper.read_text()

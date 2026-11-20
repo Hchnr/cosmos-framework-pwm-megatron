@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Restore BF16 compute from TP-specific nonzero masters, including DP shards.
 
 Run with four GPUs, --pp=2 (DP1) or --pp=1 (DP2). Replicated parameters

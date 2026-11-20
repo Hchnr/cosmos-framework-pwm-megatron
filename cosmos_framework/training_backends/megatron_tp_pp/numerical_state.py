@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Bounded canonical observations of actual loaded model/master/Adam fragments.
 
 This is a diagnostic export, never a replacement for the full resumable

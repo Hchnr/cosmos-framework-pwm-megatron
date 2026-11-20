@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Native PyTorch FSDP reference with the same original logical 192 x 3 update.
 
 Keeps the native model, optimizer, clipping and Trainer.training_step. The
@@ -25,7 +28,7 @@ from cosmos_framework.callbacks import grad_clip
 from cosmos_framework.callbacks.compile_tokenizer import CompileTokenizer
 from cosmos_framework.callbacks.cosmos_dataloader_state import attach_cosmos_dataloader_state_callback
 from cosmos_framework.configs.toml_config.sft_config import load_experiment_from_toml
-from cosmos_framework.training_backends.megatron_tp_pp.batch import logical_slots
+from cosmos_framework.training_backends.megatron_tp_pp.batch import logical_slots, native_sample_level_loss
 from cosmos_framework.training_backends.megatron_tp_pp.bundle import CanonicalBundle
 from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
 from cosmos_framework.training_backends.megatron_tp_pp.data_state import import_logical_state
@@ -228,8 +231,7 @@ def main():
 
     grad_clip._total_norm_by_mesh = record_norm
     preflight_required = (
-        config.model.config.rectified_flow_training_config.sample_level_loss_averaging
-        or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
+        native_sample_level_loss(config.model.config) or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
     )
     trace_prepared = os.environ.get("COSMOS_TP_PP_TRACE_PREPARED", "0") == "1"
     try:
@@ -316,6 +318,8 @@ def main():
                     source_rank=rank,
                     dp_group=dist.group.WORLD,
                 )
+            else:
+                totals = totals["samples"]
             report = {
                 "iteration": iteration + 1,
                 "loss": loss_sum.item(),

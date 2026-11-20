@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Compare TP4 and native FSDP4 with equal batches per rank/microstep.
 
 Replays immutable real prepared payloads through the production training loops.

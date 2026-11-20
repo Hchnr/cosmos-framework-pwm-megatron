@@ -1075,7 +1075,7 @@ def _video_vae(
     if process_group is None:
         sync_model_states(model)
     else:
-        sync_model_states(model, process_group=process_group, src=dist.get_global_rank(process_group, 0))
+        sync_model_states(model, process_group=process_group, src=0)
 
     return model
 

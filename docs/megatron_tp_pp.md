@@ -1,6 +1,6 @@
 # Megatron TP/PP 实现与验收
 
-当前状态（2026-11-19）：**TP/PP 为显式选择的实验后端，尚未完成正确性和生产容量验收。标准 FP32 连续三更新测试失败：新输入第三步梯度相对 L2，TP2/PP2 为 0.57724，TP4/PP1 为 0.10917。已完成同 microstep/rank batch 的 TP4/FSDP4 七更新性能对比（前二预热、后五测量）：prepared 计算平均 8.42588 / 22.82432 秒每更新，整机吞吐 3.91650 / 5.78330 样本每秒，TP 为 FSDP 的 67.7%；不含 VAE/noising、媒体解码。包含 VAE 的第二轮正在运行。真实 12 槽 BF16 严格重启通过不代表 FP32 数值或完整 576 槽容量通过。当前提交保存实现和诊断进度，不能作为验收通过的生产交付。**
+当前状态（2026-11-20）：**TP/PP 为显式选择的实验后端，尚未完成正确性和生产容量验收。标准 FP32 连续三更新测试失败：新输入第三步梯度相对 L2，TP2/PP2 为 0.57724，TP4/PP1 为 0.10917。后续相同 cuBLAS workspace 加 Q/K norm 梯度布局候选的 TP4 三步仍失败，第三步梯度相对 L2 为 0.40723，见文末。包含 VAE/noising 的同 microstep/rank batch 七更新对照中，TP4/FSDP4 四卡整机吞吐为 2.282668/3.858637 样本每秒，TP 为 FSDP 的 59.16%；详见下文的计时范围及限制。真实 12 槽 BF16 严格重启通过不代表 FP32 数值或完整 576 槽容量通过。当前提交保存实现和诊断进度，不能作为验收通过的生产交付。**
 
 范围和最终门槛仍遵循 [v0.0.1 方案](plans/v0.0.1.tp_pp.md)。现有 `megatron` FSDP 后端保持独立。
 
@@ -522,6 +522,11 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 包含原生VAE/noising的第二轮TP4/FSDP4性能测试正在运行，仍对齐每micro_step/rank的9/11/13样本、双方7更新排除前2。媒体解码在本轮外；VAE启用相同的全部空间bucket AOT编译，冷启动编译仍进行中，暂时没有可报告的稳态结果。已完成的prepared计算性能结果不受影响。
 
 
+2026-11-19即时集成补充：独立worktree修正CPU planning测试漏mock的 `torch.tensor(device="cuda")`，GPU完全隐藏后101项通过、1项跳过，Ruff通过。原生完整block对照使用逐参数原生FP32 norm和独立meta模型参数顺序后，四rank连续三更新的固定门槛全部通过；这仍是汇集权重的诊断，不代表正式分片TP已通过。正式FP32数值和完整576槽容量限制继续有效。
+
+PR的GitHub基础大文件/secret检查通过；完整pre-commit在安装基线 `.pre-commit-config.yaml` 原有锁定的 `rumdl==0.1.62` 时失败（没有可安装发行包），尚未执行后续完整检查。本次按用户明确要求立即集成当前进度，不扩展修改无关Markdown、脚本权限或CI规则，也不将该CI状态记录为通过。
+
+
 ### 2026-11-19：追加的正确性证据和性能候选
 
 用户进一步明确，性能完成门槛为同每rank/microstep batch下四卡整机samples/s打平FSDP4，而不是仅比较每更新秒数。当前prepared计算TP4/FSDP4吞吐比0.677209，仍未达标。含VAE/noising的首轮完整7更新已结束，TP约18.7710秒/更新、FSDP约34.2760秒/更新，吞吐比0.45650；其中FSDP窗口遭遇并发CPU测试误触CUDA初始化，已在原始JSON中明确provisional及clean_repeat_required，不作为性能验收证据。
@@ -541,3 +546,174 @@ GC16 回放已实际完整结束并通过四 rank 检查：每 rank 恰好 576 f
 选择性AC和通信调度重排候选现已在实际TP2/PP1生产I/O小网络通过compile/full-AC四次非零Adam更新；调度候选使用各rank独立全新缓存，两个rank均观察到含collective的scheduler调用，逐参数梯度最大相对L2约8.05e-7。它们仍是opt-in，尚未通过完整模型数学和性能验收。首次调度资格测试因向 `torch.compile(options=...)` 传入不受支持的缓存选项失败；改为Torch支持的环境变量后用全新目录重试，失败记录保留。组合真实TP4七更新将共享输入归约与通信重排叠加，使用每rank新缓存但保持正常稳态缓存策略，等待原生参考释放全部四卡。
 
 原始容量FP32验证入口的初始PP fallback布局此前沿用裁剪用的12/6 token占位。现有训练实际通过metadata传输动态layout；隔离数学验证副本的fallback已修成原始配置11776/59648/2944，实际短UND仍以metadata为准。可用 `tools/build_tp_pp_original_capacity_helper.py` 基于原始验证脚本生成隔离副本；本机变更补丁与SHA保存在 `artifacts/megatron_tp_pp/`。这不表示已在共享训练核心部署或完成原始容量验收。
+
+
+### 2026-11-19：通信重排实测和原始容量参考
+
+在共享输入梯度归约候选上进一步启用 Inductor 计算/通信重排，同一 prepared 输入的真实 TP4/PP1 四卡测试完成 7 次更新，前 2 次预热、后 5 次计时；每 rank 每 microstep 分别为 9、11、13 个样本。全部 4 个 rank 均实际观察到带 collective 的调度器调用。TP4 后 5 次慢 rank 耗时为 7.868624、7.855427、7.866675、7.886395、7.918960 秒，平均 **7.879216 秒/更新、4.188234 样本/秒**。同合同 FSDP4 为 **22.824324 秒/更新、5.783304 样本/秒**，四卡整机吞吐比 **0.724194**；由于每次 TP 更新处理 33 个全局样本、FSDP 更新处理 132 个，不能只比较更新耗时。相较仅共享输入归约的 4.170132 样本/秒，此组合只增加约 0.43%。本实验使用 BF16，排除媒体加载、VAE/noising 与 checkpoint 写入；不是完整模型数值验收。逐 rank 调度观察和原始比较分别见运行目录的 `overlap_shared_tp4_reports/` 和 `overlap_shared_tp4_comparison.json`。
+
+原始容量 FP32/Flex/full-AC 的原生参考在首次前向 VIDEO MLP、完成第 29 层附近遇到 CUDA OOM（需额外 2.73 GiB，当时设备约剩 2.29 GiB），未完成任何更新。按 token 分块 MLP 的实验入口仅用于降低参考峰值显存，已通过 CPU 输出和梯度检查，但小模型首次 GPU 配置未实际触发分块，不能当作分块路径的资格证据；完整容量、标准 FP32 数值门槛与性能打平仍未通过。
+
+
+### 2026-11-19：选择性重算和小模型 FP32 候选
+
+在共享输入梯度归约基础上，最后 4 层使用选择性 activation checkpointing、保存规则为 `^mm\.default$`，其余层维持 full AC。真实 TP4 prepared 数据完成 7 次更新、前 2 次预热，后 5 次慢 rank 平均 **7.823829 秒/更新、4.217883 样本/秒**，为同输入 FSDP4 的 **72.93%**；相对仅共享输入归约的 4.170132 样本/秒提高约 1.15%。rank 0 峰值 PyTorch 分配 76,249,869,824 bytes，后者为 68,435,028,992 bytes。该 TP 候选对最后 4 层使用选择性重算，而 FSDP 对照仍使用 full AC，因此 72.93% 是单侧优化探索，不是重算策略一致的最终公平比较。两者均不含媒体加载、VAE/noising 或 checkpoint 写入；此轮尚未通过 GPU 画像验证实际保存的算子及重算次数，不是完整模型数值验收。完整合同比较和各 rank 日志在运行目录的 `selective4_shared_tp4_comparison.json` 与 `selective4_shared_tp4/`。
+
+修复资格入口的 CUDA 初始化顺序后，隔离的原生 FP32 范数候选在 TP2/PP1 小模型完成四次非零更新：两个 rank 的参数和预测均为 FP32，四次均调用候选范数，顺序通过 meta 模型独立派生。首次资格尝试在模型计算前因导入时 CUDA 已初始化而退出，不能作为算法数值失败；重跑报告为 `native_norm_driver_tiny_v2*.json`。这不是 36 层或 TP2/PP2 的验证，原生范数只是一项候选，标准 FP32 连续轨迹仍未通过。真正触发 token 分块的 TP2/PP1 小模型四次更新也通过，最大逐参数梯度相对 L2 约 **6.80e-7**，完整容量仍待验证。
+
+
+### 2026-11-19：本地投影融合试验
+
+独立的 QKV、gate/up 及两者组合在 TP2/PP1 小模型上分别完成 compile/full AC 的四次非零 Adam 更新，各 rank 对应启用报告均有效，最大逐参数梯度相对 L2 约 **7.49e-7**。组合候选的真实 TP4/PP1 prepared 输入七更新测试，前二预热后五次平均 **7.872503 秒/更新、4.191805 样本/秒**，为同输入 FSDP4 的 **72.48%**；仅共享输入归约为 4.170132 样本/秒。rank 0 峰值 PyTorch 分配为 69,447,804,416 bytes；每个 rank 报告 108 组 QKV 和 108 组 gate/up 已安装。安装报告并不证明 GPU kernel 实际融合，需 profiler 验证；小模型结果不构成完整 36 层数值验收。完整合同、更新记录和报告在运行目录的 `fused_input_both_tp4_comparison.json` 与 `fused_input_both_tp4_reports/`。
+
+
+### 2026-11-19：实验性原生 FP32 梯度范数
+
+`COSMOS_TP_PP_NATIVE_FP32_NORM=1` 显式启用逐参数原生顺序 FP32 norm 候选，默认关闭；开启只支持已验证的 FP32、物理 DP1、正且有限的梯度裁剪和分布式 Adam 配置，不支持独立 norm group 或其他梯度变换。所有 rank 在启动时执行一次 world 协商，即使默认关闭也有一次启动 collective；之后默认训练仍使用原 norm 路径。顺序从新建的 meta 模型及 canonical 参数身份派生，不读取参考梯度或范数；各 TP 组及 PP owner 在重建梯度前做布局检查。
+
+隔离环境中，修订后候选通过 TP2/PP1 两卡和 TP2/PP2 四卡小模型各四次更新，默认关闭 TP2/PP1 冒烟也通过；另有 37 项 CPU 测试和两进程标志协商检查。候选按参数逐项通信，可能增加显存及耗时；单 rank OOM 等错误仍可能使同伴等待。它不解决已观测的全部分片计算误差，尚未通过真实 36 层、原始容量或完整轨迹验收，也未用于 BF16 性能对比。
+
+### 2026-11-19：包含 VAE 的吞吐和 FP32 投影误差
+
+原始输入回放的 BF16 TP4/PP1 与 FSDP4 各完成 7 次更新，前 2 次预热、后 5 次计时；双方每 rank 的三个 microstep 分别处理 9、11、13 个样本，分别为每更新 33 和 132 个全局样本。计时包含输入副本、H2D、VAE/noising、训练和 optimizer，不包含媒体解码与 checkpoint 写入。TP4 平均 **18.794247 秒/更新、1.755856 样本/秒**，FSDP4 平均 **34.183384 秒/更新、3.861525 样本/秒**，整机吞吐比 **45.47%**，没有达到打平目标。该结果暂定：GPU PID 监控处于 restricted 模式，无法排除短暂外部干扰；此外一个仅 CPU 的 pytest/Gloo 测试与 TP 最后一次计时更新重叠，其影响未知。原始比较、逐步耗时和运行合同见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/raw_clean_after_attention_20261119/comparison.json`，重叠证据见 `full_vjp_cpu_test_overlap_20261119.json`。这不是数值验收或严格独占的性能验收。
+
+标准 FP32、关闭 TF32 的真实 36 层裁剪输入三次连续更新仍未通过固定的 1e-4 梯度相对 L2 门槛：TP4 分别为 **2.9417e-4、1.43776e-3、1.09165e-1**，TP2 分别为 **2.3485e-4、2.94795e-3、5.7724e-1**。第 0 层 VIDEO K 投影的相同捕获输入及 canonical 主权重，在 H100 上分别按原生完整宽度和 TP 分片宽度重放，均逐位复现各自的捕获输出；两种输出相对 L2 为 **2.6011e-7**、最大绝对差 **1.4901e-7**。运行时参数字节未独立捕获，因此该对照只说明矩阵乘宽度及布局产生的舍入可以复现最早捕获差异，并不能证明它是后续漂移的唯一原因。证据见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/gemm_after_raw_20261119T094130_536321/k_projection_replay.json`。K/V 完整宽度前向候选在真实 TP2 小模型四次更新通过，但其反向仍采用分片矩阵乘和归约；完整宽度反向及真正 36 层轨迹仍待验证。
+
+原始容量原生 FP32 参考在平坦 checkpoint 输入和 4096 token MLP 分块后完成 36 层前向，但第一次反向 VIDEO MLP 仍因显存不足失败，没有完成更新。流式 CPU 梯度候选已通过小模型 CUDA 原生 norm/clip/FusedAdam 对照，以及 811 个真实参数形状的合成 norm/clip 对照；真实 36 层连续更新参考仍在验证。这些诊断不能替代原始容量的完整数值验收。
+
+### 2026-11-19：流式参考与全宽 K/V 实测
+
+36 层原生 FP32 的裁剪输入、每次更新两微批、连续三步对照中，流式梯度参考与未流式参考的输出、梯度、master、Adam 一阶矩、二阶矩及 step 均逐位一致：共检查 **2433 个参数文件、12165 个张量字段**，三个更新的输出均通过，无不一致项。报告为 `outputs/megatron_tp4_fsdp4_microbatch_20261119/gemm_after_raw_20261119T094130_536321/streamed_vs_native.json`。这验证了流式原生参考在该输入下的行为，不是分片 TP 或原始容量验收。
+
+四卡固定捕获输入及共同原生上游梯度的 K/V 投影受控回放中，全宽前向、输入梯度和权重梯度在四个 rank 均逐位匹配原生；实际 TP 捕获的上游梯度与原生并不相同，因此不能将共同梯度的受控结果当作实际轨迹相等。TP2 小模型 full-AC 四次更新也通过，最大逐参数梯度相对 L2 为 **5.934e-7**。报告为 `full_vjp_after_streamed_20261119T100421_568913/summary.json`。
+
+真正的 TP4 36 层裁剪输入连续三步应用全宽 K/V 前向及反向后，梯度相对 L2 为 **4.31973e-4、2.65568e-3、1.69782e-1**，三步均超过原有 1e-4 门槛，且大于标准 TP4 的对应数值；该候选没有修复模型轨迹。四 rank 的完整输出、状态比较和源码记录在 `full_vjp_real36_20261119T100656_574178/`；接下来应按共同输入及上游梯度继续定位其他算子，不降低门槛。目录均位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/`。
+
+### 2026-11-19：原始容量参考完成及性能合同补充
+
+消除逐层 FP64 trace、使用平坦 checkpoint、逐块嵌套重算和流式梯度后，原生 FP32/Flex 原始容量参考已完成两份真实微批的连续 **3 次更新**，梯度范数分别为 **0.29377660、1.10465622、0.42172375**；参考 manifest 标记完成，包含 811 个参数及全部三步状态。同输入的 TP4 对照已启动，其数值门槛与 TP2 对照尚无结果；这不是 TP 通过，也不是完整 576 槽验收。过程和输出位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/original_capacity_nested_20261119T1019/`。
+
+上文包含 VAE 的 45.47% 结果还存在配置不一致：TP 实际记录 `cudnn.deterministic=false`、`cudnn.benchmark=true`，FSDP 参考强制为 `true`、`false`；VAE 属于计时范围，二者可能选择不同卷积算法。两侧 TF32 关闭，均使用 `CUDA_DEVICE_MAX_CONNECTIONS=1`，但运行时 `torch.are_deterministic_algorithms_enabled()` 未记录。FSDP 各 rank 重复同一三份 fixture 和初始 RNG，因此每更新 132 是样本处理次数，不是 132 个不同样本；该基准不证明真实数据连续性，旧结果也没有逐次 prepared payload/RNG 哈希。旧结果除 GPU PID 监控与 CPU 重叠限制外，还应因这些合同差异标记为暂定，不用于最终性能验收。同设置、实际运行时取值及匹配输入/状态的重测仍待执行。
+
+### 2026-11-19：TP 参考中止与报告核对
+
+上述原始容量 TP4 对照在首次更新完成前由主机内存余量保护中止；协调器记录的原因是 `conservative memory headroom guard`，不能将其描述为 CUDA OOM。原生参考成功不代表 TP 对照已通过，TP2 对照也尚无结果。协调器记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/original_capacity_nested_20261119T1019/coordinator_result.json`。
+
+裁剪输入的 TP4 全宽 K/V 诊断中，将每次更新开始的 master、Adam 状态和 step 重置为对应原生状态后，三次整体梯度相对 L2 为 **4.31973e-4、2.55243e-5、8.99880e-5**；逐项比较仍有大量失败，不能视为连续训练通过。与不重置状态的结果对照表明轨迹会放大误差，但不证明具体根因。运行记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/replay_native_state_after_vae_20261119T1038/queue_result.json`。
+
+早期裁剪 FP32 报告 `fp32_tp4_standard_gpu.rank*.json` 中 `pipeline_parallel_size=2` 是报告字段硬编码错误：执行记录 `sequence_events.jsonl` 显示四卡 `--tp 4`，该次执行所用隔离测试脚本在 TP4 时实际构造 PP1。原始报告保留，不能凭错误字段推断运行拓扑，也不能将数值失败改写为通过。后续验证应从实际拓扑生成并核验报告字段。
+
+此外，原容量 TP 验证协调器的报告门槛此前仅信任顶层 `passed`：独立 CPU 反例表明，包含逐项失败和不完整覆盖的矛盾报告可能被错误接受。实际报告生成器会汇总失败，反例并不证明已有真实运行误报。诊断 helper 现从实际拓扑记录 PP 大小。
+
+原始容量三更新诊断现要求对四个 rank、三次更新逐项核对 trainable 参数、梯度、master、Adam 矩和 step、compute/master、梯度 norm 及输出样本，并按参考平方和重算相对或近零绝对误差门槛。新增诊断字段仅用于数学对照，未纳入性能测量；缺少字段的旧报告不能通过新的严格 gate，也不回填历史报告。新增 gate 本身不代表 TP 正确性已通过，完整 576 槽验收仍需单独完成。
+
+新的 TP 数学诊断会逐更新读取实际 trainable 参数、梯度、master、Adam 浮点状态的 dtype，并在每个 decoder 层边界采样三个输出流的 dtype、autocast 和 TF32 开关；该采集不进入性能训练路径。层边界检查不证明融合 kernel 的内部累加精度。此前已经生成的原生参考没有完整的运行时 dtype 与 TF32 实测记录，不能将 TP 侧记录推断为原生侧也通过了 FP32 检查。
+
+### 2026-11-19：两侧重算策略对照及测试重叠
+
+四卡 BF16、prepared 输入、每 rank 每微步 9/11/13 样本、每次更新三个微步，四个配置各完成七次更新，前两次预热、后五次计时。同为 full AC 时 TP4 为 **7.902223 秒/更新、4.176040 样本/秒**，FSDP4 为 **22.866170 秒/更新、5.772720 样本/秒**，整机吞吐比 **72.34%**。两侧均对 36 层中的 8 层采用 FA3 选择性重算时，TP4 为 **7.847071 秒/更新、4.205391 样本/秒**，FSDP4 为 **22.635285 秒/更新、5.831603 样本/秒**，吞吐比 **72.11%**。计数是样本处理次数，FSDP 四个 rank 重复使用 fixture；比较不包含 VAE/noising、媒体解码或 checkpoint 写入，也不代表完整模型数值通过。实验记录在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/`。
+
+这两组结果均为探索性测量：两侧 cuDNN 运行设置并不相同，prepared 输入范围内的影响未知；GPU PID 监控受命名空间限制，不能保证严格独占。FSDP selective 计时阶段附近于 13:52:02 UTC 发生了 CPU 测试，测试未使用 GPU，但其对耗时的影响未知，另有更早 CPU 工作的精确重叠待核查。因此 selective 结果不能用于无干扰的最终性能验收。测试时间及限制见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/cpu_test_overlap_20261119.json`，新的对齐设置和完整时窗重测仍待完成。
+
+### 2026-11-19：FA3 profiler 与固定输入 SDPA 回放
+
+上述 prepared 输入四组 profiler 已完成：TP4 与 FSDP4 的 full AC 均为每卡 **216 次** FA3 前向 kernel，两侧选择性重算均为每卡 **192 次**。TP4 的配对计时从 4.176040 增至 4.205391 样本/秒，约 **0.7%**；单轮测量不能排除波动，也不代表完整模型数值已通过。完整结果见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/flash3_ac_queue_20261119T1040/sequence/summary.json`；其中资格结果 `passed` 不表示性能或数值验收通过。
+
+H100 固定捕获输入的 math SDPA 回放覆盖两个微批、两个 attention 调用及四个 rank：Q/K/V 与 mask 相同，完整 heads 和 TP 局部 heads 各自的前向都逐位复现对应原捕获，但两种布局间前向最大相对 L2 为 **3.5758e-7**。对共同原生上游梯度的反向，dq 最大相对 L2 为 **2.5358e-6**，dk/dv 均约 **1.60e-6**。这证实了分片计算中一个微小差异来源，并不证明它单独造成 36 层训练漂移；原 storage offset 没有独立捕获。报告为 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sdpa_captured_replay_20261119T1045/sdpa_replay.json`。
+
+36 层裁剪输入、eager FP32 的 full-QKV/full-head SDPA 候选已完成三次连续更新观察：四 rank 梯度整体相对 L2 分别为 **4.36076e-4、2.79956e-3、1.74387e-1**，全部超过 1e-4；虽然小模型资格通过，真实模型数值门槛未通过。rank0 各步的失败参数集合与前述全宽 K/V 候选分别完全相同，数量为 **629、810、811**；这次组合没有纠正漂移，但不能由此断定 SDPA 差异与最终结果无关。队列执行完成不等于数学门槛通过，汇总见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/full_head_after_sdpa_20261119T1057/sequence/summary.json`。
+
+### 2026-11-19：异步归约与 VAE 分片资格
+
+异步 row 归约候选完成 TP2/TP4 的小模型 GPU 数值检查：FP32 eager、FP32 Inductor/full AC 与 BF16 Inductor/full AC 各阶段均通过，记录的最大相对 L2 为 **5.72e-7**。四卡 BF16 真实形状的合成前向 profiler 显示，baseline 无可测重叠，延迟等待候选平均每卡有约 **0.177–0.204 毫秒**计算与 NCCL 重叠。该测试不是端到端训练性能或完整 36 层正确性验收；实际收益仍需同设置吞吐对照。报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/async_row_queue_20261119T1152/sequence/`。
+
+上述小模型数值报告的通过结论存在非有限值检查缺口：当比较张量产生 NaN/Inf 时，双阈值比较可能不报失败；报告未保存全部比较字段，不能据此证明每个张量都有限。当前没有证据表明该轮实际发生非有限值或误报，但在补充逐张量 finite 检查和负控并重跑前，不应将其视为完整数值资格。合成 profiler 的重叠观察与该数值检查属于不同证据。
+
+组合全宽 QKV、attention、MLP 投影和 row 归约的 36 层裁剪输入 FP32 诊断已完成三步：第 0 步裁剪前梯度和输出观察通过，整体梯度相对 L2 为 **1.28778e-8**；第 1 步整体相对 L2 为 **2.90771e-5**，但 rank0 有 6 个参数分片未过逐项门槛；第 2 步整体相对 L2 为 **0.00189652**，rank0 有 737 个参数分片未通过。完整报告最终仍为失败，不能称连续训练正确。四个 rank 的第 0 步非逐位相等梯度均恰为 **144 个 vision/action Q/K norm 权重**（36 层各 4 个），其余 667 个 trainable 参数梯度逐位相等；更新后 18 个 master 参数有非零差异，也全部属于这 144 个 norm 权重。首步梯度范数与该 native 参考记录相等，但尚未逐元素证明梯度裁剪一致。Q/K norm 权重在 TP 中使用跨 rank 求和，因此该路径是下一步受控对照重点；这些相关性还不能证明后续漂移的唯一因果。报告与来源在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/combined_fp32_queue_20261119T1241/sequence/`，此诊断不是原始容量或 BF16 验收。
+
+### 2026-11-20：Q/K norm CPU 资格与 TP4 profile 分解
+
+针对上述 Q/K norm 权重梯度的 `weight_only` 全 head 诊断候选已通过 **20 项 CPU/Gloo 测试**，其中包括真实裁剪输入的传输与前后身份检查；详见 `outputs/megatron_tp4_fsdp4_microbatch_20261119/qk_cpu_qualification_20261119T1554/result.json`。该结果不证明 GPU 数值正确：候选仍需四卡、连续三次更新，并按原逐参数输出、梯度与优化器状态门槛比较。全 head 归约属于定位诊断，也不是已验证的高性能生产实现。
+
+对 `flash3_ac_queue_20261119T1040/sequence/profile_tp_full.sqlite` 的 GPU 0 单次预热后完整更新分析，NCCL kernel 时间并集约 **1.328 秒**，非 NCCL kernel 时间并集约 **6.187 秒**；两类 kernel 在该捕获中未观察到重叠。按 kernel 名归类的累计时间中，GEMM 约 **3.474 秒**、FA3 前向与反向约 **1.388 秒**、Triton 约 **0.979 秒**。这些是一次 profile 中的设备时间，不是独立可删除的墙钟耗时，NCCL 也可能包含等待。
+
+以 prepared 输入的独立五步均值估算，TP4 要从 **7.902 秒/更新**降至约 **5.716 秒/更新**，才能达到当时 FSDP4 的 **5.773 样本/秒**。profile 和计时并非同一次运行，但二者说明通信重叠与计算、重算优化均值得验证，不能仅凭异步通信的合成测试宣称达到目标。上述吞吐不含 VAE/noising，且原对比的运行时设置不完全一致，不是最终端到端验收。
+
+### 2026-11-20：包含 VAE 的 TP4/FSDP4 同微批对比
+
+修正 VAE 子组广播的 root rank 及 AOT 审计的模型访问路径后，四卡 raw fixture 比较已完成，双方均 BF16、full AC、36 层编译、32 个 VAE AOT 变体；每 rank 的三个 microstep 分别处理 9、11、13 个样本，各运行 7 个更新，前 2 个预热、后 5 个测量。双方的 runtime flags 和编译设置一致，TP 四 rank 的 VAE bridge 均记录 21 个 slot 和 21 次调用。FSDP 四个 rank 重复使用 fixture，以下样本数表示处理次数而非不同样本数。
+
+以五次更新前后的 CUDA synchronize 与四 rank barrier 窗口为主指标：TP4 处理 165 个样本、用时 **72.283833 秒**，为 **2.282668 样本/秒**；FSDP4 处理 660 个样本、用时 **171.044864 秒**，为 **3.858637 样本/秒**；TP4 为 FSDP4 的 **59.16%**。每步平均耗时分别约 14.457 秒和 34.209 秒。该结果尚未达到整机吞吐打平目标，也不代表数值正确性通过。
+
+测量包括 fixture 复制、H2D、VAE/noising、训练、通信和优化器，排除媒体解码与 checkpoint 写入。合作锁和采样未发现 GPU 干扰、OOM 或计时窗口内的明显内存压力，但受限的 PID 监控不能绑定主机 GPU 用户身份或排除采样间干扰。为避免重复扫描大型 checkpoint，本轮复用既有 1,214 参数转换验证，并以文件清单、大小、少量 metadata 哈希及运行前后 stat 检查追踪大文件；这些检查不能认证历史全部文件字节或捕获所有变化。报告及四 rank 合同的共享副本在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_aot_fixed_fair_results_20261120/`，结果应按上述范围使用。
+
+在该次测量的 host 计时中，TP rank0 三个 microstep 的 `prepare_enqueue` 均值合计约 **6.315 秒/更新**，FSDP 各 rank 约 **12.57–12.76 秒/更新**。该区间包含输入准备、VAE 分片通信及编码、noising 和异步 GPU 等待，不等同纯 VAE kernel 时间；它指出数据准备值得继续分析，但不能直接将其全部归为可消除开销。
+
+VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个真实 fixture 做四卡零容差输出和 RNG 检查，各 rank 均执行 9 次候选调用；这不替代完整模型正确性验证。同口径重复性能组完成 7 更新、2 预热、5 测量，候选 TP4 的同步窗口为 **2.259224 样本/秒**，FSDP4 为 **3.835746 样本/秒**，吞吐比 **58.90%**。此前原 TP4 的一次测量为 2.282668 样本/秒，而对应 FSDP4 为 3.858637 样本/秒；两次实验非同时，约 1% 差异不足以证明稳定变慢或存在收益。两次 TP 测量中的 PyTorch allocated 峰值均约 65.1 GiB/卡，此指标不包含首次 tokenizer AOT 初始化峰值，也不等于设备总占用。当前证据不支持将批量 P2P 作为性能优化启用；报告及四 rank 合同副本在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_batched_p2p_results_20261120/`。
+
+### 2026-11-20：Q/K norm 上游梯度布局与 FP32 三步诊断
+
+对已保存的 4 层、4 个训练态 Q/K norm、2 个 microstep 的真实捕获，TP 四 rank 重组后的完整输入和上游梯度与 native 的 64 个对应张量逐元素一致，但上游梯度 stride 不同。真实 CUDA 同输入重放中，native stride 的 16 个两 microstep 累计权重梯度均与 native 参考逐位一致；将其重建成 contiguous 时 16 个张量共 1,379/2,048 个元素不同；恢复 native stride 后 16/16 再次逐位一致。这验证的是已捕获模块的布局影响，并非所有模型配置的通用证明。
+
+在原组合全宽 QKV、attention、MLP 和 row 诊断中，加入受控逐层 checkpoint，并将全 head Q/K norm 权重梯度计算的上游梯度恢复为已观察的 native stride 后，TP4/PP1 的 36 层裁剪输入 FP32 诊断连续三更新通过完整 gate：四 rank 各 2,433 条梯度比较、7,299 条 master/Adam moments 比较及输出比较的最大绝对误差均为 0，目标布局每 rank 命中 864 次且无回退。来源、逐 rank 报告和校验清单位于 `outputs/megatron_tp4_fsdp4_microbatch_20261119/qk_native_stride_diagnostic_20261120/`。原始容量、576-slot、其他并行拓扑以及生产数值/性能尚未通过验收；该诊断使用全宽计算和限定形状的布局恢复，不能作为生产实现或吞吐结论。
+
+绑定源码、VAE 权重与 HF 模型文件哈希的四卡 VAE 分片资格检查完成，四个 rank 均通过，atol/rtol 均为零，资格队列前后源码哈希一致。该测试覆盖 fixture 的 VAE 结果、准备后 payload 和 RNG 合同，不覆盖完整模型训练或吞吐；报告在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/sharded_vae_pinned_compare_20261119T120041/qualification/`。sample-level 分母修复的合成 NCCL 检查也在 TP2/PP1/DP2 和 TP2/PP2/DP1 通过，但不能代替完整模型验证。
+
+多路 row 归约 GPU 测试的 TP2 baseline 在 profiler 资格阶段失败：原检查未能将 functional all-reduce CPU 事件可靠映射到四个更新；候选尚未进入有效比较，不能把该失败称作候选数值失败。原始日志在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/multirow_gpu_queue_20261119T114942/sequence/tp2_baseline.log`。
+
+### 2026-11-20：跨 microstep VAE 预取的串行 RNG 前置检查
+
+针对当前 Wan2.2 tokenizer 的四卡真实 AOT 资格，三个 raw fixture 分别预热一次、检查一次；原串行与分片编码的 latent 和完整 prepared payload 均逐位一致。四 rank 分别记录 86、16、16、14 次单项编码，每次均命中 AOT chunk，检查的 CPU/CUDA、Python、NumPy RNG 以及显式创建的 model-parallel tracker 的命名 RNG 张量均在编码前后一致。报告与 SHA-256 清单保存在 `outputs/megatron_tp4_fsdp4_microbatch_20261119/vae_cross_slot_rng_qualification_20261120/`。
+
+这一结果只覆盖上述 Wan2.2 配置、输入和串行执行；model-parallel tracker 为测试中创建的实例，其当前状态名、seed 注册集合等内部元数据未纳入比较，不能推广到其他 tracker 或 tokenizer。VAE 权重和 fixture 经过内容校验，大型 HF 模型分片仅检查运行前后文件 stat，不能据此认证其历史字节。跨 microstep 并发的流、通信顺序、RNG 隔离、显存和吞吐尚未通过验证，因此该资格不是性能提升或完整模型正确性结论。
+
+### 2026-11-20：相同 cuBLAS workspace 的 FP32 三步对照
+
+为验证 QKV 矩阵乘法路径是否解释上述误差，使用 `CUBLAS_WORKSPACE_CONFIG=:16:8` 重新生成原生参考，并以同一配置运行 TP4/PP1。两侧为真实 36 层、裁剪输入、每更新两个 microbatch、连续三次更新；TP 保留默认分片 Linear 和 attention，启用试验性的全 head Q/K norm 权重梯度布局适配。该适配不是默认生产实现，亦未使用此前的全宽 Linear/attention 诊断替代计算。测试使用 deterministic、eager 非重入逐层 activation checkpoint、activation CPU offload、原生 Adam 和裁剪算术；不代表 BF16 生产吞吐或 576 槽容量。
+
+原生侧运行时实际检查的 1,210 个浮点参数、每次更新的梯度和全部 1,622 个 Adam 一/二阶矩均为 FP32；六个 microbatch 的主要输出均为 FP32，CUDA autocast、matmul TF32 和 cuDNN TF32 均关闭。原生三次 grad norm 分别为 172.063797、7.792744、8.282850。四个 TP rank 的全局 pre-clip 梯度相对 L2 一致，三次依次为 **0.000958909、0.004623426、0.407233865**；固定门槛未放宽，四 rank 均失败。rank 0 首步有 688/811 个参数梯度分片失败，后两步均为 811/811；首步最大输出相对 L2 为 7.3905e-5。源码运行前后身份检查一致。
+
+首步 rank 0 的逐层参数梯度相对误差中位数由第 35 层约 2.03e-5 增至第 31 层约 2.70e-4，浅层约 9e-4–1e-3，说明反向传播中存在明显放大；这些统计本身不能确定首个出错算子。相同 workspace 与 Q/K 布局适配没有解决问题，不能从单个 GEMM 重放一致推断完整训练正确。下一步需按相同输入与状态捕获层边界及算子前后值、反向 cotangent，确定差异来源并修复。
+
+完整逐 rank 输出、源码身份及原生 dtype 清单保存在执行节点 `/opt/cosmos-tp-workspace16-full-20261120-v11/`；其报告压缩副本 `reports.tar.gz` 的 SHA-256 为 `ca17c28de7a52e2c37275aab8cd57159fed2d4908a55d6481f1101c036a7083b`。共享 `outputs` 的目录创建返回 `No space left on device`，因此该次报告尚未复制到共享目录；大体积原始参考文件没有生成时内容哈希，本次检查不能认证其历史全部字节。这里记录的是裁剪输入定位，TP2/PP2、原始容量、严格恢复及生产性能均须单独验收。
+
+### 2026-11-20：36 层 BF16 grouped QKV 候选未通过
+
+在包含相同 host 随机种子修复的隔离快照上，比较四卡 TP4/PP1 的 baseline 和试验性 text/vision grouped QKV 候选，均为 BF16、36 层、full activation checkpointing、逐层编译。两侧使用同一 step-1200 TP4 bundle 和三个真实 prepared fixture，连续运行 **2 次优化器更新，每次 3 个 microstep**。真实模型、优化器、通信和 loss 路径保留；数据加载使用 prepared-only mock，因此本次不验证真实 loader 连续性、checkpoint 恢复或数据准备流程。
+
+在两侧完整运行之前，四个 rank 的独立初始状态预检通过；完整运行中再次比较的模型、buffer、优化器、物理与 model-parallel RNG、逻辑 RNG 和迭代/调度状态也一致。baseline 完成两次更新；每 rank 记录 72 个编译图且无 grouped 算子。候选每 rank 的 72 个图均捕获 grouped QKV，梯度与更新后状态每步均覆盖 811 个优化器参数片段。
+
+候选**未通过数值门槛**。四个 rank 各有 **6516、6519、6525、6542** 个字段比较失败（这是跨输出、梯度、参数与优化器状态的字段数，不是参数个数）。每个 rank 两次更新的 **1622/1622 个梯度片段**和 **1622/1622 个 Adam 一阶矩片段**均未通过；已记录的 used 标志和 optimizer step 比较通过。首个 microstep 的首个 vision 输出相对 L2 为 **0.0121054（约 1.21%）**，最大绝对误差为 **2.03125**；比较对非近零参考按至多 1M 元素窗口检查相对 L2 ≤1e-4，对近零参考使用绝对误差 ≤2e-6。观察器在采集完两次更新后按失败门槛返回非零退出码，不能将它归为 GPU OOM 或简单的初始化状态不一致。
+
+该结果说明此 grouped 候选在这组真实 prepared 输入下不能用于正确性验收；差异首先产生于哪个算子、以及 grouped GEMM 与编译融合分别贡献多少，仍需相同层输入下定位。两层合成 smoke 曾通过，不足以替代此 36 层结果。这里不提供性能测量，亦不能推断候选加速或 TP4/FSDP4 吞吐变化；独立的 FP32 正确性、完整数据和其他 TP/PP 拓扑门槛仍需完成。
+
+现场结果与逐 rank 记录位于执行节点 `/opt/cosmos-tp-ragged-seeded-v3-20261120/artifacts/tp4_full_bf16_qualification/sequence/`，队列和源码启动前哈希位于 `/opt/cosmos-tp-ragged-seeded-v3-queue-20261120/qualification/queue_result.json`。这些是节点本地文件，尚未归档到共享存储；队列启动前核对了 863 项源码路径，三个 prepared 文件有启动前哈希，但候选失败后未执行正常收尾的再次哈希，原始大型 checkpoint 字节也未重新哈希，因此不能据此证明运行期间全部输入字节未变化。
+
+### 2026-11-20：FP32 Q 投影输入梯度局部重放
+
+针对上节 `:16:8` 原生参考的第 0 层 Q 投影，使用两个已捕获 microbatch 的真实输入、共同的输出梯度和权重，在四个 TP rank 上测试权重转置重分片后计算输入梯度；重放检查了局部权重字节与原切片的一致性。`CUBLAS_WORKSPACE_CONFIG=:16:8` 下，私有 cuBLAS、PyTorch 默认及指定 cuBLAS/cuBLASLt 的本地矩阵乘，包括保留原始输出行步长的变体，**均为 0/8 逐位匹配同 workspace 的原生输入梯度**。这是严格逐位检查，并不表示这些局部误差必然超过训练验收阈值。
+
+在独立的 `:4096:8` 进程中，PyTorch 默认和 cuBLAS 变体的本地输入梯度切片各有 8/8 逐位匹配该 workspace 的原生结果；但两个 workspace 的原生输入梯度本身也有 0/8 逐位一致，因此不能把此结果当成匹配 `:16:8` 参考的修复。这里仅覆盖两个输入、Q 投影和局部算子重放，未验证完整编译图、训练多步、其他投影或性能。执行节点上的过程记录为 `/opt/cosmos-tp-q-dx-strided-output-20261120/status.json`，跨 workspace 对照为 `/opt/cosmos-tp-q-dx-cross-workspace-20261120/status.json`；其中状态 `passed` 表示诊断执行与覆盖检查完成，不表示训练数学验收通过。
+
+
+### 2026-11-20：真实 VAE 跨槽预取的局部资格
+
+在四卡 TP4/PP1、36 层 BF16、同一个 step-1200 bundle 和真实 VAE 下，比较同步准备与试验性跨槽预取：每次更新 3 个 microstep，连续 3 次更新。四个 rank 均完成 28 项输入、输出/loss、梯度、参数、优化器与随机状态事件的逐项精确对照；每 rank 的 VAE bridge 覆盖 9 槽和 9 次调用，6 次预取均按序消费。队列完成且源码启动前后哈希一致。此对照使用重复的 raw fixture 和 mock loader，checkpoint 不发布；它验证同一 TP 计算在此输入上的预取一致性，不验证原生与 TP 数学等价、真实 loader 连续性或恢复。
+
+大约每两秒采样的 NVML 显存峰值，baseline 四卡为 **75074–76024 MiB**，预取为 **80696–80998 MiB**；本机 H100 每卡总计 81559 MiB，最大采样值仅剩约 **561 MiB**，瞬时峰值可能更高。诊断中的内容哈希、状态复制和同步使这些执行时间不能作为吞吐结果，需另行验证去诊断变体，并对 FSDP 做对称优化与相同 microstep batch 的整机 samples/s 比较。现场记录在 `/opt/cosmos-tp-cross-slot-seeded-qualification-v4-20261120/qualification/`，历史训练 checkpoint 仅覆盖选定元数据，不是完整内容哈希。
+
+### 2026-11-20：FP32 Q 输入梯度的 cuBLASLt 局部命中
+
+使用四卡 H100、真实 Q 权重分片与两个捕获的输出梯度，在 `:16:8` 配置下有界枚举 cuBLASLt heuristic。存在相同的完整算法配置，能让两组输入的四个 rank 局部结果均逐位匹配同输入、同权重的原生 `F.linear` eager 重放；分别拼接四个分片后，两组完整 dX 也逐位一致。16 KiB 上限内至少两个候选配置命中；这是局部算法资格，不代表更早两种默认矩阵乘回放也匹配。源码与输入前后哈希一致，权重重分片逐字节检查通过。
+
+此结论只覆盖第 0 层 Q、两组 token 数为 12 的 FP32 输入和本机 CUDA/cuBLASLt，参考是 eager 重放而非原 36 层编译图中捕获的 dX。Lt 的单次局部 GEMM 时间不含权重重分片、梯度通信与 autograd，不能用于训练吞吐结论。需要在不重复执行 TP 输入梯度归约的前提下，进一步验证 autograd、编译/activation checkpointing、不同形状及连续多步，才能评估是否真正修复完整模型。结果在 `/opt/cosmos-tp-q-lt-algorithm-search-20261120/status.json`；`passed` 表示搜索执行与覆盖完成，需结合其中统一命中记录判断数值。
+
+### 2026-11-20：FSDP4 真实 VAE 跨槽预取的部分对照
+
+在四卡 FSDP4、36 层 BF16 和真实 VAE 下，使用固定 raw fixture 比较同步准备与试验性跨槽预取，每次更新包含 3 个 microstep。baseline 完成 3 次更新；prefetch 只完成第 1 次更新。四个 rank 的记录在初始模型与优化器状态、3 个 microstep 输出及 loss、裁剪前梯度、更新后模型与优化器状态等 6 个观测事件上均一致；张量由记录的 SHA-256 与形状、dtype、布局等元数据比较。这只证明已记录首步的两侧对照，不能证明后续更新或原生数据加载和恢复一致。
+
+进入下一次更新时，prefetch 的 rank 3 在 `completed_sample_totals` 的 NCCL broadcast 报告 `ncclUnhandledCudaError`，日志显示 `Failed to CUDA calloc async 24 bytes`；随后其他 rank 被终止。资格队列返回非零且 `completed=false`，因此该 FSDP 预取变体**未通过完整多步资格**。这条报错表明 CUDA 分配失败，但单凭该记录不能确定显存压力的全部成因。
+
+约每 2.1 秒采样的 NVML 显存峰值，baseline 四卡为 **80606–80666 MiB**，prefetch 为 **80392–81006 MiB**；最高采样值距 81559 MiB 总量约 **553 MiB**，瞬时峰值可能更高。记录包含状态哈希、复制和同步等诊断开销，不用于吞吐比较。此实验重复使用固定 fixture 和 mock loader，不验证真实 loader 连续性、checkpoint 恢复或 TP 与 FSDP 的数值等价。
+
+现场的队列状态、两侧日志和逐 rank 观测位于执行节点 `/opt/cosmos-fsdp-cross-slot-36l-seeded-qualification-v9-20261120/qualification/`。队列时和启动前的 2028 项来源记录相同；失败后未生成完整的收尾源码哈希，也未证明历史训练 checkpoint 的全部字节身份。进一步资格需要处理显存压力并完成独立的多步对照；TP4/FSDP4 相同 microstep batch 的整机 samples/s 仍需无诊断开销的公平测量。

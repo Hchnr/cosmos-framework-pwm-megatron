@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Topology-independent slot identities, and explicit reference loss weights."""
 
 from dataclasses import dataclass
@@ -8,6 +11,11 @@ class LogicalSlot:
     update: int
     micro_step: int
     logical_rank: int
+
+
+def native_sample_level_loss(config):
+    """Use the same condition as native loss before supplying an override."""
+    return config.rectified_flow_training_config.sample_level_loss_averaging and config.vision_gen
 
 
 def logical_slots(config, *, update, data_parallel_size, data_parallel_rank):
@@ -24,9 +32,12 @@ def logical_slots(config, *, update, data_parallel_size, data_parallel_rank):
 def reference_loss_weight(config, *, local_samples, reference_modality_samples):
     """Compensate schedule 1/M and DP 1/D while retaining old GA denominators.
 
-    ``reference_modality_samples`` is the sum across original logical DP ranks
-    for this slot's original micro step and modality, prepared before 1F1B.
-    The baseline per-sample mean contributes n/(R*N) before the update average.
+    ``local_samples`` is the native length of ``preds_vision`` for this slot;
+    it is a vision-item count and may differ from the packed sample count.
+    ``reference_modality_samples`` is the sum of those counts across original
+    logical DP ranks for this slot's original micro step and modality. Native
+    decoding uses one dummy prediction when the vision payload is absent.
+    The baseline per-rank contribution is n/(R*N) before the update average.
     New schedule/DP average contributes 1/(M*D)=1/(L*R), hence L*n/N.
     Counts may vary or be zero; Action/VIDEO retain the original shared weight.
     """

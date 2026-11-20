@@ -157,4 +157,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # run_path below temporarily replaces sys.modules['__main__']. Dynamo
+    # guards must resolve candidate helpers from a stable importable module,
+    # not from this temporary script namespace.
+    from tools.run_tp_pp_async_row_reduction import main as imported_main
+
+    imported_main()

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Diagnostic training entry with saved-tensor CPU offload at original capacity.
 
 This keeps the model, input, optimizer, and schedule unchanged. It is an opt-in

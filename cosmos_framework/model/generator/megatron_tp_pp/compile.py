@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Functional TP communication at the compiled MCore GEMM boundary.
 
 MCore's eager async Work handles cannot be represented in FX. These two

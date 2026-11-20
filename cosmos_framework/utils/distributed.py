@@ -496,8 +496,8 @@ def sync_model_states(
         model (nn.Module): The model whose parameters and buffers are to be synchronized.
         process_group (dist.ProcessGroup, optional): The process group for communication. If None,
             the default group is used. Defaults to None.
-        src (int, optional): The source rank from which parameters and buffers will be broadcasted.
-            Defaults to 0.
+        src (int, optional): The source rank within ``process_group`` from which parameters and buffers
+            will be broadcasted. Defaults to 0.
         params_and_buffers_to_ignore (Optional[Container[str]], optional): A container of parameter and buffer
             names to exclude from synchronization. Defaults to None, which means all parameters and buffers are
             included.

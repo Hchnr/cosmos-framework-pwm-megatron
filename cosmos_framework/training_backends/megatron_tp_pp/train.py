@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: OpenMDW-1.1
+
 """Update-level production driver for the planned dense Action128 TP/PP recipe."""
 
 import json
@@ -15,7 +18,7 @@ from cosmos_framework.utils.generator.rand_state import get_rand_state_dict, set
 from cosmos_framework.utils.lazy_config import LazyConfig, instantiate
 
 from . import checkpoint
-from .batch import logical_slots
+from .batch import logical_slots, native_sample_level_loss
 from .bundle import CanonicalBundle
 from .config import ModelParallelConfig
 from .data_state import import_logical_state
@@ -139,8 +142,7 @@ def run(config, args=None, *, initialized_callback=None):
     logical_ranks = tuple(range(dp_rank, topology.logical_data_parallel_size, dp_size))
     trace_prepared = os.environ.get("COSMOS_TP_PP_TRACE_PREPARED", "0") == "1"
     preflight_required = (
-        config.model.config.rectified_flow_training_config.sample_level_loss_averaging
-        or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
+        native_sample_level_loss(config.model.config) or os.environ.get("COSMOS_TP_PP_VERIFY_RAW_REPLAY", "0") == "1"
     )
     capture_dir = os.environ.get("COSMOS_TP_PP_CAPTURE_PREPARED_DIR")
     capture_iteration_value = os.environ.get("COSMOS_TP_PP_CAPTURE_ITERATION")
@@ -189,7 +191,34 @@ def run(config, args=None, *, initialized_callback=None):
         bf16=stage.config.params_dtype == torch.bfloat16,
     )
     overrides = bundle.optimizer_overrides(stage, optimizer_config)
-    driver = ModelParallelDriver(stage, topology, optimizer_config, config_overrides=overrides, gc_trace_root=root)
+    from .native_fp32_norm import agree_requested
+
+    norm_flag = os.environ.get("COSMOS_TP_PP_NATIVE_FP32_NORM", "0")
+    norm_enabled = agree_requested(
+        norm_flag, dtype=stage.config.params_dtype, dp_size=dp_size, optimizer_config=optimizer_config, device="cuda"
+    )
+    native_norm_order = None
+    if norm_enabled:
+        from .native_fp32_norm import derive_native_parameter_order
+
+        derivation_error = None
+        try:
+            native_norm_order = derive_native_parameter_order(config.model.config, bundle.manifest)
+        except Exception as error:
+            derivation_error = error
+        failed = torch.tensor([int(derivation_error is not None)], dtype=torch.int32, device="cuda")
+        dist.all_reduce(failed, op=dist.ReduceOp.MAX)
+        if failed.item():
+            raise RuntimeError("Native FP32 norm metadata derivation failed on at least one rank") from derivation_error
+    driver = ModelParallelDriver(
+        stage,
+        topology,
+        optimizer_config,
+        config_overrides=overrides,
+        gc_trace_root=root,
+        native_fp32_norm_order=native_norm_order,
+        _native_norm_consensus_checked=True,
+    )
     bundle.load_optimizer(stage, driver.optimizer)
     dist.barrier()
     if dist.get_rank() == 0:
@@ -306,6 +335,8 @@ def run(config, args=None, *, initialized_callback=None):
         "logical_training_rng_states": len(rng.states) if rng is not None else 0,
         "source_trainer": source_state,
     }
+    if norm_enabled:
+        initialized["native_fp32_norm_enabled"] = True
     (root / f"initialization.rank{dist.get_rank()}.json").write_text(json.dumps(initialized, indent=2) + "\n")
     log.info(json.dumps(initialized), rank0_only=False)
     if restarted is not None:
@@ -417,6 +448,8 @@ def run(config, args=None, *, initialized_callback=None):
                     source_rank=source_rank,
                     dp_group=data_group,
                 )
+            elif isinstance(totals, dict):
+                totals = totals["samples"]
             report = {
                 "iteration": driver.iteration,
                 "rank": dist.get_rank(),
