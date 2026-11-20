@@ -676,3 +676,21 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 首步 rank 0 的逐层参数梯度相对误差中位数由第 35 层约 2.03e-5 增至第 31 层约 2.70e-4，浅层约 9e-4–1e-3，说明反向传播中存在明显放大；这些统计本身不能确定首个出错算子。相同 workspace 与 Q/K 布局适配没有解决问题，不能从单个 GEMM 重放一致推断完整训练正确。下一步需按相同输入与状态捕获层边界及算子前后值、反向 cotangent，确定差异来源并修复。
 
 完整逐 rank 输出、源码身份及原生 dtype 清单保存在执行节点 `/opt/cosmos-tp-workspace16-full-20261120-v11/`；其报告压缩副本 `reports.tar.gz` 的 SHA-256 为 `ca17c28de7a52e2c37275aab8cd57159fed2d4908a55d6481f1101c036a7083b`。共享 `outputs` 的目录创建返回 `No space left on device`，因此该次报告尚未复制到共享目录；大体积原始参考文件没有生成时内容哈希，本次检查不能认证其历史全部字节。这里记录的是裁剪输入定位，TP2/PP2、原始容量、严格恢复及生产性能均须单独验收。
+
+### 2026-11-20：36 层 BF16 grouped QKV 候选未通过
+
+在包含相同 host 随机种子修复的隔离快照上，比较四卡 TP4/PP1 的 baseline 和试验性 text/vision grouped QKV 候选，均为 BF16、36 层、full activation checkpointing、逐层编译。两侧使用同一 step-1200 TP4 bundle 和三个真实 prepared fixture，连续运行 **2 次优化器更新，每次 3 个 microstep**。真实模型、优化器、通信和 loss 路径保留；数据加载使用 prepared-only mock，因此本次不验证真实 loader 连续性、checkpoint 恢复或数据准备流程。
+
+在两侧完整运行之前，四个 rank 的独立初始状态预检通过；完整运行中再次比较的模型、buffer、优化器、物理与 model-parallel RNG、逻辑 RNG 和迭代/调度状态也一致。baseline 完成两次更新；每 rank 记录 72 个编译图且无 grouped 算子。候选每 rank 的 72 个图均捕获 grouped QKV，梯度与更新后状态每步均覆盖 811 个优化器参数片段。
+
+候选**未通过数值门槛**。四个 rank 各有 **6516、6519、6525、6542** 个字段比较失败（这是跨输出、梯度、参数与优化器状态的字段数，不是参数个数）。每个 rank 两次更新的 **1622/1622 个梯度片段**和 **1622/1622 个 Adam 一阶矩片段**均未通过；已记录的 used 标志和 optimizer step 比较通过。首个 microstep 的首个 vision 输出相对 L2 为 **0.0121054（约 1.21%）**，最大绝对误差为 **2.03125**；比较对非近零参考按至多 1M 元素窗口检查相对 L2 ≤1e-4，对近零参考使用绝对误差 ≤2e-6。观察器在采集完两次更新后按失败门槛返回非零退出码，不能将它归为 GPU OOM 或简单的初始化状态不一致。
+
+该结果说明此 grouped 候选在这组真实 prepared 输入下不能用于正确性验收；差异首先产生于哪个算子、以及 grouped GEMM 与编译融合分别贡献多少，仍需相同层输入下定位。两层合成 smoke 曾通过，不足以替代此 36 层结果。这里不提供性能测量，亦不能推断候选加速或 TP4/FSDP4 吞吐变化；独立的 FP32 正确性、完整数据和其他 TP/PP 拓扑门槛仍需完成。
+
+现场结果与逐 rank 记录位于执行节点 `/opt/cosmos-tp-ragged-seeded-v3-20261120/artifacts/tp4_full_bf16_qualification/sequence/`，队列和源码启动前哈希位于 `/opt/cosmos-tp-ragged-seeded-v3-queue-20261120/qualification/queue_result.json`。这些是节点本地文件，尚未归档到共享存储；队列启动前核对了 863 项源码路径，三个 prepared 文件有启动前哈希，但候选失败后未执行正常收尾的再次哈希，原始大型 checkpoint 字节也未重新哈希，因此不能据此证明运行期间全部输入字节未变化。
+
+### 2026-11-20：FP32 Q 投影输入梯度局部重放
+
+针对上节 `:16:8` 原生参考的第 0 层 Q 投影，使用两个已捕获 microbatch 的真实输入、共同的输出梯度和权重，在四个 TP rank 上测试权重转置重分片后计算输入梯度；重放检查了局部权重字节与原切片的一致性。`CUBLAS_WORKSPACE_CONFIG=:16:8` 下，私有 cuBLAS、PyTorch 默认及指定 cuBLAS/cuBLASLt 的本地矩阵乘，包括保留原始输出行步长的变体，**均为 0/8 逐位匹配同 workspace 的原生输入梯度**。这是严格逐位检查，并不表示这些局部误差必然超过训练验收阈值。
+
+在独立的 `:4096:8` 进程中，PyTorch 默认和 cuBLAS 变体的本地输入梯度切片各有 8/8 逐位匹配该 workspace 的原生结果；但两个 workspace 的原生输入梯度本身也有 0/8 逐位一致，因此不能把此结果当成匹配 `:16:8` 参考的修复。这里仅覆盖两个输入、Q 投影和局部算子重放，未验证完整编译图、训练多步、其他投影或性能。执行节点上的过程记录为 `/opt/cosmos-tp-q-dx-strided-output-20261120/status.json`，跨 workspace 对照为 `/opt/cosmos-tp-q-dx-cross-workspace-20261120/status.json`；其中状态 `passed` 表示诊断执行与覆盖检查完成，不表示训练数学验收通过。
