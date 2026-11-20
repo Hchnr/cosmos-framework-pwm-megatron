@@ -7,6 +7,7 @@ import argparse
 import copy
 import dataclasses
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -20,9 +21,67 @@ from tools.run_tp_pp_async_row_reduction import install
 
 
 def tensor_diff(a, b):
+    reference_finite = bool(torch.isfinite(a).all().item())
+    candidate_finite = bool(torch.isfinite(b).all().item())
+    if not reference_finite or not candidate_finite:
+        return {
+            "reference_finite": reference_finite,
+            "candidate_finite": candidate_finite,
+            "relative_l2": None,
+            "max_abs": None,
+        }
     delta = a.detach().to(torch.float64) - b.detach().to(torch.float64)
     denom = a.detach().to(torch.float64).norm().item()
-    return {"relative_l2": delta.norm().item() / max(denom, 1e-30), "max_abs": delta.abs().max().item()}
+    delta_norm = delta.norm().item()
+    max_abs = delta.abs().max().item()
+    # A metric can overflow even when every input element is finite. Preserve
+    # standard JSON and fail the comparison rather than silently accepting it.
+    if not all(math.isfinite(value) for value in (denom, delta_norm, max_abs)):
+        relative_l2 = max_abs = None
+    else:
+        relative_l2 = delta_norm / max(denom, 1e-30)
+        if not math.isfinite(relative_l2):
+            relative_l2 = max_abs = None
+    return {
+        "reference_finite": reference_finite,
+        "candidate_finite": candidate_finite,
+        "relative_l2": relative_l2,
+        "max_abs": max_abs,
+    }
+
+
+def comparison_failed(row):
+    return row["relative_l2"] is None or row["max_abs"] is None or (row["relative_l2"] > 1e-4 and row["max_abs"] > 2e-6)
+
+
+def compare_summary(differences):
+    if not differences:
+        # Missing evidence is a rank-local failure, not a rank-local exception:
+        # peers still need to enter the shared failure all-reduce.
+        missing = {
+            "name": "<no compared fields>",
+            "reference_finite": None,
+            "candidate_finite": None,
+            "relative_l2": None,
+            "max_abs": None,
+        }
+        return None, [missing], [missing]
+    finite = [row for row in differences if row["relative_l2"] is not None and row["max_abs"] is not None]
+    maximum = max((row["relative_l2"] for row in finite), default=None)
+    failures = [row for row in differences if comparison_failed(row)]
+    largest = sorted(
+        differences,
+        key=lambda row: (row["relative_l2"] is None, row["relative_l2"] or 0.0),
+        reverse=True,
+    )[:10]
+    return maximum, failures, largest
+
+
+def synchronize_failures(failures, device):
+    """Make rank-local numerical failures collective before raising."""
+    failed = torch.tensor([bool(failures)], device=device, dtype=torch.int32)
+    dist.all_reduce(failed, op=dist.ReduceOp.MAX)
+    return bool(failed.item())
 
 
 def main():
@@ -36,11 +95,10 @@ def main():
     parser.add_argument("--compile-backend", choices=("aot_eager", "inductor"), default="aot_eager")
     args = parser.parse_args()
     sys.path.insert(0, str(args.worktree / "tests/megatron"))
-    from tp_pp_network_io_test import make_native, make_sequence
-
     from cosmos_framework.model.generator.megatron_tp_pp.io import FirstStageInputs
     from cosmos_framework.model.generator.megatron_tp_pp.layers import parallelize_layer
     from cosmos_framework.model.generator.mot import small_action_tower as tower
+    from tp_pp_network_io_test import make_native, make_sequence
 
     device = torch.device("cuda", int(os.environ["LOCAL_RANK"])) if args.backend == "nccl" else torch.device("cpu")
     if device.type == "cuda":
@@ -235,10 +293,8 @@ def main():
                     )
                     for key in oldopt.state[p]
                 )
-        maximum = max(row["relative_l2"] for row in differences)
-        failures = [row for row in differences if row["relative_l2"] > 1e-4 and row["max_abs"] > 2e-6]
-        failed = torch.tensor([bool(failures)], device=device, dtype=torch.int32)
-        dist.all_reduce(failed, op=dist.ReduceOp.MAX)
+        maximum, failures, largest = compare_summary(differences)
+        failed = synchronize_failures(failures, device)
         reports.append(
             {
                 "step": step,
@@ -250,14 +306,16 @@ def main():
                 "compile_backend": args.compile_backend if args.compile else None,
                 "full_activation_checkpointing": args.full_ac,
                 "dtype": args.dtype,
-                "passed": not bool(failed.item()),
+                "passed": not failed,
                 "local_failed_fields": len(failures),
-                "largest_relative_fields": sorted(differences, key=lambda row: row["relative_l2"], reverse=True)[:10],
+                "largest_relative_fields": largest,
             }
         )
         args.output.mkdir(parents=True, exist_ok=True)
-        (args.output / f"rank{rank}.json").write_text(json.dumps({"rank": rank, "cases": reports}) + "\n")
-        assert not failed.item(), f"fixed numerical gate failed; rank={rank}, local failures={len(failures)}"
+        (args.output / f"rank{rank}.json").write_text(
+            json.dumps({"rank": rank, "cases": reports}, allow_nan=False) + "\n"
+        )
+        assert not failed, f"fixed numerical gate failed; rank={rank}, local failures={len(failures)}"
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / f"rank{rank}.json").write_text(
         json.dumps(
@@ -265,7 +323,8 @@ def main():
                 "rank": rank,
                 "cases": reports,
                 "peak_cuda_bytes": torch.cuda.max_memory_allocated(device) if device.type == "cuda" else None,
-            }
+            },
+            allow_nan=False,
         )
         + "\n"
     )
