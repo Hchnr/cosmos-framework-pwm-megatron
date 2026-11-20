@@ -13,7 +13,9 @@ from cosmos_framework.model.generator.omni_mot_model import OmniMoTModel
 def _model() -> OmniMoTModel:
     model = OmniMoTModel.__new__(OmniMoTModel)
     model.input_video_latent_key = "video_latent"
-    model.config = SimpleNamespace(state_ch=48)
+    model.config = SimpleNamespace(
+        state_ch=48, diffusion_expert_config=SimpleNamespace(vision_spatial_position_mode="canvas")
+    )
     return model
 
 
