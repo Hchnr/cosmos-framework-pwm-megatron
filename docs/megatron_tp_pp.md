@@ -707,3 +707,13 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 使用四卡 H100、真实 Q 权重分片与两个捕获的输出梯度，在 `:16:8` 配置下有界枚举 cuBLASLt heuristic。存在相同的完整算法配置，能让两组输入的四个 rank 局部结果均逐位匹配同输入、同权重的原生 `F.linear` eager 重放；分别拼接四个分片后，两组完整 dX 也逐位一致。16 KiB 上限内至少两个候选配置命中；这是局部算法资格，不代表更早两种默认矩阵乘回放也匹配。源码与输入前后哈希一致，权重重分片逐字节检查通过。
 
 此结论只覆盖第 0 层 Q、两组 token 数为 12 的 FP32 输入和本机 CUDA/cuBLASLt，参考是 eager 重放而非原 36 层编译图中捕获的 dX。Lt 的单次局部 GEMM 时间不含权重重分片、梯度通信与 autograd，不能用于训练吞吐结论。需要在不重复执行 TP 输入梯度归约的前提下，进一步验证 autograd、编译/activation checkpointing、不同形状及连续多步，才能评估是否真正修复完整模型。结果在 `/opt/cosmos-tp-q-lt-algorithm-search-20261120/status.json`；`passed` 表示搜索执行与覆盖完成，需结合其中统一命中记录判断数值。
+
+### 2026-11-20：FSDP4 真实 VAE 跨槽预取的部分对照
+
+在四卡 FSDP4、36 层 BF16 和真实 VAE 下，使用固定 raw fixture 比较同步准备与试验性跨槽预取，每次更新包含 3 个 microstep。baseline 完成 3 次更新；prefetch 只完成第 1 次更新。四个 rank 的记录在初始模型与优化器状态、3 个 microstep 输出及 loss、裁剪前梯度、更新后模型与优化器状态等 6 个观测事件上均一致；张量由记录的 SHA-256 与形状、dtype、布局等元数据比较。这只证明已记录首步的两侧对照，不能证明后续更新或原生数据加载和恢复一致。
+
+进入下一次更新时，prefetch 的 rank 3 在 `completed_sample_totals` 的 NCCL broadcast 报告 `ncclUnhandledCudaError`，日志显示 `Failed to CUDA calloc async 24 bytes`；随后其他 rank 被终止。资格队列返回非零且 `completed=false`，因此该 FSDP 预取变体**未通过完整多步资格**。这条报错表明 CUDA 分配失败，但单凭该记录不能确定显存压力的全部成因。
+
+约每 2.1 秒采样的 NVML 显存峰值，baseline 四卡为 **80606–80666 MiB**，prefetch 为 **80392–81006 MiB**；最高采样值距 81559 MiB 总量约 **553 MiB**，瞬时峰值可能更高。记录包含状态哈希、复制和同步等诊断开销，不用于吞吐比较。此实验重复使用固定 fixture 和 mock loader，不验证真实 loader 连续性、checkpoint 恢复或 TP 与 FSDP 的数值等价。
+
+现场的队列状态、两侧日志和逐 rank 观测位于执行节点 `/opt/cosmos-fsdp-cross-slot-36l-seeded-qualification-v9-20261120/qualification/`。队列时和启动前的 2028 项来源记录相同；失败后未生成完整的收尾源码哈希，也未证明历史训练 checkpoint 的全部字节身份。进一步资格需要处理显存压力并完成独立的多步对照；TP4/FSDP4 相同 microstep batch 的整机 samples/s 仍需无诊断开销的公平测量。
