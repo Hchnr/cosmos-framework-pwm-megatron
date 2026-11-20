@@ -694,3 +694,16 @@ VAE 输入分发与 latent 回收改为批量 P2P 的隔离候选，已对三个
 针对上节 `:16:8` 原生参考的第 0 层 Q 投影，使用两个已捕获 microbatch 的真实输入、共同的输出梯度和权重，在四个 TP rank 上测试权重转置重分片后计算输入梯度；重放检查了局部权重字节与原切片的一致性。`CUBLAS_WORKSPACE_CONFIG=:16:8` 下，私有 cuBLAS、PyTorch 默认及指定 cuBLAS/cuBLASLt 的本地矩阵乘，包括保留原始输出行步长的变体，**均为 0/8 逐位匹配同 workspace 的原生输入梯度**。这是严格逐位检查，并不表示这些局部误差必然超过训练验收阈值。
 
 在独立的 `:4096:8` 进程中，PyTorch 默认和 cuBLAS 变体的本地输入梯度切片各有 8/8 逐位匹配该 workspace 的原生结果；但两个 workspace 的原生输入梯度本身也有 0/8 逐位一致，因此不能把此结果当成匹配 `:16:8` 参考的修复。这里仅覆盖两个输入、Q 投影和局部算子重放，未验证完整编译图、训练多步、其他投影或性能。执行节点上的过程记录为 `/opt/cosmos-tp-q-dx-strided-output-20261120/status.json`，跨 workspace 对照为 `/opt/cosmos-tp-q-dx-cross-workspace-20261120/status.json`；其中状态 `passed` 表示诊断执行与覆盖检查完成，不表示训练数学验收通过。
+
+
+### 2026-11-20：真实 VAE 跨槽预取的局部资格
+
+在四卡 TP4/PP1、36 层 BF16、同一个 step-1200 bundle 和真实 VAE 下，比较同步准备与试验性跨槽预取：每次更新 3 个 microstep，连续 3 次更新。四个 rank 均完成 28 项输入、输出/loss、梯度、参数、优化器与随机状态事件的逐项精确对照；每 rank 的 VAE bridge 覆盖 9 槽和 9 次调用，6 次预取均按序消费。队列完成且源码启动前后哈希一致。此对照使用重复的 raw fixture 和 mock loader，checkpoint 不发布；它验证同一 TP 计算在此输入上的预取一致性，不验证原生与 TP 数学等价、真实 loader 连续性或恢复。
+
+大约每两秒采样的 NVML 显存峰值，baseline 四卡为 **75074–76024 MiB**，预取为 **80696–80998 MiB**；本机 H100 每卡总计 81559 MiB，最大采样值仅剩约 **561 MiB**，瞬时峰值可能更高。诊断中的内容哈希、状态复制和同步使这些执行时间不能作为吞吐结果，需另行验证去诊断变体，并对 FSDP 做对称优化与相同 microstep batch 的整机 samples/s 比较。现场记录在 `/opt/cosmos-tp-cross-slot-seeded-qualification-v4-20261120/qualification/`，历史训练 checkpoint 仅覆盖选定元数据，不是完整内容哈希。
+
+### 2026-11-20：FP32 Q 输入梯度的 cuBLASLt 局部命中
+
+使用四卡 H100、真实 Q 权重分片与两个捕获的输出梯度，在 `:16:8` 配置下有界枚举 cuBLASLt heuristic。存在相同的完整算法配置，能让两组输入的四个 rank 局部结果均逐位匹配同输入、同权重的原生 `F.linear` eager 重放；分别拼接四个分片后，两组完整 dX 也逐位一致。16 KiB 上限内至少两个候选配置命中；这是局部算法资格，不代表更早两种默认矩阵乘回放也匹配。源码与输入前后哈希一致，权重重分片逐字节检查通过。
+
+此结论只覆盖第 0 层 Q、两组 token 数为 12 的 FP32 输入和本机 CUDA/cuBLASLt，参考是 eager 重放而非原 36 层编译图中捕获的 dX。Lt 的单次局部 GEMM 时间不含权重重分片、梯度通信与 autograd，不能用于训练吞吐结论。需要在不重复执行 TP 输入梯度归约的前提下，进一步验证 autograd、编译/activation checkpointing、不同形状及连续多步，才能评估是否真正修复完整模型。结果在 `/opt/cosmos-tp-q-lt-algorithm-search-20261120/status.json`；`passed` 表示搜索执行与覆盖完成，需结合其中统一命中记录判断数值。
