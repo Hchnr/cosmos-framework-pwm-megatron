@@ -166,6 +166,9 @@ def validate_reports(reports, tp, result, reference, bundle):
     runtime_hash = reference.get("runtime_constants_sha256")
     if not isinstance(runtime_hash, str) or len(runtime_hash) != 64:
         raise ValueError("invalid reference runtime constants hash")
+    seed = reference.get("seed")
+    if type(seed) is not int or not 0 <= seed < 2**32:
+        raise ValueError("native reference is missing a valid requested seed")
     summaries = None
     ranks = []
     any_local_failure = False
@@ -175,6 +178,7 @@ def validate_reports(reports, tp, result, reference, bundle):
             raise ValueError(f"rank {rank}: invalid report")
         required = {
             "rank": rank,
+            "seed": seed,
             "updates": 3,
             "original_capacity": True,
             "attention_backend": "flex",
@@ -269,7 +273,12 @@ def validate_reports(reports, tp, result, reference, bundle):
         raise ValueError("global pass flag disagrees with observations")
     if type(result.get("returncode")) is not int or (result["returncode"] == 0) != global_passed:
         raise ValueError(f"TP{tp} return code disagrees with rank reports")
-    return {"passed": global_passed, "complete_observation": True, "ranks": ranks}
+    return {
+        "passed": global_passed,
+        "complete_observation": True,
+        "rng_state_comparison_verified": False,
+        "ranks": ranks,
+    }
 
 
 def tp_gate(output, tp, result, reference, bundle):
