@@ -39,6 +39,7 @@ LOCK = Path("/tmp/cosmos-tp-pp-norm-post-fused.lock")
 MIN_HEADROOM = 100 * 1024**3
 MAX_TREE_RSS = 700 * 1024**3
 CASE_TIMEOUT = 12 * 3600
+DIAGNOSTIC_SEED = 42
 
 
 def digest(path):
@@ -114,6 +115,8 @@ def snapshot_copy(snapshot):
 
 def common(reference):
     return [
+        "--seed",
+        str(DIAGNOSTIC_SEED),
         "--objective",
         "native_rf",
         "--retain-full-text",
@@ -179,6 +182,8 @@ def reference_gate(reference, result):
     if not (
         result["returncode"] == 0
         and manifest["passed"] is True
+        and type(manifest.get("seed")) is int
+        and manifest["seed"] == DIAGNOSTIC_SEED
         and manifest["original_capacity"] is True
         and manifest["gradient_streaming_candidate"] is True
         and manifest["clipping_implementation"] == "streamed_cuda_norm_and_clip_candidate"

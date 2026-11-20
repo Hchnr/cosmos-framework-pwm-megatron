@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""Add reporting-only comparison telemetry to an isolated diagnostics snapshot."""
+"""Align seed handling and add comparison telemetry in an isolated snapshot."""
 
 import hashlib
 
@@ -97,7 +97,67 @@ def helper(source):
         '                "scope": reference["scope"],',
         '                "rank": dist.get_rank(),\n                "scope": reference["scope"],',
     )
-    return dtype_telemetry(source)
+    return seed_telemetry(dtype_telemetry(source))
+
+
+def seed_telemetry(source):
+    """Align the legacy capacity helper with the seed-aware report gate.
+
+    This modifies only the copied diagnostic. A requested seed is evidence of
+    initialization intent, not proof that native and TP RNG states match.
+    """
+    source = _replace_once(
+        source,
+        'def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):',
+        "def validate_reference_seed(reference, seed):\n"
+        "    if (type(seed) is not int or not 0 <= seed < 2**32\n"
+        '        or type(reference.get("seed")) is not int or reference["seed"] != seed):\n'
+        '        raise ValueError("Native reference must record the requested seed")\n\n\n'
+        'def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):',
+    )
+    source = _replace_once(
+        source,
+        "def tp(args, config, language, network, inputs):\n",
+        "def tp(args, config, language, network, inputs):\n"
+        "    try:\n"
+        '        existing_reference = json.loads((args.reference_dir / "manifest.json").read_text())\n'
+        "    except (FileNotFoundError, json.JSONDecodeError):\n"
+        "        pass\n"
+        "    else:\n"
+        "        validate_reference_seed(existing_reference, args.seed)\n",
+    )
+    source = _replace_once(source, "    initialize(topology)\n", "    initialize(topology, seed=args.seed)\n")
+    source = _replace_once(
+        source,
+        '    assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]\n',
+        "    validate_reference_seed(reference, args.seed)\n"
+        '    assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]\n',
+    )
+    source = _replace_once(
+        source,
+        '    report = {\n        "passed": True,\n        "names": names,',
+        '    report = {\n        "passed": True,\n        "seed": args.seed,\n'
+        '        "rng_state_evidence": "not_recorded",\n        "names": names,',
+    )
+    source = _replace_once(
+        source,
+        '                "scope": reference["scope"],',
+        '                "seed": args.seed,\n                "rng_state_evidence": "not_recorded",\n'
+        '                "scope": reference["scope"],',
+    )
+    source = _replace_once(
+        source,
+        '    parser.add_argument("--mode", choices=("native", "tp"), required=True)\n',
+        '    parser.add_argument("--mode", choices=("native", "tp"), required=True)\n'
+        '    parser.add_argument("--seed", type=int, default=42)\n',
+    )
+    return _replace_once(
+        source,
+        "    if args.deterministic:\n",
+        "    from cosmos_framework.utils.misc import set_random_seed\n\n"
+        "    set_random_seed(args.seed)\n"
+        "    if args.deterministic:\n",
+    )
 
 
 def dtype_telemetry(source):
