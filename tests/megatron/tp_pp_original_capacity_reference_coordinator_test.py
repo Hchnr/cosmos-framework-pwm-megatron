@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
+import ast
 import copy
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -45,6 +48,14 @@ def test_generated_commands_use_original_capacity_and_continuous_trajectory(mode
     assert "--original-capacity" in command and "--replay-native-state" not in command
     assert command[command.index("--prepared-dir") + 1] == str(coordinator.INPUTS)
     assert command[command.index("--reference-dir") + 1] == "/tmp/reference"
+    assert command[command.index("--seed") + 1] == str(coordinator.DIAGNOSTIC_SEED)
+
+
+@pytest.mark.parametrize("seed", [None, True, 41, "42"])
+def test_native_reference_gate_rejects_missing_or_wrong_seed(tmp_path, seed):
+    (tmp_path / "manifest.json").write_text(json.dumps({"passed": True, "seed": seed}))
+    with pytest.raises(ValueError, match="Incomplete or incorrect"):
+        coordinator.reference_gate(tmp_path, {"returncode": 0})
 
 
 def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkeypatch):
@@ -58,9 +69,16 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
     )
     (source / "tests/megatron").mkdir()
     (source / "tests/megatron/tp_pp_full_source_math_cuda_compare_streamed_reference_v2.py").write_text(
+        'def configuration(toml, *, original_capacity=False, attention_backend="sdpa"):\n'
+        "    pass\n"
+        "def native(args, names):\n"
+        '    report = {\n        "passed": True,\n        "names": names,\n    }\n'
+        "    return report\n"
         "def tp(args, config, language, network, inputs):\n"
         "    torch.backends.cuda.matmul.allow_tf32 = False\n"
         "    topology = ModelParallelConfig(\n        x=1\n    )\n"
+        "    initialize(topology)\n"
+        '    assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]\n'
         "    bundle.load_optimizer(stage, driver.optimizer)\n"
         '    loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None\n'
         "    for update in range(3):\n        pass\n"
@@ -83,6 +101,9 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
         '                "scope": reference["scope"],\n'
         '                "compute_parameter_checks": compute_parameter_checks,\n'
         "    }\n"
+        "def main():\n"
+        '    parser.add_argument("--mode", choices=("native", "tp"), required=True)\n'
+        "    if args.deterministic:\n        pass\n"
     )
     (root / "tools").mkdir(parents=True)
     for name in ("run_tp_pp_untraced_capacity_math.py", "run_tp_pp_checkpointed_chunked_mlp_math.py"):
@@ -96,4 +117,37 @@ def test_snapshot_copies_isolated_source_without_modifying_base(tmp_path, monkey
     assert not (source / "tools/run_tp_pp_untraced_capacity_math.py").exists()
     assert '"reference_squared_l2": aa' in (target / "tools/compare_tp_pp_runtime_checkpoints.py").read_text()
     helper = target / "tests/megatron/tp_pp_full_source_math_cuda_compare_streamed_reference_v2.py"
-    assert '"reference_squared_l2": difference.get("reference_squared_l2")' in helper.read_text()
+    generated = helper.read_text()
+    assert '"reference_squared_l2": difference.get("reference_squared_l2")' in generated
+    assert 'parser.add_argument("--seed", type=int, default=42)' in generated
+    assert "initialize(topology, seed=args.seed)" in generated
+    assert generated.count('"seed": args.seed') == 2
+    assert generated.count("validate_reference_seed(") == 3
+    seed_validator = next(
+        node
+        for node in ast.parse(generated).body
+        if isinstance(node, ast.FunctionDef) and node.name == "validate_reference_seed"
+    )
+    namespace = {}
+    exec(
+        compile(ast.fix_missing_locations(ast.Module(body=[seed_validator], type_ignores=[])), "<seed-check>", "exec"),
+        namespace,
+    )
+    namespace["validate_reference_seed"]({"seed": 42}, 42)
+    for reference in ({}, {"seed": True}, {"seed": 41}):
+        with pytest.raises(ValueError, match="requested seed"):
+            namespace["validate_reference_seed"](reference, 42)
+    functions = [
+        node
+        for node in ast.parse(generated).body
+        if isinstance(node, ast.FunctionDef) and node.name in ("native", "tp")
+    ]
+    namespace["json"] = json
+    exec(
+        compile(ast.fix_missing_locations(ast.Module(body=functions, type_ignores=[])), "<seed-path>", "exec"),
+        namespace,
+    )
+    assert namespace["native"](SimpleNamespace(seed=42), ["weight"])["seed"] == 42
+    (tmp_path / "manifest.json").write_text("{}")
+    with pytest.raises(ValueError, match="requested seed"):
+        namespace["tp"](SimpleNamespace(seed=42, reference_dir=tmp_path), None, None, None, None)
