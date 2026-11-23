@@ -31,7 +31,9 @@ def _metric_record(item, label):
     relative_key = "comparison_relative_l2" if label == "gradient" else "relative_l2"
     absolute_key = "comparison_maximum_absolute_error" if label == "gradient" else "maximum_absolute_error"
     relative, absolute = item.get(relative_key), item.get(absolute_key)
-    if any(not _finite(x) or x < 0 for x in (norm, relative, absolute)):
+    if any(not _finite(x) or x < 0 for x in (norm, absolute)):
+        raise ValueError(f"{label}: invalid comparison metrics or missing reference norm")
+    if (relative is None and norm != 0) or (relative is not None and (not _finite(relative) or relative < 0)):
         raise ValueError(f"{label}: invalid comparison metrics or missing reference norm")
     if label != "gradient" and item.get("local_windows_checked") is not False:
         raise ValueError(f"{label}: unexpected local window comparison")

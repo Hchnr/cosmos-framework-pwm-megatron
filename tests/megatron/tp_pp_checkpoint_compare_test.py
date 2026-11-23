@@ -10,6 +10,7 @@ import torch
 import torch.distributed.checkpoint as dcp
 
 from tools.compare_tp_pp_runtime_checkpoints import compare, tensor_difference
+from tools.tp_pp_capacity_gate import _metric_record
 
 
 def save_pair(tmp_path, left, right):
@@ -49,3 +50,50 @@ def test_flat_bucket_windows_prevent_a_large_matrix_hiding_a_changed_small_tenso
     arguments = {"relative_tolerance": 1e-4, "absolute_tolerance": 2e-6, "exact": False}
     assert not tensor_difference(reference, changed, **arguments)["passed"]
     assert tensor_difference(reference, changed, **arguments, local_windows=False)["passed"]
+
+
+@pytest.mark.parametrize("value,passed", [(0.0, True), (1e-8, True), (1e-4, False)])
+@pytest.mark.parametrize("local_windows", [False, True])
+def test_zero_reference_reports_undefined_relative_metrics_and_uses_absolute_gate(value, passed, local_windows):
+    arguments = {"relative_tolerance": 1e-4, "absolute_tolerance": 2e-6, "exact": False}
+    result = tensor_difference(torch.zeros(2), torch.full((2,), value), **arguments, local_windows=local_windows)
+    assert result["passed"] is passed
+    assert result["relative_l2"] is None and result["cosine"] is None
+    assert result["worst_chunk_relative_l2"] == (None if value else 0.0)
+    json.dumps(result, allow_nan=False)
+    if not local_windows:
+        assert _metric_record(result, "state") is passed
+
+
+def test_nonzero_reference_with_zero_candidate_has_undefined_cosine():
+    result = tensor_difference(
+        torch.ones(2), torch.zeros(2), relative_tolerance=1e-4, absolute_tolerance=2e-6, exact=False
+    )
+    assert result["relative_l2"] == 1.0 and result["cosine"] is None and not result["passed"]
+    json.dumps(result, allow_nan=False)
+
+
+def test_zero_reference_window_is_not_hidden_by_nonzero_global_reference():
+    reference = torch.cat((torch.ones(1 << 20), torch.zeros(2)))
+    changed = reference.clone()
+    changed[-1] = 1e-4
+    arguments = {"relative_tolerance": 1e-4, "absolute_tolerance": 2e-6, "exact": False}
+    windowed = tensor_difference(reference, changed, **arguments)
+    aggregate = tensor_difference(reference, changed, **arguments, local_windows=False)
+    assert not windowed["passed"] and aggregate["passed"]
+    assert windowed["relative_l2"] is not None and windowed["worst_chunk_relative_l2"] is None
+    json.dumps(windowed, allow_nan=False)
+
+
+def test_capacity_gate_rejects_undefined_relative_error_for_nonzero_reference():
+    result = tensor_difference(
+        torch.ones(2),
+        torch.zeros(2),
+        relative_tolerance=1e-4,
+        absolute_tolerance=2e-6,
+        exact=False,
+        local_windows=False,
+    )
+    result["relative_l2"] = None
+    with pytest.raises(ValueError, match="invalid comparison metrics"):
+        _metric_record(result, "state")

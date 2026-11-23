@@ -133,6 +133,7 @@ def tensor_difference(left, right, *, relative_tolerance, absolute_tolerance, ex
     a, b = left.reshape(-1), right.reshape(-1)
     aa = bb = dot = delta = maximum = 0.0
     worst_chunk = 0.0
+    undefined_chunk = False
     passed = True
     for begin in range(0, a.numel(), 1 << 20):
         x, y = a[begin : begin + (1 << 20)].double(), b[begin : begin + (1 << 20)].double()
@@ -145,24 +146,29 @@ def tensor_difference(left, right, *, relative_tolerance, absolute_tolerance, ex
             (x - y).square().sum().item(),
         )
         error = (x - y).abs().max().item()
-        relative = math.sqrt(dd / xx) if xx else (0.0 if not dd else float("inf"))
+        relative = math.sqrt(dd / xx) if xx else (0.0 if not dd else None)
         # Check local windows as well as the whole bucket: a large unrelated
         # matrix must not hide a mismatch in an optimizer bucket subregion.
         if local_windows:
             passed &= error <= absolute_tolerance if xx <= 1e-16 else relative <= relative_tolerance
-        worst_chunk = max(worst_chunk, relative)
+        if relative is None:
+            undefined_chunk = True
+        else:
+            worst_chunk = max(worst_chunk, relative)
         aa, bb, dot, delta = aa + xx, bb + yy, dot + xy, delta + dd
         maximum = max(maximum, error)
-    relative_l2 = math.sqrt(delta / aa) if aa else 0.0
+    # A zero reference has no relative error or cosine direction. In
+    # particular, reporting zero for a nonzero delta would imply equality.
+    relative_l2 = math.sqrt(delta / aa) if aa else None
     if not local_windows:
         passed = maximum <= absolute_tolerance if aa <= 1e-16 else relative_l2 <= relative_tolerance
     return {
         "passed": passed,
         "relative_l2": relative_l2,
         "reference_squared_l2": aa,
-        "cosine": dot / math.sqrt(aa * bb) if aa * bb else 1.0,
+        "cosine": dot / math.sqrt(aa * bb) if aa and bb else None,
         "maximum_absolute_error": maximum,
-        "worst_chunk_relative_l2": worst_chunk,
+        "worst_chunk_relative_l2": None if undefined_chunk else worst_chunk,
         "local_windows_checked": local_windows,
     }
 
