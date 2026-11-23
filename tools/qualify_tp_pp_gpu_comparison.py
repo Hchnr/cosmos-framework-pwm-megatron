@@ -33,13 +33,20 @@ def main():
         cuda = tensor_difference(left.cuda(), right.cuda(), **kwargs)
         assert cpu["passed"] == cuda["passed"], (label, cpu, cuda)
         for field in ("relative_l2", "cosine", "maximum_absolute_error", "worst_chunk_relative_l2"):
-            if math.isinf(cpu[field]):
+            if cpu[field] is None:
+                assert cuda[field] is None, (label, field, cpu[field], cuda[field])
+            elif math.isinf(cpu[field]):
                 assert cpu[field] == cuda[field]
             else:
                 assert abs(cpu[field] - cuda[field]) <= 1e-12, (label, field, cpu[field], cuda[field])
         rows.append(dict(case=label, cpu=cpu, cuda=cuda))
     with args.output.open("x") as handle:
-        json.dump(dict(passed=True, scope=__doc__, rows=rows, production_math_accepted=False), handle, indent=2)
+        json.dump(
+            dict(passed=True, scope=__doc__, rows=rows, production_math_accepted=False),
+            handle,
+            indent=2,
+            allow_nan=False,
+        )
         handle.write("\n")
 
 
