@@ -28,6 +28,7 @@ A `justfile` is provided at the root with longer recipes (`just install`, `just 
 
 ## Rules
 
+- Name new branches with the `hcr/` prefix; do not use `codex/`.
 - Always answer questions with references to code or documentation in `file:line` format.
 - When unsure, point the user to the closest doc rather than guessing.
 - Keep this file short. Link out to skills and docs for detail — this file is included in every prompt.
@@ -37,20 +38,20 @@ A `justfile` is provided at the root with longer recipes (`just install`, `just 
 
 ### Training (`cosmos_framework/`)
 
-| What                                                 | Where                                           |
-| ---------------------------------------------------- | ----------------------------------------------- |
-| Algorithms (losses, RL, reward)                      | `cosmos_framework/algorithm/{loss,reward,rl}`   |
-| Training loop                                        | `cosmos_framework/trainer/`                     |
-| Megatron backend and migration results | `cosmos_framework/training_backends/`, `docs/megatron_migration.md` |
-| Models + parallelism                                 | `cosmos_framework/model/`                       |
-| Datasets / data loading                              | `cosmos_framework/data/`                        |
-| Checkpoint I/O                                       | `cosmos_framework/checkpoint/`                  |
-| Callbacks (logging, eval)                            | `cosmos_framework/callbacks/`                   |
-| RL workers (rollout, reward, reference, simulations) | `cosmos_framework/workers/`                     |
-| Controller / orchestrator                            | `cosmos_framework/controller/`                  |
-| Launchers (Slurm, torchrun, k8s)                     | `cosmos_framework/launcher/`                    |
-| Evaluation harness                                   | `cosmos_framework/evaluation/`                  |
-| CLI tools                                            | `cosmos_framework/tools/`, `tools/` (repo root) |
+| What                                                 | Where                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------- |
+| Algorithms (losses, RL, reward)                      | `cosmos_framework/algorithm/{loss,reward,rl}`                       |
+| Training loop                                        | `cosmos_framework/trainer/`                                         |
+| Megatron backend and migration results               | `cosmos_framework/training_backends/`, `docs/megatron_migration.md` |
+| Models + parallelism                                 | `cosmos_framework/model/`                                           |
+| Datasets / data loading                              | `cosmos_framework/data/`                                            |
+| Checkpoint I/O                                       | `cosmos_framework/checkpoint/`                                      |
+| Callbacks (logging, eval)                            | `cosmos_framework/callbacks/`                                       |
+| RL workers (rollout, reward, reference, simulations) | `cosmos_framework/workers/`                                         |
+| Controller / orchestrator                            | `cosmos_framework/controller/`                                      |
+| Launchers (Slurm, torchrun, k8s)                     | `cosmos_framework/launcher/`                                        |
+| Evaluation harness                                   | `cosmos_framework/evaluation/`                                      |
+| CLI tools                                            | `cosmos_framework/tools/`, `tools/` (repo root)                     |
 
 For a per-subpackage tour with descriptions, see [`docs/code_structure.md`](./docs/code_structure.md).
 
@@ -68,13 +69,13 @@ For a per-subpackage tour with descriptions, see [`docs/code_structure.md`](./do
 
 ## Documentation
 
-| Doc                                                | What it covers                                                    |
-| -------------------------------------------------- | ----------------------------------------------------------------- |
-| [docs/setup.md](./docs/setup.md)                   | Install, NGC base image, CUDA variants, base-checkpoint download. |
-| [docs/code_structure.md](./docs/code_structure.md) | Repo layout and per-subpackage tour of `cosmos_framework/`.       |
-| [docs/training.md](./docs/training.md)             | Single- and multi-node launches, parallelism, mixed precision.    |
-| [docs/inference.md](./docs/inference.md)           | Sample arguments, parallelism, schemas, troubleshooting.          |
-| [docs/faq.md](./docs/faq.md)                       | Troubleshooting (OOM, NCCL, slow training) + env vars.            |
+| Doc                                                                      | What it covers                                                                     |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [docs/setup.md](./docs/setup.md)                                         | Install, NGC base image, CUDA variants, base-checkpoint download.                  |
+| [docs/code_structure.md](./docs/code_structure.md)                       | Repo layout and per-subpackage tour of `cosmos_framework/`.                        |
+| [docs/training.md](./docs/training.md)                                   | Single- and multi-node launches, parallelism, mixed precision.                     |
+| [docs/inference.md](./docs/inference.md)                                 | Sample arguments, parallelism, schemas, troubleshooting.                           |
+| [docs/faq.md](./docs/faq.md)                                             | Troubleshooting (OOM, NCCL, slow training) + env vars.                             |
 | [tools/worldarena_viewer/README.md](./tools/worldarena_viewer/README.md) | WorldArena viewer generation and publishing to the fixed KS3 transfer destination. |
 
 Agent skills (codebase navigation, env troubleshooting, inference, post-training, setup) live in [`.agents/skills/`](./.agents/skills) and [`.claude/skills/`](./.claude/skills).
