@@ -4,9 +4,11 @@
 """Convert full Cosmos DCP state to bounded canonical TP/PP tensor bundles.
 
 This is an import format, distinct from MCore's runtime restart format. Every
-model tensor (including frozen values/buffers), true FP32 master/moments and
-per-parameter hyperparameters is accounted for. Original trainer, scheduler and
-all logical loader/RNG state are carried separately without rank renumbering.
+model tensor (including frozen values/buffers), optimizer master/moments and
+per-parameter hyperparameter is accounted for. When an FP32 source has no
+separate master, the canonical master is an exact copy of its model tensor and
+the manifest records that provenance. Original trainer, scheduler and logical
+loader/RNG state are carried separately without rank renumbering.
 """
 
 import argparse
@@ -18,6 +20,7 @@ from pathlib import Path
 import torch
 from torch.distributed.checkpoint.metadata import TensorStorageMetadata
 
+from cosmos_framework.training_backends.megatron_tp_pp.optimizer import normalize_adam_step
 from cosmos_framework.training_backends.megatron_tp_pp.parameter_map import canonical_parameter_owner
 from cosmos_framework.training_backends.megatron_tp_pp.source import CanonicalDCPReader, canonical_tp_axis
 
@@ -48,13 +51,26 @@ def convert(source, destination, *, tp=2, pp=2, layers=36, only_layer=None, dry_
             raise ValueError(f"TP cannot divide {name}")
         optimizer_fields = [k for k in optim.metadata if k.startswith(f"state.{name}.")]
         hyperparameter_fields = [k for k in optim.metadata if k.startswith(f"param_groups.{name}.")]
-        if optimizer_fields:
-            required = {f"state.{name}.{k}" for k in ("master_param", "exp_avg", "exp_avg_sq")}
-            if set(optimizer_fields) != required or not hyperparameter_fields:
+        master_origin = None
+        if optimizer_fields or hyperparameter_fields:
+            moments = {f"state.{name}.{k}" for k in ("exp_avg", "exp_avg_sq")}
+            master = f"state.{name}.master_param"
+            fields = set(optimizer_fields)
+            if fields == moments and item.properties.dtype == torch.float32:
+                master_origin = "model_fp32"
+            elif fields == moments | {master}:
+                master_origin = "optimizer"
+            else:
                 raise ValueError(f"Incomplete or unknown optimizer state: {name}")
+            required_hyperparameters = {
+                f"param_groups.{name}.{field}"
+                for field in ("lr", "initial_lr", "bias_correction", "betas", "eps", "weight_decay", "step")
+            }
+            if set(hyperparameter_fields) != required_hyperparameters:
+                raise ValueError(f"Incomplete or unknown optimizer hyperparameters: {name}")
             if any(
                 optim.metadata[k].properties.dtype != torch.float32 or optim.metadata[k].size != item.size
-                for k in required
+                for k in fields
             ):
                 raise ValueError(f"Incompatible FP32 optimizer state: {name}")
         covered_optim.update(optimizer_fields + hyperparameter_fields)
@@ -65,6 +81,7 @@ def convert(source, destination, *, tp=2, pp=2, layers=36, only_layer=None, dry_
             "pipeline_rank": owner,
             "optimizer_fields": optimizer_fields,
             "hyperparameter_fields": hyperparameter_fields,
+            "master_origin": master_origin,
             "shards": [],
         }
     if covered_optim != set(optim.metadata):
@@ -93,6 +110,10 @@ def convert(source, destination, *, tp=2, pp=2, layers=36, only_layer=None, dry_
                 raise ValueError(f"Bias correction is required: {name}")
             if set(hyperparameters) != {"lr", "initial_lr", "bias_correction", "betas", "eps", "weight_decay", "step"}:
                 raise ValueError(f"Unknown optimizer hyperparameters: {name}: {hyperparameters.keys()}")
+            try:
+                normalize_adam_step(hyperparameters["step"])
+            except ValueError as error:
+                raise ValueError(f"Invalid optimizer step: {name}") from error
         axis = entry["axis"]
         for rank in range(tp):
             # Replicated values are stored once; target TP ranks refer to the
@@ -102,6 +123,8 @@ def convert(source, destination, *, tp=2, pp=2, layers=36, only_layer=None, dry_
             state = {"model": model.read(name, axis=axis, rank=rank, size=tp)}
             for key in entry["optimizer_fields"]:
                 state[key.rsplit(".", 1)[-1]] = optim.read(key, axis=axis, rank=rank, size=tp)
+            if entry["master_origin"] == "model_fp32":
+                state["master_param"] = state["model"].clone()
             relative = Path(f"pp{entry['pipeline_rank']:02d}") / f"{index:05d}.tp{rank:02d}.pt"
             path = destination / relative
             path.parent.mkdir(parents=True, exist_ok=True)

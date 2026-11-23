@@ -7,9 +7,26 @@ MCore 0.20 internals are isolated here and pinned by runtime.py. In particular,
 master weights are read from the optimizer, never reconstructed from BF16.
 """
 
+import math
 from dataclasses import dataclass
 
 import torch
+
+
+def normalize_adam_step(value):
+    """Accept scalar Tensor/Python steps without truncating invalid values."""
+    if isinstance(value, torch.Tensor):
+        if value.numel() != 1:
+            raise ValueError("Invalid Adam step")
+        value = value.item()
+    if type(value) not in (int, float):
+        raise ValueError("Invalid Adam step")
+    try:
+        if not math.isfinite(value) or value < 0 or value != int(value):
+            raise ValueError("Invalid Adam step")
+    except OverflowError as error:
+        raise ValueError("Invalid Adam step") from error
+    return int(value)
 
 
 @dataclass

@@ -171,8 +171,9 @@ def run(config, args=None, *, initialized_callback=None):
         root.mkdir(parents=True, exist_ok=True)
         LazyConfig.save_yaml(config, str(root / "config.yaml"))
     dist.barrier()
-    stage, network_config = build_stage(config.model.config, topology)
     bundle = CanonicalBundle(config.checkpoint.megatron_tp_pp_import_path, topology)
+    bundle.validate_target_precision(getattr(torch, config.model.config.precision))
+    stage, network_config = build_stage(config.model.config, topology)
     if Path(config.checkpoint.load_path).resolve() != Path(bundle.manifest["source"]).resolve():
         raise ValueError("Canonical bundle source differs from checkpoint.load_path used for normalization continuity")
     saved_contract, changed = bundle.validate_action128_extension(
