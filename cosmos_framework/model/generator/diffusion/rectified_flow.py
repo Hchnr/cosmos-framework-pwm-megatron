@@ -131,7 +131,14 @@ class RectifiedFlow:
         self.device = torch.device(device) if isinstance(device, str) else device
         self.dtype = torch.dtype(dtype) if isinstance(dtype, str) else dtype
 
-    def sample_train_time(self, batch_size: int, iteration: int | None = None, shifts: torch.Tensor | None = None):
+    def sample_train_time(
+        self,
+        batch_size: int,
+        iteration: int | None = None,
+        shifts: torch.Tensor | None = None,
+        *,
+        seed_rank: int | None = None,
+    ):
         r"""This method calls the `TrainTimeSampler` to sample training times.
 
         Args:
@@ -141,15 +148,23 @@ class RectifiedFlow:
                 regardless of prior global RNG state.
             shifts: Optional 1-D shift tensor, shape ``(batch_size,)``.  Forwarded to
                 ``TrainTimeSampler.__call__``; see that docstring for details.
+            seed_rank: Optional original rank identity when replaying a logical data
+                stream on a different physical rank. The default uses the native rank.
 
         Returns:
             t (`torch.Tensor`):
                 A tensor of sampled sigmas with shape `(batch_size,)`,
                 matching the class specified `device` and `dtype`.
         """
+        if seed_rank is not None and (type(seed_rank) is not int or seed_rank < 0):
+            raise ValueError("seed_rank must be a non-negative integer or None")
         generator = None
         if iteration is not None and torch.are_deterministic_algorithms_enabled():
-            rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            rank = (
+                seed_rank
+                if seed_rank is not None
+                else (torch.distributed.get_rank() if torch.distributed.is_initialized() else 0)
+            )
             generator = torch.Generator()
             generator.manual_seed(iteration * 65536 + rank)
         time = self.train_time_sampler(

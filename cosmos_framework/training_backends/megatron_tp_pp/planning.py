@@ -212,7 +212,7 @@ def prepare_slot(
         raise ValueError("Native replay changed samples, packing or augmentation after denominator preflight")
     hashed = time.monotonic()
     with nvtx_range("tp_pp.native_prepare"), rng.activate(slot.logical_rank):
-        batch = preparation.prepare(raw, slot.update)
+        batch = preparation.prepare(raw, slot.update, logical_rank=slot.logical_rank)
     prepared = time.monotonic()
     record.setdefault("host_seconds", {}).update(
         replay_load=loaded - started,

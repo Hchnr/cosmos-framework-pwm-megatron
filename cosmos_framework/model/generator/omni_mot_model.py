@@ -1493,12 +1493,16 @@ class OmniMoTModel(ImaginaireModel):
             "batch_size": len(packed_sequence.sample_lens),
         }, loss
 
-    def prepare_generation_training_inputs(self, data_batch: dict, iteration: int) -> dict:
+    def prepare_generation_training_inputs(
+        self, data_batch: dict, iteration: int, *, seed_rank: int | None = None
+    ) -> dict:
         """Run the native tokenization, packing and noising before trainable decoder work.
 
         Shared by the native trainer and the TP/PP data owner so their random
         draws, masks and modality targets follow the same implementation.
         """
+        if seed_rank is not None and (type(seed_rank) is not int or seed_rank < 0):
+            raise ValueError("seed_rank must be a non-negative integer or None")
         with nvtx_range("forward.prepare_inputs"):
             (
                 _input_text_indexes,
@@ -1529,6 +1533,7 @@ class OmniMoTModel(ImaginaireModel):
                 num_vision_latent_frames=num_vision_latent_frames,
                 num_tokens=num_tokens_per_sample,
                 iteration=iteration,
+                seed_rank=seed_rank,
             )  # [B, T_vis] each
 
         # Optional independent action schedule (sampled from rectified_flow_action with
@@ -1545,7 +1550,7 @@ class OmniMoTModel(ImaginaireModel):
         action_sample_indices = [i for i, plan in enumerate(sequence_plans) if plan.has_action]
         if rf_cfg.independent_action_schedule and action_sample_indices:
             ts_full, sg_full = self._get_train_noise_level_action(
-                batch_size=gen_data_clean.batch_size, iteration=iteration
+                batch_size=gen_data_clean.batch_size, iteration=iteration, seed_rank=seed_rank
             )  # [B, 1] each
             idx = torch.tensor(action_sample_indices, dtype=torch.long)  # [n_action]
             timesteps_action = ts_full[idx]  # [n_action, 1]
@@ -1681,6 +1686,7 @@ class OmniMoTModel(ImaginaireModel):
                 sigmas_action=sigmas_action,
                 sigmas_sound=sigmas_sound,
                 iteration=iteration,
+                seed_rank=seed_rank,
             )
             self._replace_clean_with_noised(packed_sequence, gen_data_noised)
 
@@ -2165,6 +2171,8 @@ class OmniMoTModel(ImaginaireModel):
         resolutions: list[str] | str | None = None,
         num_tokens: list[int] | None = None,
         iteration: int | None = None,
+        *,
+        seed_rank: int | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Sample the rectified flow interpolation coefficient (timesteps) and obtain the corresponding
@@ -2244,14 +2252,14 @@ class OmniMoTModel(ImaginaireModel):
             T_max = max(num_vision_latent_frames)
             sigmas = (
                 rectified_flow.sample_train_time(
-                    batch_size * T_max, iteration=iteration, shifts=shifts.repeat_interleave(T_max)
+                    batch_size * T_max, iteration=iteration, shifts=shifts.repeat_interleave(T_max), seed_rank=seed_rank
                 )
                 .to(**self.tensor_kwargs_fp32)
                 .reshape(batch_size, T_max)
             )  # [B,T_max]
         else:
             sigmas = (
-                rectified_flow.sample_train_time(batch_size, iteration=iteration, shifts=shifts)
+                rectified_flow.sample_train_time(batch_size, iteration=iteration, shifts=shifts, seed_rank=seed_rank)
                 .to(**self.tensor_kwargs_fp32)
                 .unsqueeze(1)
             )  # [B,1]
@@ -2260,7 +2268,7 @@ class OmniMoTModel(ImaginaireModel):
         return timesteps, sigmas
 
     def _get_train_noise_level_action(
-        self, batch_size: int, iteration: int | None = None
+        self, batch_size: int, iteration: int | None = None, *, seed_rank: int | None = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Sample ``(timesteps, sigmas)`` of shape ``[batch_size, 1]`` from ``rectified_flow_action``.
 
@@ -2298,7 +2306,7 @@ class OmniMoTModel(ImaginaireModel):
 
         shifts = torch.full((batch_size,), shift_val, dtype=torch.float32)
         sigmas = (
-            rf.sample_train_time(batch_size, iteration=iteration, shifts=shifts)
+            rf.sample_train_time(batch_size, iteration=iteration, shifts=shifts, seed_rank=seed_rank)
             .to(**self.tensor_kwargs_fp32)
             .unsqueeze(1)
         )  # [B,1]
@@ -2345,6 +2353,8 @@ class OmniMoTModel(ImaginaireModel):
         sigmas_action: torch.Tensor | None = None,
         sigmas_sound: torch.Tensor | None = None,
         iteration: int | None = None,
+        *,
+        seed_rank: int | None = None,
     ) -> GenerationDataNoised:
         """
         Diffusion / Flow matching forward process: apply noise of given noise level (sigmas) to input data.
@@ -2368,6 +2378,8 @@ class OmniMoTModel(ImaginaireModel):
         Returns:
             GenerationDataNoised: A dataclass containing the noise, noisy data (xt), and velocity field (vt).
         """
+        if seed_rank is not None and (type(seed_rank) is not int or seed_rank < 0):
+            raise ValueError("seed_rank must be a non-negative integer or None")
         # Action sigma defaults to the shared vision sigma (legacy behavior).
         # Legacy (sigmas_action=None): vision σ of shape [B_items, T_vis].
         # Independent (sigmas_action provided): dense action σ of shape [n_action, 1].
@@ -2380,7 +2392,11 @@ class OmniMoTModel(ImaginaireModel):
         # Offset +32768 keeps this seed distinct from the sigma seed in sample_train_time.
         noise_gen: torch.Generator | None = None
         if iteration is not None and torch.are_deterministic_algorithms_enabled():
-            rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            rank = (
+                seed_rank
+                if seed_rank is not None
+                else (torch.distributed.get_rank() if torch.distributed.is_initialized() else 0)
+            )
             noise_gen = torch.Generator(device=self.tensor_kwargs_fp32["device"])
             noise_gen.manual_seed(iteration * 65536 + rank + 32768)
 

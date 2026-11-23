@@ -56,11 +56,17 @@ def test_preflight_then_replay_keeps_samples_augmentations_and_weights(monkeypat
             vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
         ),
     )
-    preparation.prepare = lambda raw, iteration: {
-        "sample_count": len(raw["packed_sequence"].sample_lens),
-        "packed_sequence": raw["packed_sequence"],
-        "loss_inputs": {"is_image_batch": preparation.is_image_batch(raw)},
-    }
+    prepared_logical_ranks = []
+
+    def prepare(raw, iteration, *, logical_rank=None):
+        prepared_logical_ranks.append(logical_rank)
+        return {
+            "sample_count": len(raw["packed_sequence"].sample_lens),
+            "packed_sequence": raw["packed_sequence"],
+            "loss_inputs": {"is_image_batch": preparation.is_image_batch(raw)},
+        }
+
+    preparation.prepare = prepare
     original_zeros, original_empty = torch.zeros, torch.empty
     monkeypatch.setattr(planning.torch, "zeros", lambda *a, **kw: original_zeros(*a, **{**kw, "device": "cpu"}))
     monkeypatch.setattr(planning.torch, "empty", lambda *a, **kw: original_empty(*a, **{**kw, "device": "cpu"}))
@@ -85,6 +91,7 @@ def test_preflight_then_replay_keeps_samples_augmentations_and_weights(monkeypat
             )
             assert result["weight"] == 1.0  # Both native logical ranks have equal packed sizes.
             assert result["slot_id"] == (1200, slot.micro_step, slot.logical_rank)
+        assert prepared_logical_ranks == [slot.logical_rank for slot in slots]
         assert all(state["global_id"] == 4 for state in replay.logical_state_dict().values())
     finally:
         replay.close()
@@ -119,7 +126,7 @@ def test_single_pass_matches_double_pass_inputs_and_committed_loader_rng(monkeyp
             vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=False)
         ),
     )
-    preparation.prepare = lambda raw, step: {
+    preparation.prepare = lambda raw, step, *, logical_rank=None: {
         "sample_count": len(raw["packed_sequence"].sample_lens),
         "loss_inputs": {"is_image_batch": preparation.is_image_batch(raw)},
     }

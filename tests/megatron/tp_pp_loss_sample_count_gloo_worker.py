@@ -94,7 +94,7 @@ def main():
         vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
     )
     preparation = SimpleNamespace(is_image_batch=lambda raw: raw["is_image"], config=config)
-    preparation.prepare = lambda raw, update: {
+    preparation.prepare = lambda raw, update, *, logical_rank=None: {
         "sample_count": len(raw["packed_sequence"].sample_lens),
         "packed_sequence": raw["packed_sequence"],
         "loss_inputs": {"is_image_batch": raw["is_image"]},

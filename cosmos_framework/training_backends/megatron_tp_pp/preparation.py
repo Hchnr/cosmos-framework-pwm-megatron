@@ -31,8 +31,10 @@ class GenerationPreparation(OmniMoTModel):
         self.net = self._input_adapter
 
     @torch.no_grad()
-    def prepare(self, raw_batch, iteration):
-        prepared = self.prepare_generation_training_inputs(raw_batch, iteration)
+    def prepare(self, raw_batch, iteration, *, logical_rank=None):
+        if logical_rank is not None and (type(logical_rank) is not int or logical_rank < 0):
+            raise ValueError("logical_rank must be a non-negative integer or None")
+        prepared = self.prepare_generation_training_inputs(raw_batch, iteration, seed_rank=logical_rank)
         memory = self.build_memory_state(prepared["packed_sequence"], prepared["memory_info"])
         if memory is not None or any(prepared["vlm_inputs"]):
             raise ValueError("The TP/PP action recipe requires no memory or visual reasoner inputs")

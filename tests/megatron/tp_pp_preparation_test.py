@@ -27,7 +27,10 @@ def test_owner_preparation_reuses_native_helper_without_trainable_graph():
         "timesteps_sound": None,
     }
 
-    def native_helper(batch, iteration):
+    seen_seed_ranks = []
+
+    def native_helper(batch, iteration, *, seed_rank=None):
+        seen_seed_ranks.append(seed_rank)
         assert batch == {"identity": 12} and iteration == 1201
         assert not torch.is_grad_enabled()
         return prepared
@@ -36,6 +39,8 @@ def test_owner_preparation_reuses_native_helper_without_trainable_graph():
     actual = owner.prepare({"identity": 12}, 1201)
     assert actual["packed_sequence"] is sequence and actual["sample_count"] == 2
     assert actual["loss_inputs"]["gen_data_noised"] is prepared["gen_data_noised"]
+    owner.prepare({"identity": 12}, 1201, logical_rank=7)
+    assert seen_seed_ranks == [None, 7]
     prepared["vlm_inputs"] = [{"pixels": torch.ones(1)}, {}]
     with pytest.raises(ValueError, match="visual reasoner"):
         owner.prepare({"identity": 12}, 1201)
