@@ -4,6 +4,7 @@
 """Update-level production driver for the planned dense Action128 TP/PP recipe."""
 
 import json
+import math
 import os
 import time
 from pathlib import Path
@@ -67,6 +68,9 @@ def _validate(config, topology):
         or config.checkpoint.load_from_object_store.enabled
     ):
         raise ValueError("TP/PP requires one outer update, synchronous full-state loading and a canonical import path")
+    clip_norm = float(config.trainer.callbacks.grad_clip.clip_norm)
+    if not math.isfinite(clip_norm) or clip_norm <= 0:
+        raise ValueError("TP/PP requires a finite positive grad_clip.clip_norm")
     dp = topology.data_parallel_size(dist.get_world_size())
     if topology.logical_data_parallel_size % dp:
         raise ValueError("Native logical streams currently require physical DP to divide logical DP")
