@@ -16,12 +16,22 @@ from cosmos_framework.utils.lazy_config import instantiate
 from .runtime import transformer_config
 
 
+def _validate_qk_norm_config(language_config):
+    """Fail before building a stage if the native Q/K norm layout differs."""
+    if (
+        getattr(language_config, "qk_norm_for_text", None) is not True
+        or getattr(language_config, "qk_norm_for_diffusion", None) is not True
+    ):
+        raise ValueError("TP/PP Nano requires qk_norm_for_text=True and qk_norm_for_diffusion=True")
+
+
 def build_stage(model_config, topology):
     """Do not instantiate the full HF model, decoder or VAE on any rank."""
     instance, _, _ = _prepare_full_model_instance(
         model_config.vlm_config.model_instance, load_vlm_visual=False, include_generation_tower=True
     )
     language_config = instantiate(instance["config"])
+    _validate_qk_norm_config(language_config)
     text = getattr(language_config, "text_config", language_config)
     view = OmniMoTModel.__new__(OmniMoTModel)
     view.__dict__.update(config=model_config, tokenizer_vision_gen=None)
