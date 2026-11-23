@@ -9,7 +9,7 @@ from pathlib import Path
 
 import torch
 
-from .optimizer import adam_parameter_states, initialize_adam_state
+from .optimizer import adam_parameter_states, initialize_adam_state, normalize_adam_step
 from .parameter_map import stage_parameter_manifest
 from .source import release_file_cache
 
@@ -29,6 +29,23 @@ class CanonicalBundle:
             or self.manifest["pp"] != topology.pipeline_model_parallel_size
         ):
             raise ValueError("Incompatible canonical bundle format/topology")
+        for name, entry in self.manifest["parameters"].items():
+            fields = set(entry["optimizer_fields"])
+            origin = entry.get("master_origin", "optimizer" if fields else None)
+            moments = {f"state.{name}.{field}" for field in ("exp_avg", "exp_avg_sq")}
+            master = f"state.{name}.master_param"
+            hyperparameters = {
+                f"param_groups.{name}.{field}"
+                for field in ("lr", "initial_lr", "bias_correction", "betas", "eps", "weight_decay", "step")
+            }
+            if origin == "model_fp32":
+                valid = entry["dtype"] == "torch.float32" and fields == moments
+            elif origin == "optimizer":
+                valid = fields == moments | {master}
+            else:
+                valid = origin is None and not fields
+            if not valid or set(entry["hyperparameter_fields"]) != (hyperparameters if fields else set()):
+                raise ValueError(f"Invalid canonical master provenance: {name}")
 
     def release_import_cache(self):
         """Advise away clean, immutable import pages after every peer copied them.
@@ -44,6 +61,13 @@ class CanonicalBundle:
                 raise ValueError("Bundle shard escapes its checkpoint directory")
             resolved.append(path)
         release_file_cache(resolved)
+
+    def validate_target_precision(self, dtype):
+        """Reject a cross-precision resume unsupported by strict native DCP."""
+        if dtype != torch.float32 and any(
+            entry.get("master_origin") == "model_fp32" for entry in self.manifest["parameters"].values()
+        ):
+            raise ValueError("An FP32 source without optimizer master requires FP32 model parameters")
 
     def validate_action128_extension(self, current_contract):
         from cosmos_framework.checkpoint.action128 import validate_checkpoint_digest, validate_contract_extension
@@ -121,7 +145,7 @@ class CanonicalBundle:
                 raise ValueError(f"Source Adam math mismatch: {entry.canonical_name}")
             if hyper["eps"] != config.adam_eps:
                 raise ValueError(f"Source epsilon mismatch: {entry.canonical_name}")
-            signature = (float(hyper["initial_lr"]), float(hyper["weight_decay"]), int(hyper["step"].item()))
+            signature = (float(hyper["initial_lr"]), float(hyper["weight_decay"]), normalize_adam_step(hyper["step"]))
             attribute = "_cosmos_import_" + hashlib.sha256(repr(signature).encode()).hexdigest()[:16]
             setattr(parameters[name], attribute, True)
             overrides[ParamKey(attr=attribute)] = {
@@ -150,7 +174,7 @@ class CanonicalBundle:
                 float(hyper["weight_decay"]),
                 tuple(hyper["betas"]),
                 float(hyper["eps"]),
-                int(hyper["step"].item()),
+                normalize_adam_step(hyper["step"]),
             )
             if groups.setdefault(id(entry.group), signature) != signature:
                 raise ValueError("MCore merged incompatible source optimizer groups")
@@ -158,6 +182,12 @@ class CanonicalBundle:
             checkpoint_master = values["master_param"]
             if checkpoint_master.dtype != torch.float32 or checkpoint_master.shape != entry.model_parameter.shape:
                 raise ValueError(f"Invalid canonical FP32 master shape or dtype: {layout.canonical_name}")
+            # A native FP32 checkpoint without a separate optimizer master
+            # cannot strictly resume a BF16 native optimizer: its DCP target
+            # expects that missing state. Reject the cross-precision case.
+            origin = self.manifest["parameters"][layout.canonical_name].get("master_origin")
+            if origin == "model_fp32" and entry.model_parameter.dtype != torch.float32:
+                raise ValueError("An FP32 source without optimizer master requires FP32 model parameters")
             master = (
                 entry.model_parameter.detach().to(device=entry.master.device)
                 if entry.model_parameter.dtype == torch.float32

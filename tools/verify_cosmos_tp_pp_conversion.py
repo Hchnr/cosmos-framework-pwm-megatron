@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""Compare converted bundles against original canonical source values exactly."""
+"""Compare canonical values and source-derived master provenance exactly."""
 
 import argparse
 import hashlib
@@ -43,8 +43,40 @@ def verify(bundle, *, allow_partial=False):
         if sum(math.prod(shard["shape"]) for shard, _ in parts) != math.prod(entry["global_shape"]):
             raise ValueError(f"Incomplete element coverage for {name}")
         fields = ["model"] + [key.rsplit(".", 1)[-1] for key in entry["optimizer_fields"]]
+        origin = entry.get("master_origin", "optimizer" if entry["optimizer_fields"] else None)
+        actual_fields = {key for key in optim.metadata if key.startswith(f"state.{name}.")}
+        if set(entry["optimizer_fields"]) != actual_fields:
+            raise ValueError(f"Source optimizer-state coverage differs: {name}")
+        actual_hyper = {key for key in optim.metadata if key.startswith(f"param_groups.{name}.")}
+        expected_hyper = {
+            f"param_groups.{name}.{field}"
+            for field in ("lr", "initial_lr", "bias_correction", "betas", "eps", "weight_decay", "step")
+        }
+        if set(entry["hyperparameter_fields"]) != actual_hyper or actual_hyper != (
+            expected_hyper if actual_fields else set()
+        ):
+            raise ValueError(f"Source optimizer-hyperparameter coverage differs: {name}")
+        if origin == "model_fp32":
+            expected_fields = {f"state.{name}.{field}" for field in ("exp_avg", "exp_avg_sq")}
+            if (
+                model.metadata[name].properties.dtype != torch.float32
+                or set(entry["optimizer_fields"]) != expected_fields
+                or f"state.{name}.master_param" in optim.metadata
+            ):
+                raise ValueError(f"Invalid source-derived master provenance: {name}")
+            fields.append("master_param")
+        elif origin == "optimizer":
+            expected_fields = {f"state.{name}.{field}" for field in ("master_param", "exp_avg", "exp_avg_sq")}
+            if actual_fields != expected_fields:
+                raise ValueError(f"Invalid optimizer master provenance: {name}")
+        elif origin is not None or actual_fields:
+            raise ValueError(f"Unknown canonical master provenance: {name}")
         for field in fields:
-            original = model.read(name) if field == "model" else optim.read(f"state.{name}.{field}")
+            original = (
+                model.read(name)
+                if field == "model" or field == "master_param" and origin == "model_fp32"
+                else optim.read(f"state.{name}.{field}")
+            )
             for index, (shard, state) in enumerate(parts):
                 tensor = state["state"][field]
                 if shard["tensor_rank"] != index or tuple(tensor.shape) != tuple(shard["shape"]):
