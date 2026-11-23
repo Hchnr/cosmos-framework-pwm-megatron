@@ -20,8 +20,13 @@ def test_original_capacity_uses_native_video_and_action_limits():
         initial_shapes(network, original_capacity=True)
 
 
-def test_oracle_helper_transform_is_explicit_and_rejects_double_application():
+@pytest.mark.parametrize("legacy_pp", [False, True], ids=["dynamic-pp", "legacy-pp2"])
+def test_oracle_helper_transform_is_explicit_and_rejects_double_application(legacy_pp):
     source = Path("tests/megatron/tp_pp_full_source_math.py").read_text()
+    dynamic_pp = '"pipeline_parallel_size": topology.pipeline_model_parallel_size,'
+    assert source.count(dynamic_pp) == 1
+    if legacy_pp:
+        source = source.replace(dynamic_pp, '"pipeline_parallel_size": 2,', 1)
     result = transform(source)
     assert "initial_shapes(network, original_capacity=args.original_capacity)" in result
     assert '"pipeline_parallel_size": 2,' not in result
@@ -41,9 +46,38 @@ def test_oracle_helper_transform_is_explicit_and_rejects_double_application():
         transform(result)
 
 
-@pytest.mark.parametrize("replacement", ["", '"pipeline_parallel_size": 2,\n"pipeline_parallel_size": 2,'])
-def test_oracle_helper_rejects_missing_or_duplicate_pp_report(replacement):
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        '"other_parallel_size": topology.pipeline_model_parallel_size,',
+        '"pipeline_parallel_size": topology.pipeline_model_parallel_size,\n                "pipeline_parallel_size": topology.pipeline_model_parallel_size,',
+        '"pipeline_parallel_size": topology.pipeline_model_parallel_size,\n                "pipeline_parallel_size": 2,',
+        '"pipeline_parallel_size": 2,\n                "pipeline_parallel_size": 2,',
+        '"pipeline_parallel_size": topology.pipeline_model_parallel_size,\n                "pipeline_parallel_size": 3,',
+        '"pipeline_parallel_size": 3,',
+        '"pipeline_parallel_size": topology.tensor_model_parallel_size,',
+    ],
+    ids=[
+        "missing",
+        "duplicate-dynamic",
+        "mixed",
+        "duplicate-legacy",
+        "conflicting",
+        "wrong-constant",
+        "wrong-topology",
+    ],
+)
+def test_oracle_helper_rejects_missing_duplicate_or_conflicting_pp_report(replacement):
     source = Path("tests/megatron/tp_pp_full_source_math.py").read_text()
-    source = source.replace('"pipeline_parallel_size": 2,', replacement)
+    dynamic_pp = '"pipeline_parallel_size": topology.pipeline_model_parallel_size,'
+    assert source.count(dynamic_pp) == 1
+    source = source.replace(dynamic_pp, replacement, 1)
+    with pytest.raises(ValueError, match="Unexpected oracle source"):
+        transform(source)
+
+
+def test_oracle_helper_rejects_separate_pp_overwrite():
+    source = Path("tests/megatron/tp_pp_full_source_math.py").read_text()
+    source += '\nreport = {}\nreport["pipeline_parallel_size"] = 3\n'
     with pytest.raises(ValueError, match="Unexpected oracle source"):
         transform(source)
