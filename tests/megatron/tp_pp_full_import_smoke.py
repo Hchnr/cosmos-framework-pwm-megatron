@@ -112,7 +112,9 @@ def main():
         for key in ("master_param", "exp_avg", "exp_avg_sq"):
             value = entry.master if key == "master_param" else entry.state[key]
             assert value.dtype == torch.float32
-            torch.testing.assert_close(value.detach().cpu(), entry.select(saved["state"][key]), rtol=0, atol=0)
+            source_key = "model" if key == "master_param" and entry.model_parameter.dtype == torch.float32 else key
+            expected = entry.select(saved["state"][source_key]).to(dtype=value.dtype)
+            torch.testing.assert_close(value.detach().cpu(), expected, rtol=0, atol=0)
         assert entry.step == int(saved["hyperparameters"]["step"].item())
         fragments += 1
         elements += entry.master.numel()

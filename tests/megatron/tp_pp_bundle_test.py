@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: OpenMDW-1.1
 
-"""Canonical bundle import preserves source masters and optimizer fragments."""
+"""Canonical bundle import preserves native model and optimizer fragments."""
 
 import copy
 import json
@@ -103,11 +103,125 @@ def test_stage_bundle_loads_model_and_true_dp_optimizer_fragment(tmp_path, monke
     bundle.load_optimizer(stage, None)
     for key in ("master_param", "exp_avg", "exp_avg_sq"):
         actual = fragment.master if key == "master_param" else fragment.state[key]
-        expected = fragment.select(layout.select(optim[f"state.{layout.canonical_name}.{key}"]))
+        source = (
+            tensors[layout.canonical_name] if key == "master_param" else optim[f"state.{layout.canonical_name}.{key}"]
+        )
+        expected = fragment.select(layout.select(source))
         torch.testing.assert_close(actual, expected, rtol=0, atol=0)
     assert fragment.step == 1200
+    read = bundle.read
+    for corruption in ("master_dtype", "master_shape", "moment_dtype"):
+
+        def read_corrupted(name, rank):
+            saved = read(name, rank)
+            saved["state"] = dict(saved["state"])
+            if corruption == "master_dtype":
+                saved["state"]["master_param"] = saved["state"]["master_param"].bfloat16()
+            elif corruption == "master_shape":
+                saved["state"]["master_param"] = saved["state"]["master_param"].view(-1)[:-1]
+            else:
+                saved["state"]["exp_avg"] = saved["state"]["exp_avg"].bfloat16()
+            return saved
+
+        monkeypatch.setattr(bundle, "read", read_corrupted)
+        with pytest.raises(ValueError, match="FP32"):
+            bundle.load_optimizer(stage, None)
+    monkeypatch.setattr(bundle, "read", read)
     with pytest.raises(ValueError, match="topology"):
         CanonicalBundle(destination, replace(topology, pipeline_model_parallel_size=1))
     (destination / ".save_complete").unlink()
     with pytest.raises(ValueError, match="complete"):
         CanonicalBundle(destination, topology)
+
+
+@pytest.mark.parametrize("dp", [1, 2])
+@pytest.mark.parametrize("alias", [False, True])
+def test_fp32_import_uses_loaded_model_for_alias_and_separate_main(tmp_path, monkeypatch, dp, alias):
+    source, destination = tmp_path / "source", tmp_path / "converted"
+    tensors, optim = make_source(source)
+    converted = convert(source, destination, tp=2, pp=2, layers=2)
+    canonical, saved = next(
+        (name, info)
+        for name, info in converted["parameters"].items()
+        if info["pipeline_rank"] == 0 and info["optimizer_fields"]
+    )
+    shape = tuple(saved["shards"][0]["shape"])
+    layout = ParameterLayout(canonical, "param", tuple(tensors[canonical].shape), 0, 0, shape, 0, 0, True)
+    bundle = CanonicalBundle(destination, ModelParallelConfig())
+    monkeypatch.setattr(bundle, "_stage_manifest", lambda stage: {"param": layout})
+    results = []
+    for rank in range(dp):
+        stage = nn.Module()
+        stage.input_adapter = None
+        stage.param = nn.Parameter(torch.empty(shape, dtype=torch.float32))
+        bundle.load_model(stage)
+        before = stage.param.detach().clone()
+        assert not torch.equal(before, layout.select(optim[f"state.{canonical}.master_param"]))
+        start, end = before.numel() * rank // dp, before.numel() * (rank + 1) // dp
+        main = stage.param.detach().view(-1)[start:end] if alias else torch.full((end - start,), -1000.0)
+        fragment = AdamParameterState("param", stage.param, main, {}, start, end, {}, True)
+        monkeypatch.setattr(bundle_module, "adam_parameter_states", lambda stage, optimizer: [fragment])
+        bundle.load_optimizer(stage, None)
+        torch.testing.assert_close(stage.param, before, rtol=0, atol=0)
+        torch.testing.assert_close(fragment.master, fragment.select(before), rtol=0, atol=0)
+        for field in ("exp_avg", "exp_avg_sq"):
+            expected = fragment.select(layout.select(optim[f"state.{canonical}.{field}"]))
+            torch.testing.assert_close(fragment.state[field], expected, rtol=0, atol=0)
+        assert fragment.step == 1200
+        results.append(stage.param.detach().clone())
+    assert all(torch.equal(value, results[0]) for value in results)
+
+
+def test_bf16_import_preserves_checkpoint_fp32_master_and_compute(tmp_path, monkeypatch):
+    source, destination = tmp_path / "source", tmp_path / "converted"
+    tensors, optim = make_source(source)
+    converted = convert(source, destination, tp=2, pp=2, layers=2)
+    canonical, saved = next(
+        (name, info)
+        for name, info in converted["parameters"].items()
+        if info["pipeline_rank"] == 0 and info["optimizer_fields"]
+    )
+    shape = tuple(saved["shards"][0]["shape"])
+    layout = ParameterLayout(canonical, "param", tuple(tensors[canonical].shape), 0, 0, shape, 0, 0, True)
+    bundle = CanonicalBundle(destination, ModelParallelConfig())
+    monkeypatch.setattr(bundle, "_stage_manifest", lambda stage: {"param": layout})
+    stage = nn.Module()
+    stage.input_adapter = None
+    stage.param = nn.Parameter(torch.empty(shape, dtype=torch.bfloat16))
+    bundle.load_model(stage)
+    before = stage.param.detach().clone()
+    fragment = AdamParameterState("param", stage.param, torch.empty(10), {}, 4, 14, {}, True)
+    monkeypatch.setattr(bundle_module, "adam_parameter_states", lambda stage, optimizer: [fragment])
+    bundle.load_optimizer(stage, None)
+    torch.testing.assert_close(stage.param, before, rtol=0, atol=0)
+    expected_master = fragment.select(layout.select(optim[f"state.{canonical}.master_param"]))
+    torch.testing.assert_close(fragment.master, expected_master, rtol=0, atol=0)
+    assert not torch.equal(fragment.master, fragment.select(before.float()))
+    assert fragment.step == 1200
+
+
+def test_fp32_diagnostic_preloaded_master_is_preserved(tmp_path, monkeypatch):
+    source, destination = tmp_path / "source", tmp_path / "converted"
+    tensors, optim = make_source(source)
+    converted = convert(source, destination, tp=2, pp=2, layers=2)
+    canonical, saved = next(
+        (name, info)
+        for name, info in converted["parameters"].items()
+        if info["pipeline_rank"] == 0 and info["optimizer_fields"]
+    )
+    shape = tuple(saved["shards"][0]["shape"])
+    layout = ParameterLayout(canonical, "param", tuple(tensors[canonical].shape), 0, 0, shape, 0, 0, True)
+    bundle = CanonicalBundle(destination, ModelParallelConfig())
+    monkeypatch.setattr(bundle, "_stage_manifest", lambda stage: {"param": layout})
+    stage = nn.Module()
+    stage.input_adapter = None
+    stage.param = nn.Parameter(torch.empty(shape))
+    bundle.load_model(stage)
+    with torch.no_grad():
+        stage.param.copy_(layout.select(optim[f"state.{canonical}.master_param"]))
+    before = stage.param.detach().clone()
+    fragment = AdamParameterState("param", stage.param, torch.empty(10), {}, 4, 14, {}, True)
+    monkeypatch.setattr(bundle_module, "adam_parameter_states", lambda stage, optimizer: [fragment])
+    bundle.load_optimizer(stage, None)
+    torch.testing.assert_close(stage.param, before, rtol=0, atol=0)
+    torch.testing.assert_close(fragment.master, fragment.select(before), rtol=0, atol=0)

@@ -134,6 +134,11 @@ class CanonicalBundle:
         return overrides
 
     def load_optimizer(self, stage, optimizer):
+        """Import Adam state after ``load_model`` has populated this stage.
+
+        Native FP32 FusedAdam owns the model parameter directly. For BF16 it
+        owns a separate FP32 master, which must retain the checkpoint value.
+        """
         manifest, groups = self._stage_manifest(stage), {}
         for entry in adam_parameter_states(stage, optimizer):
             layout = manifest[entry.name]
@@ -150,10 +155,18 @@ class CanonicalBundle:
             if groups.setdefault(id(entry.group), signature) != signature:
                 raise ValueError("MCore merged incompatible source optimizer groups")
             entry.group.update(lr=signature[0], initial_lr=signature[1], weight_decay=signature[2])
+            checkpoint_master = values["master_param"]
+            if checkpoint_master.dtype != torch.float32 or checkpoint_master.shape != entry.model_parameter.shape:
+                raise ValueError(f"Invalid canonical FP32 master shape or dtype: {layout.canonical_name}")
+            master = (
+                entry.model_parameter.detach().to(device=entry.master.device)
+                if entry.model_parameter.dtype == torch.float32
+                else checkpoint_master.to(entry.master.device)
+            )
             initialize_adam_state(
                 entry,
                 step=signature[-1],
-                master=values["master_param"].to(entry.master.device),
+                master=master,
                 exp_avg=values["exp_avg"].to(entry.master.device),
                 exp_avg_sq=values["exp_avg_sq"].to(entry.master.device),
             )
