@@ -141,7 +141,7 @@ def test_preflight_uses_native_item_denominator_for_each_microstep_and_modality(
             vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
         ),
     )
-    preparation.prepare = lambda raw, update: {
+    preparation.prepare = lambda raw, update, *, logical_rank=None: {
         "sample_count": len(raw["packed_sequence"].sample_lens),
         "packed_sequence": raw["packed_sequence"],
         "loss_inputs": {"is_image_batch": raw["is_image"]},
@@ -198,7 +198,7 @@ def test_prepare_refuses_changed_native_loss_count_before_committing(monkeypatch
         config=SimpleNamespace(
             vision_gen=True, rectified_flow_training_config=SimpleNamespace(sample_level_loss_averaging=True)
         ),
-        prepare=lambda raw, update: {
+        prepare=lambda raw, update, *, logical_rank=None: {
             "sample_count": 1,
             "packed_sequence": changed,
             "loss_inputs": {"is_image_batch": False},
@@ -255,7 +255,7 @@ def test_no_vision_sample_averaging_uses_native_unscaled_loss_and_no_preflight()
     preparation = SimpleNamespace(
         config=config,
         is_image_batch=lambda _: False,
-        prepare=lambda raw, update: {
+        prepare=lambda raw, update, *, logical_rank=None: {
             "sample_count": 1,
             "packed_sequence": packed,
             "loss_inputs": {

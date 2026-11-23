@@ -201,7 +201,9 @@ def main():
     preparation = SimpleNamespace(
         config=model.config,
         is_image_batch=model.is_image_batch,
-        prepare=lambda raw, step: GenerationPreparation.prepare(model, raw, step),
+        prepare=lambda raw, step, *, logical_rank=None: GenerationPreparation.prepare(
+            model, raw, step, logical_rank=logical_rank
+        ),
     )
     model.training_step = types.MethodType(prepared_step, model)
     trainer.callbacks.on_train_start(model, iteration=iteration)

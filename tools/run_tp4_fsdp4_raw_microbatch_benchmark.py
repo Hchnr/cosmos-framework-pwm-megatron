@@ -60,7 +60,9 @@ class RawMicrosteps:
         raw = copy.deepcopy(self.raw[slot.micro_step])
         copied = time.monotonic()
         with self.rng.activate(0):
-            batch = preparation.prepare(raw, slot.update)
+            # This benchmark repeats one logical-rank-0 fixture on every
+            # physical replica; it is not a native multi-rank replay.
+            batch = preparation.prepare(raw, slot.update, logical_rank=0)
         description = self.description[slot.micro_step]
         if (
             batch["sample_count"] != description["samples"]

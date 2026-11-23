@@ -233,7 +233,7 @@ def make_config(vision_gen):
 
 
 def make_preparation(config, device):
-    def prepare(raw, update):
+    def prepare(raw, update, *, logical_rank=None):
         del update
         packed = copy.deepcopy(raw["packed_sequence"])
         # The native loss expects a vision modality object even for its dummy
@@ -397,8 +397,8 @@ def run_case(args, device, topology, model_group, data_group, model_members, dat
             rejected = RealLoaderAdapter(initial_loader.template, starting_loader_state, slots)
             broken_preparation = copy.copy(preparation)
 
-            def changed_count(raw, update):
-                batch = preparation.prepare(raw, update)
+            def changed_count(raw, update, *, logical_rank=None):
+                batch = preparation.prepare(raw, update, logical_rank=logical_rank)
                 batch["packed_sequence"].vision.tokens.append(torch.ones(1, device=device))
                 return batch
 
