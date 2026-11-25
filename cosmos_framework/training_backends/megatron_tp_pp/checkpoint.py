@@ -8,9 +8,12 @@ MCore's sharded representation. Loader/data RNG remain explicitly same-topology.
 """
 
 import gc
+import hashlib
 import json
+import os
 import re
 import shutil
+import stat
 from dataclasses import asdict
 from pathlib import Path
 
@@ -21,6 +24,56 @@ from .source import release_file_cache
 
 FORMAT_VERSION = 1
 MCORE_CHECKPOINT_VERSION = 3.1
+_LEGACY_METADATA = object()
+
+
+def _metadata_sha256(path):
+    """Hash the saved DCP index without following a replacement symlink."""
+    target = Path(path) / ".metadata"
+    fd = os.open(target, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+    try:
+        before = os.fstat(fd)
+
+        def identity(value):
+            return (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+
+        if not stat.S_ISREG(before.st_mode) or before.st_size == 0 or identity(before) != identity(target.lstat()):
+            raise ValueError("Invalid DCP metadata file")
+        digest = hashlib.sha256()
+        while True:
+            data = os.read(fd, 1024 * 1024)
+            if not data:
+                break
+            digest.update(data)
+        if identity(before) != identity(os.fstat(fd)) or identity(before) != identity(target.lstat()):
+            raise ValueError("DCP metadata changed during hashing")
+        return digest.hexdigest()
+    finally:
+        os.close(fd)
+
+
+def _require_metadata(path, expected):
+    if not isinstance(expected, str) or re.fullmatch(r"[0-9a-f]{64}", expected) is None:
+        raise ValueError("Invalid checkpoint DCP metadata SHA256")
+    if _metadata_sha256(path) != expected:
+        raise ValueError("Checkpoint DCP metadata SHA256 mismatch")
+
+
+def _coordinated_metadata_check(path, expected, *, device):
+    error = None
+    try:
+        _require_metadata(path, expected)
+    except Exception as exc:
+        error = exc
+    invalid = torch.tensor(int(error is not None), dtype=torch.int32, device=device)
+    dist.all_reduce(invalid, op=dist.ReduceOp.MAX)
+    if invalid.item():
+        raise ValueError("At least one rank cannot verify checkpoint DCP metadata") from error
+
+
+def _require_usable_driver(driver):
+    if getattr(driver, "_checkpoint_restore_failed", False):
+        raise RuntimeError("Checkpoint restore failed; discard and rebuild this driver")
 
 
 def prune_completed(path, *, keep_last_n, keep_every_n_steps=None):
@@ -109,6 +162,7 @@ def _cpu_coordinated_strategy(group):
 
 
 def save(driver, path, *, rank_state, async_save=False):
+    _require_usable_driver(driver)
     from megatron.core import dist_checkpointing
 
     if async_save:
@@ -134,34 +188,270 @@ def save(driver, path, *, rank_state, async_save=False):
     finally:
         dist.destroy_process_group(group)
     dist.barrier()
+    publication_error = None
     if dist.get_rank() == 0:
-        manifest = {
-            "format": "cosmos_megatron_tp_pp",
-            "format_version": FORMAT_VERSION,
-            "mcore_checkpoint_version": MCORE_CHECKPOINT_VERSION,
-            "topology": asdict(driver.topology),
-            "world_size": dist.get_world_size(),
-            "iteration": driver.iteration,
-            "optimizer": True,
-            "rank_state": True,
-        }
-        (path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-        (path / ".save_complete").touch()
+        try:
+            # The DCP index has already been published and all writers have
+            # joined the barrier above. Bind its bytes before completion.
+            manifest = {
+                "format": "cosmos_megatron_tp_pp",
+                "format_version": FORMAT_VERSION,
+                "mcore_checkpoint_version": MCORE_CHECKPOINT_VERSION,
+                "topology": asdict(driver.topology),
+                "world_size": dist.get_world_size(),
+                "iteration": driver.iteration,
+                "optimizer": True,
+                "rank_state": True,
+                "dcp_metadata_sha256": _metadata_sha256(path),
+            }
+            (path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+            (path / ".save_complete").touch()
+        except Exception as error:
+            publication_error = error
+    published = torch.tensor(int(publication_error is None), dtype=torch.int32, device="cuda")
+    dist.broadcast(published, src=0)
+    if not published.item():
+        raise ValueError("Checkpoint manifest or DCP metadata publication failed") from publication_error
     dist.barrier()
 
 
+def _checkpoint_range_present(metadata, key, start, end):
+    """Return whether a one-dimensional DCP tensor covers a local shard."""
+    saved = metadata.get(key)
+    if saved is None:
+        return False
+    chunks = getattr(saved, "chunks", None)
+    if chunks is None:
+        raise ValueError(f"Expected tensor metadata for {key}")
+    overlaps = []
+    for chunk in chunks:
+        if len(chunk.offsets) != 1 or len(chunk.sizes) != 1:
+            raise ValueError(f"Expected a flat optimizer checkpoint tensor for {key}")
+        left, right = int(chunk.offsets[0]), int(chunk.offsets[0] + chunk.sizes[0])
+        if left < end and right > start:
+            overlaps.append((max(left, start), min(right, end)))
+    if not overlaps:
+        return False
+    covered = start
+    for left, right in sorted(overlaps):
+        if left > covered:
+            raise ValueError(f"Incomplete checkpoint coverage for {key}")
+        covered = max(covered, right)
+    if covered != end:
+        raise ValueError(f"Incomplete checkpoint coverage for {key}")
+    return True
+
+
+def _prepare_optimizer_for_load(
+    optimizer, path, *, device, metadata_sha256=_LEGACY_METADATA, manifest_error=None, manifest_digest=None
+):
+    """Match fresh MCore optimizer templates to the actual DCP state.
+
+    An identity lookup can populate the optimizer's defaultdict with empty
+    dictionaries. MCore then omits moments, even if the checkpoint has them.
+    Empty and partially trained checkpoints must retain their own templates.
+    """
+    from megatron.core.dist_checkpointing.dict_utils import nested_values
+    from megatron.core.dist_checkpointing.mapping import ShardedTensor
+    from megatron.core.optimizer.distrib_optimizer import DistributedOptimizer
+    from torch.distributed.checkpoint import FileSystemReader
+
+    pending, local_error = [], None
+    try:
+        if manifest_error is not None:
+            raise manifest_error
+        if metadata_sha256 is not _LEGACY_METADATA:
+            _require_metadata(path, metadata_sha256)
+        metadata = FileSystemReader(path).read_metadata().state_dict_metadata
+        if metadata_sha256 is not _LEGACY_METADATA:
+            _require_metadata(path, metadata_sha256)
+        wrappers = getattr(optimizer, "chained_optimizers", [optimizer])
+        for index, wrapper in enumerate(wrappers):
+            if getattr(wrapper, "is_stub_optimizer", False):
+                continue
+            if not isinstance(wrapper, DistributedOptimizer):
+                # Preserve the previous loader behaviour for non-distributed
+                # optimizers. Legacy metadata is not attested in that path.
+                continue
+            inner = wrapper.optimizer
+            states = inner.state
+            original_keys = set(states)
+            try:
+                shard_state = wrapper.sharded_param_state_dp_reshardable(
+                    {}, is_loading=False, metadata={"checkpoint_version": MCORE_CHECKPOINT_VERSION}
+                )
+            finally:
+                for param in set(states) - original_keys:
+                    del states[param]
+            prefix = f"chained_{index}." if len(wrappers) > 1 else ""
+            shards = [value for value in nested_values(shard_state) if isinstance(value, ShardedTensor)]
+            ranges = {
+                (prefix + value.key, int(value.global_offset[0]), int(value.global_offset[0] + value.local_shape[0]))
+                for value in shards
+            }
+            params = [param for group in inner.param_groups for param in group["params"]]
+            param_shards = [value for value in shards if value.key.endswith(".param")]
+            if params and not param_shards:
+                raise ValueError("Distributed optimizer has parameters but no checkpoint parameter shards")
+            if params and not wrapper.optimizer_state_keys:
+                raise ValueError("Distributed optimizer has no checkpoint state keys")
+            if not getattr(wrapper.config, "use_precision_aware_optimizer_no_fp8_or_ds_fp8", False):
+                shard_ids = {id(value.data) for value in param_shards}
+                if any(id(param) not in shard_ids for param in params):
+                    raise ValueError("Distributed optimizer checkpoint omitted an owned parameter shard")
+            elif len(param_shards) < len(params):
+                raise ValueError("Distributed optimizer checkpoint omitted an owned parameter shard")
+            comparisons = []
+            for key, start, end in ranges:
+                if not key.endswith(".param"):
+                    continue
+                if not _checkpoint_range_present(metadata, key, start, end):
+                    raise ValueError(f"Missing optimizer parameter shard in checkpoint: {key}")
+                stem = key.removesuffix(".param")
+                flags = []
+                for state_key in wrapper.optimizer_state_keys:
+                    moment_key = f"{stem}.{state_key}"
+                    saved = _checkpoint_range_present(metadata, moment_key, start, end)
+                    flags.append(saved)
+                    comparisons.append((saved, (moment_key, start, end) in ranges))
+                if any(flags) and not all(flags):
+                    raise ValueError(f"Incomplete checkpoint optimizer state for {key}")
+            # Legacy checkpoints do not attest whether two missing moments
+            # were intentionally absent or lost together. Permit them only
+            # when every locally represented fragment has all saved moments.
+            if metadata_sha256 is _LEGACY_METADATA and comparisons and not all(saved for saved, _ in comparisons):
+                raise ValueError("Legacy checkpoint has ambiguous missing optimizer state; metadata is not attested")
+            empty = all(isinstance(value, dict) and not value for value in states.values())
+            mismatch = any(saved != current for saved, current in comparisons)
+            if mismatch:
+                if empty and comparisons and all(saved and not current for saved, current in comparisons):
+                    pending.append(("clear", states, None))
+                elif (
+                    metadata_sha256 is not _LEGACY_METADATA
+                    and not getattr(wrapper.config, "use_precision_aware_optimizer_no_fp8_or_ds_fp8", False)
+                    and not isinstance(inner, (torch.optim.Adam, torch.optim.AdamW))
+                ):
+                    # Metadata bound at save time distinguishes a genuinely
+                    # unused parameter from a corrupted legacy checkpoint.
+                    # Prepare only owned FusedAdam moment shards; allocate
+                    # before voting, and mutate no existing dict until all
+                    # ranks agree. Unknown/partial in-memory schemas fail.
+                    owned_ids = {id(param): param for param in params}
+                    owned_shards = {}
+                    for shard in param_shards:
+                        if id(shard.data) in owned_ids:
+                            if id(shard.data) in owned_shards:
+                                raise ValueError("Duplicate optimizer parameter shard")
+                            owned_shards[id(shard.data)] = shard
+                    if set(owned_shards) != set(owned_ids) or any(id(param) not in owned_ids for param in states):
+                        raise ValueError("Optimizer parameter ownership differs")
+                    moment_keys = tuple(wrapper.optimizer_state_keys)
+                    current_values = [states.get(param, {}) for param in params]
+                    if any(bool(value) for value in current_values) and not all(
+                        bool(value) for value in current_values
+                    ):
+                        raise ValueError("Partially initialized existing optimizer state is ambiguous")
+                    changes = []
+                    for param in params:
+                        value = states.get(param, {})
+                        if not isinstance(value, dict) or set(value) - set(moment_keys):
+                            raise ValueError("Unsupported mixed optimizer state schema")
+                        if value and set(value) != set(moment_keys):
+                            raise ValueError("Incomplete existing optimizer state")
+                        shard = owned_shards[id(param)]
+                        start = int(shard.global_offset[0])
+                        end = start + int(shard.local_shape[0])
+                        stem = (prefix + shard.key).removesuffix(".param")
+                        present = [
+                            _checkpoint_range_present(metadata, f"{stem}.{key}", start, end) for key in moment_keys
+                        ]
+                        if any(present) and not all(present):
+                            raise ValueError("Incomplete saved optimizer state")
+                        required = all(present)
+                        allocated = (
+                            {
+                                key: torch.empty_like(param, dtype=wrapper._get_state_key_dtype(key))
+                                for key in moment_keys
+                            }
+                            if required and not value
+                            else {}
+                        )
+                        changes.append((param, required, moment_keys, allocated))
+                    pending.append(("mixed", states, changes))
+                else:
+                    raise ValueError("Checkpoint and existing optimizer state have incompatible fragments")
+            elif not states and comparisons and not any(saved for saved, _ in comparisons):
+                pending.append(("empty", states, params))
+    except Exception as error:
+        local_error = error
+
+    invalid = torch.tensor(int(local_error is not None), dtype=torch.int32, device=device)
+    dist.all_reduce(invalid, op=dist.ReduceOp.MAX)
+    if invalid.item():
+        raise ValueError("At least one rank cannot match its distributed optimizer checkpoint state") from local_error
+    if manifest_digest is not None:
+        local = torch.tensor(list(manifest_digest), dtype=torch.uint8, device=device)
+        root = local.clone()
+        dist.broadcast(root, src=0)
+        different = torch.tensor(int(not torch.equal(local, root)), dtype=torch.int32, device=device)
+        dist.all_reduce(different, op=dist.ReduceOp.MAX)
+        if different.item():
+            raise ValueError("Checkpoint manifest differs across ranks")
+    # Do not change any optimizer until every rank has passed validation.
+    for action, states, params in pending:
+        if action == "clear":
+            states.clear()
+        elif action == "empty":
+            for param in params:
+                states.setdefault(param, {})
+        else:
+            for param, required, keys, allocated in params:
+                state = states.setdefault(param, {})
+                if required:
+                    state.update(allocated)
+                else:
+                    for key in keys:
+                        state.pop(key, None)
+
+
 def load(driver, path):
+    _require_usable_driver(driver)
     from megatron.core import dist_checkpointing
 
     path = Path(path)
-    if not (path / ".save_complete").is_file():
-        raise ValueError("Incomplete TP/PP checkpoint")
-    manifest = json.loads((path / "manifest.json").read_text())
-    if manifest["format_version"] != FORMAT_VERSION:
-        raise ValueError("Unsupported TP/PP checkpoint version")
-    if manifest["topology"] != asdict(driver.topology) or manifest["world_size"] != dist.get_world_size():
-        raise ValueError("Full-state restart currently requires the same topology")
+    manifest, manifest_error, manifest_digest = None, None, None
+    try:
+        if not (path / ".save_complete").is_file():
+            raise ValueError("Incomplete TP/PP checkpoint")
+        raw = (path / "manifest.json").read_bytes()
+        manifest = json.loads(raw)
+        if not isinstance(manifest, dict):
+            raise ValueError("Invalid TP/PP checkpoint manifest")
+        if manifest["format_version"] != FORMAT_VERSION:
+            raise ValueError("Unsupported TP/PP checkpoint version")
+        if manifest["topology"] != asdict(driver.topology) or manifest["world_size"] != dist.get_world_size():
+            raise ValueError("Full-state restart currently requires the same topology")
+        manifest_digest = hashlib.sha256(raw).digest()
+    except Exception as error:
+        manifest_error = error
+    metadata_sha256 = (
+        manifest.get("dcp_metadata_sha256", _LEGACY_METADATA) if manifest_error is None else _LEGACY_METADATA
+    )
+    _prepare_optimizer_for_load(
+        driver.optimizer,
+        path,
+        device="cuda",
+        metadata_sha256=metadata_sha256,
+        manifest_error=manifest_error,
+        manifest_digest=manifest_digest,
+    )
+    # MCore loads directly into tensors supplied by the driver. If any later
+    # check fails these tensors may already have changed; the driver must be
+    # discarded, never reused or saved as though restoration had succeeded.
+    driver._checkpoint_restore_failed = True
     state = dist_checkpointing.load(_state(driver, rank_state=None, loading=True), str(path))
+    if metadata_sha256 is not _LEGACY_METADATA:
+        _coordinated_metadata_check(path, metadata_sha256, device="cuda")
     driver.stage.load_state_dict(state["model"], strict=True)
     driver.optimizer.load_state_dict(state["optimizer"])
     # Replicated BF16 compute values are deduplicated in the model checkpoint,
@@ -190,4 +480,5 @@ def load(driver, path):
     if dist.get_rank() == 0:
         release_file_cache(candidate for candidate in path.glob("*.distcp") if not candidate.is_symlink())
     dist.barrier()
+    driver._checkpoint_restore_failed = False
     return rank_state
