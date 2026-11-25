@@ -158,6 +158,11 @@ class ModelParallelDriver:
         stage.config.grad_scale_func = self.optimizer.scale_loss
         self.iteration = 0
         self._profile_finished = False
+        self._checkpoint_restore_failed = False
+
+    def _require_usable_checkpoint_state(self):
+        if getattr(self, "_checkpoint_restore_failed", False):
+            raise RuntimeError("Checkpoint restore failed; discard and rebuild this driver")
 
     def _mark_used(self, parameter):
         def hook(gradient):
@@ -168,6 +173,7 @@ class ModelParallelDriver:
         return hook
 
     def forward_backward(self, batches, loss_fn, *, metadata=None):
+        self._require_usable_checkpoint_state()
         from megatron.core.pipeline_parallel.schedules import get_forward_backward_func
 
         self.optimizer.zero_grad()
@@ -252,6 +258,7 @@ class ModelParallelDriver:
                         handle.write(json.dumps(report) + "\n")
 
     def step(self):
+        self._require_usable_checkpoint_state()
         from megatron.core import parallel_state as ps
 
         used = torch.tensor([p in self._used for p in self._parameters], dtype=torch.int32, device="cuda")
