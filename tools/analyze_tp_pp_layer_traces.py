@@ -5,13 +5,18 @@
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 import torch
 
 
 def difference(expected, actual):
-    if expected["shape"] != actual["shape"] or expected["sample"].dtype != actual["sample"].dtype:
+    if (
+        expected["shape"] != actual["shape"]
+        or expected["sample"].shape != actual["sample"].shape
+        or expected["sample"].dtype != actual["sample"].dtype
+    ):
         raise ValueError("Trace shapes or compute dtypes differ")
     if expected["sample"].dtype != torch.float32:
         raise ValueError("This analysis requires actual FP32 compute tensors")
@@ -19,10 +24,22 @@ def difference(expected, actual):
     delta = left - right
     if not bool(torch.isfinite(left).all() and torch.isfinite(right).all()):
         raise ValueError("Nonfinite sampled trace")
+    left_norm, right_norm = left.norm().item(), right.norm().item()
+    reference_norm, candidate_norm = expected["norm"], actual["norm"]
+    if not all(math.isfinite(norm) and norm >= 0 for norm in (reference_norm, candidate_norm)):
+        raise ValueError("Invalid full stream norm")
     return {
-        "sample_relative_l2": (delta.norm() / left.norm().clamp_min(1e-30)).item(),
-        "sample_maximum_absolute_error": delta.abs().max().item(),
-        "full_norm_relative_difference": abs(expected["norm"] - actual["norm"]) / max(expected["norm"], 1e-30),
+        "sample_relative_l2": delta.norm().item() / left_norm if left_norm else None,
+        "sample_maximum_absolute_error": delta.abs().max().item() if delta.numel() else 0.0,
+        "sample_cosine_similarity": (
+            max(-1.0, min(1.0, (left * right).sum().item() / (left_norm * right_norm)))
+            if left_norm and right_norm
+            else None
+        ),
+        "full_norm_absolute_difference": abs(reference_norm - candidate_norm),
+        "full_norm_relative_difference": abs(reference_norm - candidate_norm) / reference_norm
+        if reference_norm
+        else None,
     }
 
 
@@ -31,8 +48,11 @@ def analyze(reference, candidate):
     actual = {path.name for path in candidate.glob("*.pt")}
     if expected != actual:
         raise ValueError(f"Trace coverage differs: missing={len(expected - actual)}, extra={len(actual - expected)}")
-    outputs = [name for name in expected if name.endswith(".outputs.pt")]
-    if len(outputs) != 36 * 6:
+    outputs = {name for name in expected if name.endswith(".outputs.pt")}
+    required_outputs = {
+        f"forward{capture:03d}.layer{layer:02d}.outputs.pt" for capture in range(6) for layer in range(36)
+    }
+    if outputs != required_outputs:
         raise ValueError("Require all 36 layers, two batches and three updates")
     rows = []
     for name in sorted(expected):
@@ -45,8 +65,27 @@ def analyze(reference, candidate):
                 rows.append({"file": name, "stream": field, **difference(left[field], right[field])})
         else:
             rows.append({"file": name, "stream": name.split(".")[2], **difference(left, right)})
+    first_by_boundary = {"forward": {}, "backward": {}}
+    relative_errors = []
+    for row in rows:
+        capture, layer, _ = row["file"].split(".", 2)
+        direction = "forward" if row["file"] in outputs else "backward"
+        row.update(
+            capture=int(capture.removeprefix("forward")), layer=int(layer.removeprefix("layer")), direction=direction
+        )
+        if row["sample_relative_l2"] is not None:
+            relative_errors.append(row["sample_relative_l2"])
+        if row["sample_maximum_absolute_error"] == 0 and row["full_norm_absolute_difference"] == 0:
+            continue
+        key = capture + "." + row["stream"]
+        # Captures are independent. Within a stream the backward traversal starts at the last layer.
+        first = first_by_boundary[direction]
+        if direction == "forward":
+            first.setdefault(key, row)
+        else:
+            first[key] = row
     return {
-        "scope": "FP32 fixed head/tail row samples plus full stream norms; diagnostic only, not full tensor/state acceptance",
+        "scope": "FP32 sampled layer outputs and available output cotangents, plus full stream norms",
         "coverage_complete": True,
         "mathematical_acceptance": False,
         "reference": str(reference),
@@ -55,7 +94,8 @@ def analyze(reference, candidate):
             (row for row in rows if row["file"].endswith(".outputs.pt") and row["sample_maximum_absolute_error"] > 0),
             None,
         ),
-        "maximum_sample_relative_l2": max(row["sample_relative_l2"] for row in rows),
+        "first_observed_difference_by_capture_and_stream": first_by_boundary,
+        "maximum_sample_relative_l2": max(relative_errors, default=None),
         "rows": rows,
     }
 
