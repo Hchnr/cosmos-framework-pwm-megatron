@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 
-def attach_trace(root, layers, directory):
+def attach_trace(root, layers, directory, *, dp_rank=0, dp_size=1):
     import torch
 
     directory.mkdir(parents=True, exist_ok=True)
@@ -37,7 +37,8 @@ def attach_trace(root, layers, directory):
                 return
             seen.add(identity)
             pack = output[0]
-            prefix = f"forward{sequence[0]:03d}.layer{int(index):02d}"
+            capture = sequence[0] * dp_size + dp_rank
+            prefix = f"forward{capture:03d}.layer{int(index):02d}"
             values = {key: value for key, value in pack.items() if key in ("causal_seq", "full_only_seq", "action_seq")}
             torch.save({key: sample(value) for key, value in values.items()}, directory / f"{prefix}.outputs.pt")
             for key, value in values.items():
@@ -93,7 +94,9 @@ def main():
         def initialize(self, *positional, **keywords):
             original(self, *positional, **keywords)
             if ps.get_tensor_model_parallel_rank() == 0:
-                attach_trace(self, self.layers.items(), args.trace_dir)
+                dp_rank, dp_size = ps.get_data_parallel_rank(), ps.get_data_parallel_world_size()
+                directory = args.trace_dir if dp_size == 1 else args.trace_dir / f"dp{dp_rank:02d}"
+                attach_trace(self, self.layers.items(), directory, dp_rank=dp_rank, dp_size=dp_size)
 
         PipelineStage.__init__ = initialize
     sys.argv = [str(args.run_path), *remainder]

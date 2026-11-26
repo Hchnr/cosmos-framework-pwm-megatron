@@ -43,11 +43,28 @@ def difference(expected, actual):
     }
 
 
-def analyze(reference, candidate):
+def candidate_trace_paths(directory, dp_size):
+    if dp_size == 1:
+        return {path.name: path for path in directory.glob("*.pt")}
+    result = {}
+    for rank in range(dp_size):
+        for path in (directory / f"dp{rank:02d}").glob("*.pt"):
+            capture = int(path.name.split(".", 1)[0].removeprefix("forward"))
+            if capture % dp_size != rank or path.name in result:
+                raise ValueError(f"Unexpected or duplicate logical trace capture: {path}")
+            result[path.name] = path
+    return result
+
+
+def analyze(reference, candidate, *, candidate_dp_size=1):
+    if candidate_dp_size not in (1, 2):
+        raise ValueError("The two-slot diagnostic supports DP1 or DP2 traces")
     expected = {path.name for path in reference.glob("*.pt")}
-    actual = {path.name for path in candidate.glob("*.pt")}
-    if expected != actual:
-        raise ValueError(f"Trace coverage differs: missing={len(expected - actual)}, extra={len(actual - expected)}")
+    actual = candidate_trace_paths(candidate, candidate_dp_size)
+    if expected != actual.keys():
+        raise ValueError(
+            f"Trace coverage differs: missing={len(expected - actual.keys())}, extra={len(actual.keys() - expected)}"
+        )
     outputs = {name for name in expected if name.endswith(".outputs.pt")}
     required_outputs = {
         f"forward{capture:03d}.layer{layer:02d}.outputs.pt" for capture in range(6) for layer in range(36)
@@ -57,14 +74,21 @@ def analyze(reference, candidate):
     rows = []
     for name in sorted(expected):
         left = torch.load(reference / name, map_location="cpu", weights_only=False)
-        right = torch.load(candidate / name, map_location="cpu", weights_only=False)
+        right = torch.load(actual[name], map_location="cpu", weights_only=False)
         if name.endswith(".outputs.pt"):
             if left.keys() != right.keys():
                 raise ValueError("Trace streams differ")
             for field in left:
                 rows.append({"file": name, "stream": field, **difference(left[field], right[field])})
         else:
-            rows.append({"file": name, "stream": name.split(".")[2], **difference(left, right)})
+            # PP schedules divide by local microbatches. The DP average runs
+            # after these cotangents are captured, so apply it for comparison.
+            effective = {
+                **right,
+                "sample": right["sample"] / candidate_dp_size,
+                "norm": right["norm"] / candidate_dp_size,
+            }
+            rows.append({"file": name, "stream": name.split(".")[2], **difference(left, effective)})
     first_by_boundary = {"forward": {}, "backward": {}}
     relative_errors = []
     for row in rows:
@@ -90,6 +114,8 @@ def analyze(reference, candidate):
         "mathematical_acceptance": False,
         "reference": str(reference),
         "candidate": str(candidate),
+        "candidate_data_parallel_size": candidate_dp_size,
+        "candidate_pre_dp_cotangent_scale": 1 / candidate_dp_size,
         "first_different_output": next(
             (row for row in rows if row["file"].endswith(".outputs.pt") and row["sample_maximum_absolute_error"] > 0),
             None,
@@ -104,9 +130,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference", type=Path, required=True)
     parser.add_argument("--candidate", type=Path, required=True)
+    parser.add_argument("--candidate-dp-size", type=int, choices=(1, 2), default=1)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = analyze(args.reference, args.candidate)
+    report = analyze(args.reference, args.candidate, candidate_dp_size=args.candidate_dp_size)
     with args.output.open("x") as handle:
         json.dump(report, handle, indent=2)
         handle.write("\n")
