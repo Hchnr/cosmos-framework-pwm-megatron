@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: OpenMDW-1.1
 
 import copy
+import shutil
 
+import pytest
 import torch
 from torch import nn
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import checkpoint_wrapper
@@ -49,6 +51,38 @@ def test_layer_trace_keeps_gradients_rng_and_checkpoint_recomputation(tmp_path):
             assert torch.equal(original.grad, observed.grad)
     assert len(list(tmp_path.glob("*.outputs.pt"))) == 12
     assert len(list(tmp_path.glob("*.gradient.pt"))) == 12
+
+
+def test_dp2_trace_uses_global_slot_indices_and_normalizes_pre_dp_cotangents(tmp_path):
+    reference, candidate = tmp_path / "reference", tmp_path / "candidate"
+    reference.mkdir()
+    for replica in range(2):
+        dp_dir = candidate / f"dp{replica:02d}"
+        model = Network()
+        attach_trace(model, model.layers.items(), dp_dir, dp_rank=replica, dp_size=2)
+        for _ in range(3):
+            model(torch.ones((4, 8))).sum().backward()
+        captures = {int(path.name.split(".")[0].removeprefix("forward")) for path in dp_dir.glob("*.pt")}
+        assert captures == set(range(replica, 6, 2))
+        for path in dp_dir.glob("*.pt"):
+            if path.name.endswith(".outputs.pt"):
+                shutil.copyfile(path, reference / path.name)
+            else:
+                raw = torch.load(path, weights_only=True)
+                torch.save({**raw, "sample": raw["sample"] / 2, "norm": raw["norm"] / 2}, reference / path.name)
+        for capture in captures:
+            for layer in range(2, 36):
+                name = f"forward{capture:03d}.layer{layer:02d}.outputs.pt"
+                original = f"forward{capture:03d}.layer00.outputs.pt"
+                shutil.copyfile(dp_dir / original, dp_dir / name)
+                shutil.copyfile(reference / original, reference / name)
+    report = analyze(reference, candidate, candidate_dp_size=2)
+    assert report["candidate_pre_dp_cotangent_scale"] == 0.5
+    assert report["first_observed_difference_by_capture_and_stream"] == {"forward": {}, "backward": {}}
+    wrong = candidate / "dp00" / "forward001.layer00.outputs.pt"
+    shutil.copyfile(reference / wrong.name, wrong)
+    with pytest.raises(ValueError, match="Unexpected or duplicate"):
+        analyze(reference, candidate, candidate_dp_size=2)
 
 
 def test_layer_report_traverses_each_boundary_in_its_direction(tmp_path):

@@ -12,6 +12,7 @@ gates. No random replacement weights.
 import argparse
 import copy
 import datetime
+import hashlib
 import json
 import os
 import time
@@ -291,7 +292,7 @@ def native(args, config, instance, network, inputs):
     records = []
     for update in range(3):
         optimizer.zero_grad(set_to_none=True)
-        outputs = []
+        outputs, slot_losses = [], []
         with sdpa_kernel(SDPBackend.MATH):
             for replay in inputs:
                 batch = move_batch(copy.deepcopy(replay), "cuda") if args.objective == "native_rf" else None
@@ -316,15 +317,16 @@ def native(args, config, instance, network, inputs):
                             output = torch.func.functional_call(
                                 reference, (cuda_parameters, cuda_buffers), (sequence,), strict=True
                             )
-                        loss = (loss_module(output, batch)[0] if loss_module is not None else objective(output)) / len(
-                            inputs
-                        )
+                        slot_loss = loss_module(output, batch)[0] if loss_module is not None else objective(output)
+                        loss = slot_loss / len(inputs)
                     if not args.gpu_leaf_reference:
                         del cuda_parameters, cuda_buffers
                     loss.backward()
                 else:
                     output = reference(sequence)
-                    (objective(output) / len(inputs)).backward()
+                    slot_loss = objective(output)
+                    (slot_loss / len(inputs)).backward()
+                slot_losses.append(float(slot_loss.detach().item()))
                 outputs.append(
                     {key: [t.detach().cpu().clone() for t in output[key]] for key in ("preds_vision", "preds_action")}
                 )
@@ -359,7 +361,7 @@ def native(args, config, instance, network, inputs):
             saved = torch.load(path, weights_only=False)
             saved.update(master=param.detach().cpu(), **optimizer.state[param])
             torch.save(saved, path)
-        records.append({"norm": norm.item(), "outputs": outputs})
+        records.append({"norm": norm.item(), "outputs": outputs, "slot_losses": slot_losses})
         torch.save(records, args.reference_dir / "outputs.pt")
         release_file_cache(parameter_file(args.reference_dir, update, index) for index in range(len(trainable)))
         print(json.dumps({"native_completed_update": update, "grad_norm": norm.item()}), flush=True)
@@ -475,6 +477,8 @@ def tp(args, config, language, network, inputs):
         for module in stage.modules():
             if isinstance(module, TensorParallelLinear):
                 module.__dict__["_eager_linear"] = NativeLinearAutograd
+    bundle_manifest_path = args.bundle / "manifest.json"
+    bundle_manifest_sha256 = hashlib.sha256(bundle_manifest_path.read_bytes()).hexdigest()
     if args.tp == 1:
 
         class UnshardedDiagnosticBundle(CanonicalBundle):
@@ -524,6 +528,19 @@ def tp(args, config, language, network, inputs):
     )
     driver = ModelParallelDriver(stage, topology, opt, config_overrides=bundle.optimizer_overrides(stage, opt))
     bundle.load_optimizer(stage, driver.optimizer)
+    if hashlib.sha256(bundle_manifest_path.read_bytes()).hexdigest() != bundle_manifest_sha256:
+        raise ValueError("Canonical bundle manifest changed during optimizer initialization")
+    owned_parameter_fragments = [
+        {
+            "name": manifest[entry.name].canonical_name,
+            "axis": manifest[entry.name].axis,
+            "offset": manifest[entry.name].offset,
+            "local_shape": manifest[entry.name].local_shape,
+            "start": entry.start,
+            "end": entry.end,
+        }
+        for entry in adam_parameter_states(stage, driver.optimizer)
+    ]
     activation_dtypes, observed_update, dtype_hook_handles = install_decoder_dtype_observer(stage)
     if args.native_adam_arithmetic:
         # Candidate arithmetic alignment, without changing production defaults
@@ -555,7 +572,8 @@ def tp(args, config, language, network, inputs):
         print(json.dumps({"rank": dist.get_rank(), "waiting_for_native_reference": True}), flush=True)
         time.sleep(30)
     validate_reference_seed(reference, args.seed)
-    assert reference["input_hashes"] == [batch_fingerprint(s) for s in inputs]
+    input_hashes = [batch_fingerprint(s) for s in inputs]
+    assert reference["input_hashes"] == input_hashes
     assert reference.get("original_capacity", False) == args.original_capacity
     assert reference.get("attention_backend", "sdpa") == args.attention_backend
     if ps.is_pipeline_first_stage():
@@ -564,14 +582,17 @@ def tp(args, config, language, network, inputs):
         )
     indices = {name: index for index, name in enumerate(reference["names"])}
     records = torch.load(args.reference_dir / "outputs.pt", weights_only=False)
+    reference_prediction_counts = [
+        [{key: len(values) for key, values in output.items()} for output in record["outputs"]] for record in records
+    ]
     metadata = PipelineMetadata()
     errors = []
     summaries = []
     gate_failures, compute_parameter_checks = [], []
-    norm_checks, step_checks = [], []
+    norm_checks, step_checks, gradient_usage_checks = [], [], []
     parameter_errors = []
     state_errors = []
-    output_errors = []
+    output_errors, consumed_slots, loss_checks = [], [], []
     loss_module = GenerationLoss(config.model.config) if args.objective == "native_rf" else None
     for update in range(3):
         observed_update[0] = update
@@ -616,9 +637,12 @@ def tp(args, config, language, network, inputs):
                             batch = {"slot_id": identity, "packed_sequence": sequence}
                     batch = broadcast_batch(batch, ps.get_tensor_model_parallel_group())
                     batch["publish_metadata"] = metadata.send
-                    yield batch
                 else:
-                    yield metadata.receive(expected_slot=identity)
+                    batch = metadata.receive(expected_slot=identity)
+                if tuple(batch["slot_id"]) != identity:
+                    raise ValueError("DP rank consumed an unexpected logical slot")
+                consumed_slots.append({"update": update, "index": index, "prepared_input_sha256": input_hashes[index]})
+                yield batch
 
         def loss_fn(output, batch):
             expected = records[update]["outputs"][batch["slot_id"][2]]
@@ -644,6 +668,21 @@ def tp(args, config, language, network, inputs):
                         }
                     )
             value = loss_module(output, batch)[0] if loss_module is not None else objective(output)
+            slot = batch["slot_id"][2]
+            expected_losses = records[update].get("slot_losses")
+            actual_loss = value.detach().cpu()
+            expected_loss = None if expected_losses is None else expected_losses[slot]
+            loss_checks.append(
+                {
+                    "update": update,
+                    "index": slot,
+                    "actual": actual_loss.item(),
+                    "reference": expected_loss,
+                    "passed": None
+                    if expected_loss is None
+                    else bool(torch.isclose(actual_loss, actual_loss.new_tensor(expected_loss), rtol=1e-4, atol=2e-6)),
+                }
+            )
             return value, {"loss": value.detach()}
 
         with sdpa_kernel(SDPBackend.MATH):
@@ -661,7 +700,12 @@ def tp(args, config, language, network, inputs):
             index = indices[spec.canonical_name.removeprefix("net.")]
             saved = torch.load(parameter_file(args.reference_dir, update, index), weights_only=False, mmap=True)
             actual = entry.select(entry.model_parameter.main_grad).cpu()
-            target = entry.select(spec.select(saved["gradient"]))
+            reference_gradient = saved["gradient"]
+            target = (
+                torch.zeros_like(actual)
+                if reference_gradient is None
+                else entry.select(spec.select(reference_gradient))
+            )
             rel = (actual.double() - target.double()).norm() / target.double().norm().clamp_min(1e-20)
             absolute = (actual - target).abs().max()
             difference = tensor_difference(
@@ -676,6 +720,7 @@ def tp(args, config, language, network, inputs):
                     "maximum_absolute_error": absolute.item(),
                     "gradient_dtype": str(actual.dtype),
                     "reference_dtype": str(target.dtype),
+                    "reference_gradient_present": reference_gradient is not None,
                     "model_parameter_dtype": str(entry.model_parameter.dtype),
                     "comparison_relative_l2": difference.get("relative_l2"),
                     "comparison_maximum_absolute_error": difference.get("maximum_absolute_error"),
@@ -700,9 +745,11 @@ def tp(args, config, language, network, inputs):
         summaries.append(summary)
         failed_parameters = [item for item in parameter_errors if item["update"] == update and not item["passed"]]
         failed_outputs = [item for item in output_errors if item["update"] == update and not item["passed"]]
+        failed_losses = [item for item in loss_checks if item["update"] == update and item["passed"] is False]
         global_gradient_passed = summary["relative_l2"] <= 1e-4 and summary["cosine"] >= 0.999999
         failures = torch.tensor(
-            len(failed_parameters) + len(failed_outputs) + int(not global_gradient_passed), device="cuda"
+            len(failed_parameters) + len(failed_outputs) + len(failed_losses) + int(not global_gradient_passed),
+            device="cuda",
         )
         dist.all_reduce(failures)
         args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -725,6 +772,7 @@ def tp(args, config, language, network, inputs):
                     "failed_parameter_shards": failed_parameters,
                     "parameter_gradient_errors": [item for item in parameter_errors if item["update"] == update],
                     "output_errors": [item for item in output_errors if item["update"] == update],
+                    "loss_checks": [item for item in loss_checks if item["update"] == update],
                     "production_capacity_576_slot_acceptance": False,
                 },
                 indent=2,
@@ -757,6 +805,21 @@ def tp(args, config, language, network, inputs):
             spec = manifest[entry.name]
             index = indices[spec.canonical_name.removeprefix("net.")]
             saved = torch.load(parameter_file(args.reference_dir, update, index), weights_only=False, mmap=True)
+            reference_used = saved["gradient"] is not None
+            actual_used = entry.model_parameter in driver._globally_used
+            gradient_usage_checks.append(
+                {
+                    "update": update,
+                    "name": spec.canonical_name,
+                    "actual_used": actual_used,
+                    "reference_used": reference_used,
+                    "passed": actual_used == reference_used,
+                }
+            )
+            if actual_used != reference_used:
+                gate_failures.append(f"update{update}.{spec.canonical_name}.gradient_usage")
+            if not args.observe_all_updates:
+                assert actual_used == reference_used, (update, entry.name, "gradient usage differs")
             model_master_match = torch.equal(entry.select(entry.model_parameter.detach()), entry.master)
             compute_parameter_checks.append(
                 {
@@ -842,9 +905,22 @@ def tp(args, config, language, network, inputs):
                 "tensor_parallel_size": args.tp,
                 "pipeline_parallel_size": topology.pipeline_model_parallel_size,
                 "data_parallel_size": ps.get_data_parallel_world_size(),
+                "parallel_ranks": {
+                    "tp": ps.get_tensor_model_parallel_rank(),
+                    "pp": ps.get_pipeline_model_parallel_rank(),
+                    "dp": ps.get_data_parallel_rank(),
+                },
+                "canonical_bundle_manifest_sha256": bundle_manifest_sha256,
+                "owned_parameter_fragments": owned_parameter_fragments,
+                "prepared_input_hashes": input_hashes,
+                "reference_prediction_counts": reference_prediction_counts,
+                "microbatches_per_dp_replica": driver.microbatches,
+                "consumed_slots": consumed_slots,
+                "loss_checks": loss_checks,
                 "maximum_parameter_gradient_relative_l2": max(errors),
                 "gradient_summary": summaries,
                 "parameter_gradient_errors": parameter_errors,
+                "gradient_usage_checks": gradient_usage_checks,
                 "parameter_state_errors": state_errors,
                 "compute_parameter_checks": compute_parameter_checks,
                 "norm_checks": norm_checks,
