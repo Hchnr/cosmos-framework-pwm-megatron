@@ -20,6 +20,13 @@ def test_four_gpu_diagnostic_topology(tp, pp, microbatches):
     assert topology.microbatches(4) == microbatches
 
 
+def test_explicit_pp1_topology_uses_two_data_parallel_ranks_for_tp2():
+    topology = helper.diagnostic_topology(2, 1)
+    assert topology.pipeline_model_parallel_size == 1
+    assert topology.data_parallel_size(4) == 2
+    assert topology.microbatches(4) == 1
+
+
 def test_native_reference_requires_the_requested_seed():
     helper.validate_reference_seed({"seed": 20261120}, 20261120)
     for reference in ({}, {"seed": 42}, {"seed": True}, {"seed": "20261120"}):
@@ -64,7 +71,7 @@ def test_cli_accepts_explicit_tp4_and_seed(monkeypatch):
     seen = []
     monkeypatch.setattr(helper, "configuration", lambda *args, **kwargs: (None, None, None, None))
     monkeypatch.setattr(helper, "real_crop", lambda path: path)
-    monkeypatch.setattr(helper, "tp", lambda args, *rest: seen.append((args.tp, args.seed)))
+    monkeypatch.setattr(helper, "tp", lambda args, *rest: seen.append((args.tp, args.pp, args.seed)))
     monkeypatch.setattr(
         sys,
         "argv",
@@ -74,6 +81,8 @@ def test_cli_accepts_explicit_tp4_and_seed(monkeypatch):
             "tp",
             "--tp",
             "4",
+            "--pp",
+            "1",
             "--seed",
             "20261120",
             "--bundle",
@@ -89,7 +98,7 @@ def test_cli_accepts_explicit_tp4_and_seed(monkeypatch):
         ],
     )
     helper.main()
-    assert seen == [(4, 20261120)]
+    assert seen == [(4, 1, 20261120)]
 
 
 def test_tp_passes_requested_seed_to_model_parallel_initialization(monkeypatch, tmp_path):
