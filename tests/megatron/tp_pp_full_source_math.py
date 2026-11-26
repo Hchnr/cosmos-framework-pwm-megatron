@@ -16,6 +16,7 @@ import json
 import os
 import time
 from contextlib import nullcontext
+from dataclasses import replace
 from pathlib import Path
 
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -49,13 +50,15 @@ def validate_reference_seed(reference, seed):
         raise ValueError("Native reference must record the same requested seed as the TP diagnostic")
 
 
-def diagnostic_topology(tp):
-    """Preserve the existing TP1/TP2 setup and use PP1 for four-rank TP4."""
+def diagnostic_topology(tp, pp=None):
+    """Use the historical pipeline size unless the diagnostic requests one."""
     from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
 
+    if pp is None:
+        pp = 1 if tp == 4 else 2
     return ModelParallelConfig(
         tensor_model_parallel_size=tp,
-        pipeline_model_parallel_size=1 if tp == 4 else 2,
+        pipeline_model_parallel_size=pp,
         global_packed_microbatches_per_update=2,
         logical_data_parallel_size=2,
         reference_micro_steps_per_update=1,
@@ -451,7 +454,7 @@ def tp(args, config, language, network, inputs):
     dist.init_process_group("nccl", timeout=datetime.timedelta(hours=2))
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
-    topology = diagnostic_topology(args.tp)
+    topology = diagnostic_topology(args.tp, getattr(args, "pp", None))
     initialize(topology, seed=args.seed)
     text = getattr(language, "text_config", language)
     mcore = transformer_config(
@@ -490,9 +493,7 @@ def tp(args, config, language, network, inputs):
                     },
                 }
 
-        from cosmos_framework.training_backends.megatron_tp_pp.config import ModelParallelConfig
-
-        bundle = UnshardedDiagnosticBundle(args.bundle, ModelParallelConfig())
+        bundle = UnshardedDiagnosticBundle(args.bundle, replace(topology, tensor_model_parallel_size=2))
     else:
         bundle = CanonicalBundle(args.bundle, topology)
     # Normalization buffers use the native current append-only registry.
@@ -840,6 +841,7 @@ def tp(args, config, language, network, inputs):
                 "updates": 3,
                 "tensor_parallel_size": args.tp,
                 "pipeline_parallel_size": topology.pipeline_model_parallel_size,
+                "data_parallel_size": ps.get_data_parallel_world_size(),
                 "maximum_parameter_gradient_relative_l2": max(errors),
                 "gradient_summary": summaries,
                 "parameter_gradient_errors": parameter_errors,
@@ -883,7 +885,8 @@ def main():
     parser.add_argument("--native-optimizer", choices=("torch_cpu", "native_cuda"), default="torch_cpu")
     parser.add_argument("--gpu-leaf-reference", action="store_true")
     parser.add_argument("--preserve-saved-layout", action="store_true")
-    parser.add_argument("--tp", type=int, choices=(1, 2, 4), default=2, help="TP4 uses PP1 on four GPUs")
+    parser.add_argument("--tp", type=int, choices=(1, 2, 4), default=2)
+    parser.add_argument("--pp", type=int, choices=(1, 2), help="Pipeline size. Defaults to 1 for TP4 and 2 otherwise.")
     parser.add_argument("--objective", choices=("prediction_square", "native_rf"), default="prediction_square")
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--retain-full-text", action="store_true")
@@ -912,6 +915,8 @@ def main():
     parser.add_argument("--reference-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    if args.pp is not None and args.mode != "tp":
+        parser.error("--pp applies to the TP/PP diagnostic")
     if args.retain_full_text and args.objective != "native_rf":
         parser.error("Complete native text conditioning requires --objective native_rf")
     if args.original_capacity and not (
