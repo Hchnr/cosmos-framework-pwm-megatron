@@ -80,6 +80,15 @@ def test_report_distinguishes_an_unused_gradient_from_a_present_zero(reports):
     assert summary["updates"][1]["backward"]["gradient_usage_check_status"] == "passed"
 
 
+def test_undefined_collective_gradient_metrics_are_reported_as_failures(reports):
+    for row in reports:
+        row["gradient_summary"][0] = {"relative_l2": None, "cosine": None}
+    backward = summarize_rank_reports(reports)["updates"][0]["backward"]
+    assert backward["status"] == "failed"
+    assert backward["relative_l2"] is None
+    assert backward["cosine"] is None
+
+
 def test_missing_rank_or_disagreeing_collective_summary_is_rejected(reports):
     with pytest.raises(ValueError, match="Got 3 rank reports"):
         summarize_rank_reports(reports[:-1])

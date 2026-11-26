@@ -31,7 +31,7 @@ def all_passed(rows, field="passed"):
 
 
 def finite_or_none(value):
-    return value if math.isfinite(value) else None
+    return value if value is not None and math.isfinite(value) else None
 
 
 def parallel_coordinates(reports, pp, tp, dp):
@@ -264,8 +264,8 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
 
         relative, cosine = gradient["relative_l2"], gradient["cosine"]
         aggregate_passed = (
-            math.isfinite(relative)
-            and math.isfinite(cosine)
+            finite_or_none(relative) is not None
+            and finite_or_none(cosine) is not None
             and 0 <= relative <= GRADIENT_RELATIVE_L2_LIMIT
             and cosine >= GRADIENT_COSINE_MINIMUM
         )

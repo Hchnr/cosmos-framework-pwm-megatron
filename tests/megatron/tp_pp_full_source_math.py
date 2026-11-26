@@ -14,6 +14,7 @@ import copy
 import datetime
 import hashlib
 import json
+import math
 import os
 import time
 from contextlib import nullcontext
@@ -741,12 +742,17 @@ def tp(args, config, language, network, inputs):
             )
         dist.all_reduce(stats)
         aa, bb, dot, dd = stats.cpu().tolist()
-        summary = {"relative_l2": (dd / bb) ** 0.5, "cosine": dot / (aa * bb) ** 0.5}
+        finite = all(math.isfinite(value) for value in (aa, bb, dot, dd))
+        relative_l2 = (dd / bb) ** 0.5 if finite and bb > 0 else None
+        cosine = dot / (aa * bb) ** 0.5 if finite and aa > 0 and bb > 0 else None
+        summary = {"relative_l2": relative_l2, "cosine": cosine}
         summaries.append(summary)
         failed_parameters = [item for item in parameter_errors if item["update"] == update and not item["passed"]]
         failed_outputs = [item for item in output_errors if item["update"] == update and not item["passed"]]
         failed_losses = [item for item in loss_checks if item["update"] == update and item["passed"] is False]
-        global_gradient_passed = summary["relative_l2"] <= 1e-4 and summary["cosine"] >= 0.999999
+        global_gradient_passed = (
+            relative_l2 is not None and cosine is not None and relative_l2 <= 1e-4 and cosine >= 0.999999
+        )
         failures = torch.tensor(
             len(failed_parameters) + len(failed_outputs) + len(failed_losses) + int(not global_gradient_passed),
             device="cuda",
@@ -783,6 +789,7 @@ def tp(args, config, language, network, inputs):
             gate_failures.append(f"update{update}.gradient_or_output")
         if not args.observe_all_updates:
             assert failures.item() == 0, f"FP32 gradient/output gate failed; complete observation: {observation_path}"
+        pre_step_failures = len(gate_failures)
         success, norm, _ = driver.step()
         assert success
         norm_passed = bool(
@@ -798,8 +805,6 @@ def tp(args, config, language, network, inputs):
         )
         if not norm_passed:
             gate_failures.append(f"update{update}.norm")
-        if not args.observe_all_updates:
-            assert norm_passed, (norm, records[update]["norm"])
         driver.model.start_param_sync(force_sync=True)
         for entry in adam_parameter_states(stage, driver.optimizer):
             spec = manifest[entry.name]
@@ -818,8 +823,6 @@ def tp(args, config, language, network, inputs):
             )
             if actual_used != reference_used:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.gradient_usage")
-            if not args.observe_all_updates:
-                assert actual_used == reference_used, (update, entry.name, "gradient usage differs")
             model_master_match = torch.equal(entry.select(entry.model_parameter.detach()), entry.master)
             compute_parameter_checks.append(
                 {
@@ -832,8 +835,6 @@ def tp(args, config, language, network, inputs):
             )
             if not model_master_match:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.compute_master")
-            if not args.observe_all_updates:
-                assert model_master_match, (update, entry.name, "FP32 compute/master mismatch")
             for key in ("master", "exp_avg", "exp_avg_sq"):
                 actual = entry.master if key == "master" else entry.state[key]
                 target = entry.select(spec.select(saved[key]))
@@ -847,8 +848,6 @@ def tp(args, config, language, network, inputs):
                 )
                 if not difference["passed"]:
                     gate_failures.append(f"update{update}.{spec.canonical_name}.{key}")
-                if not args.observe_all_updates:
-                    assert difference["passed"], (update, entry.name, key, difference)
                 state_errors.append(
                     {
                         "update": update,
@@ -871,8 +870,10 @@ def tp(args, config, language, network, inputs):
             )
             if not step_passed:
                 gate_failures.append(f"update{update}.{spec.canonical_name}.step")
-            if not args.observe_all_updates:
-                assert step_passed
+        if not args.observe_all_updates:
+            post_step_failures = torch.tensor(len(gate_failures) - pre_step_failures, device="cuda")
+            dist.all_reduce(post_step_failures)
+            assert post_step_failures.item() == 0, f"FP32 optimizer or gradient usage gate failed in update {update}"
         print(json.dumps({"rank": dist.get_rank(), "tp_completed_update": update, "grad_norm": norm}), flush=True)
     frozen_verified = 0
     for name, parameter in stage.named_parameters():
