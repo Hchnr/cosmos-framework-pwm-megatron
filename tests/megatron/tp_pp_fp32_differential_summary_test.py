@@ -70,3 +70,32 @@ def test_missing_rank_or_disagreeing_collective_summary_is_rejected(reports):
     reports[0]["gradient_summary"][0]["relative_l2"] = 1
     with pytest.raises(ValueError, match="disagree"):
         summarize_rank_reports(reports)
+
+
+def test_data_parallel_ranks_are_required_and_legacy_dp_can_be_supplied(reports):
+    for row in reports:
+        row["tensor_parallel_size"] = 1
+
+    with pytest.raises(ValueError, match="TP1/PP2/DP1"):
+        summarize_rank_reports(reports)
+    assert summarize_rank_reports(reports, data_parallel_size=2)["run"]["data_parallel_size"] == 2
+
+    for row in reports:
+        row["data_parallel_size"] = 2
+    assert summarize_rank_reports(reports)["run"]["data_parallel_size"] == 2
+    with pytest.raises(ValueError, match="Got 2 rank reports"):
+        summarize_rank_reports(reports[:2])
+    with pytest.raises(ValueError, match="disagrees with the rank reports"):
+        summarize_rank_reports(reports, data_parallel_size=1)
+
+
+def test_legacy_report_without_update_mode_has_unverified_trajectory(reports):
+    for row in reports:
+        del row["replay_native_state"]
+        del row["continuous_trajectory"]
+    reports[1]["step_checks"][0]["passed"] = False
+
+    summary = summarize_rank_reports(reports)
+    assert summary["updates"][0]["optimizer"]["status"] == "failed"
+    assert summary["training"]["continuous_updates"] == 0
+    assert summary["training"]["status"] == "unverified"

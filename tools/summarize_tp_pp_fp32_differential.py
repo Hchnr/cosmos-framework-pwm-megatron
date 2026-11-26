@@ -33,7 +33,7 @@ def finite_or_none(value):
     return value if math.isfinite(value) else None
 
 
-def summarize_rank_reports(reports):
+def summarize_rank_reports(reports, *, data_parallel_size=None):
     if not reports:
         raise ValueError("No rank reports")
     header_fields = (
@@ -42,6 +42,7 @@ def summarize_rank_reports(reports):
         "updates",
         "tensor_parallel_size",
         "pipeline_parallel_size",
+        "data_parallel_size",
         "replay_native_state",
         "continuous_trajectory",
         "runtime_constants_sha256",
@@ -52,16 +53,24 @@ def summarize_rank_reports(reports):
     for rank, row in enumerate(reports):
         if row.get("rank", rank) != rank or any(row.get(field) != header[field] for field in header_fields):
             raise ValueError(f"Rank {rank} has inconsistent run metadata")
-    tp, pp = header["tensor_parallel_size"], header["pipeline_parallel_size"]
-    if type(tp) is not int or type(pp) is not int or (tp, pp) not in {(1, 2), (2, 2), (4, 1)}:
-        raise ValueError("Expected topology metadata from tp_pp_full_source_math")
-    if len(reports) != tp * pp:
-        raise ValueError(f"Got {len(reports)} rank reports for TP{tp}/PP{pp}")
+    tp = header["tensor_parallel_size"]
+    pp = header["pipeline_parallel_size"]
+    reported_dp = header["data_parallel_size"]
+    if reported_dp is not None and data_parallel_size is not None and reported_dp != data_parallel_size:
+        raise ValueError("Data-parallel size disagrees with the rank reports")
+    dp = reported_dp if data_parallel_size is None else data_parallel_size
+    if dp is None:
+        dp = 1
+    if any(type(size) is not int or size < 1 for size in (tp, pp, dp)):
+        raise ValueError("Expected positive topology sizes")
+    if len(reports) != tp * pp * dp:
+        raise ValueError(f"Got {len(reports)} rank reports for TP{tp}/PP{pp}/DP{dp}")
+    header["data_parallel_size"] = dp
     if header["updates"] != 3:
         raise ValueError("Expected the full-source diagnostic's three updates")
-    if type(header["replay_native_state"]) is not bool or header["continuous_trajectory"] is not (
-        not header["replay_native_state"]
-    ):
+    replay = header["replay_native_state"]
+    continuous = header["continuous_trajectory"]
+    if (replay is not None or continuous is not None) and (type(replay) is not bool or continuous is not (not replay)):
         raise ValueError("Inconsistent update mode")
     for row in reports:
         if len(row.get("gradient_summary", [])) != header["updates"]:
@@ -153,7 +162,6 @@ def summarize_rank_reports(reports):
                 },
             }
         )
-    continuous = header["continuous_trajectory"]
     earlier_failure = any(
         update[gate]["status"] == "failed" for update in updates for gate in ("forward", "backward", "optimizer")
     )
@@ -162,7 +170,7 @@ def summarize_rank_reports(reports):
         "run": header,
         "updates": updates,
         "training": {
-            "status": verdict(continuous and earlier_failure, covered=False),
+            "status": verdict(continuous is True and earlier_failure, covered=False),
             "continuous_updates": len(updates) if continuous else 0,
             "restart_checked": False,
             "coverage": "full-source diagnostic; complete input/RNG/restart evidence is separate",
@@ -175,11 +183,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prefix", type=Path, required=True, help="Prefix of the .rankN.json files")
     parser.add_argument("--world-size", choices=(2, 4), type=int, default=4)
+    parser.add_argument("--data-parallel-size", type=int, help="DP size for legacy reports without DP metadata")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     files = [args.prefix.with_name(f"{args.prefix.name}.rank{rank}.json") for rank in range(args.world_size)]
     artifacts = [file.read_bytes() for file in files]
-    report = summarize_rank_reports([json.loads(artifact) for artifact in artifacts])
+    report = summarize_rank_reports(
+        [json.loads(artifact) for artifact in artifacts], data_parallel_size=args.data_parallel_size
+    )
     report["artifacts"] = [
         {"name": file.name, "sha256": hashlib.sha256(artifact).hexdigest()}
         for file, artifact in zip(files, artifacts, strict=True)
