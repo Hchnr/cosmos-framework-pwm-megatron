@@ -22,13 +22,42 @@ def reports():
         "replay_native_state": False,
         "continuous_trajectory": True,
         "gradient_summary": [{"relative_l2": 0.0, "cosine": 1.0} for _ in updates],
-        "parameter_gradient_errors": [{"update": u, "name": "weight", "passed": True} for u in updates],
-        "output_errors": [{"update": u, "passed": True} for u in updates],
-        "norm_checks": [{"update": u, "passed": True} for u in updates],
-        "step_checks": [{"update": u, "name": "weight", "passed": True} for u in updates],
+        "parameter_gradient_errors": [
+            {
+                "update": u,
+                "name": "weight",
+                "relative_l2": 0.0,
+                "maximum_absolute_error": 0.0,
+                "comparison_relative_l2": 0.0,
+                "comparison_maximum_absolute_error": 0.0,
+                "reference_squared_l2": 1.0,
+                "passed": True,
+            }
+            for u in updates
+        ],
+        "output_errors": [
+            {
+                "update": u,
+                "passed": True,
+                "relative_l2": 0.0,
+                "maximum_absolute_error": 0.0,
+                "reference_squared_l2": 1.0,
+            }
+            for u in updates
+        ],
+        "norm_checks": [{"update": u, "actual": 1.0, "reference": 1.0, "passed": True} for u in updates],
+        "step_checks": [{"update": u, "name": "weight", "actual": u, "reference": u, "passed": True} for u in updates],
         "compute_parameter_checks": [{"update": u, "name": "weight", "compute_equals_master": True} for u in updates],
         "parameter_state_errors": [
-            {"update": u, "name": "weight", "field": field, "passed": True}
+            {
+                "update": u,
+                "name": "weight",
+                "field": field,
+                "passed": True,
+                "relative_l2": 0.0,
+                "maximum_absolute_error": 0.0,
+                "reference_squared_l2": 1.0,
+            }
             for u in updates
             for field in ("master", "exp_avg", "exp_avg_sq")
         ],
@@ -223,6 +252,11 @@ def test_dp2_slot_coverage_and_legacy_loss_reference(reports, dp2_bundle):
     assert summary["updates"][0]["forward"]["logical_slot_coverage_status"] == "passed"
     assert summary["updates"][0]["forward"]["prediction_coverage_status"] == "passed"
     assert summary["updates"][0]["forward"]["loss_check_status"] == "unverified"
+    reports[3]["loss_checks"][0].update(reference=2.0, passed=True)
+    assert (
+        summarize_rank_reports(reports, bundle_bytes=dp2_bundle)["updates"][0]["forward"]["loss_check_status"]
+        == "failed"
+    )
     reports[3]["loss_checks"][0]["passed"] = False
     assert summarize_rank_reports(reports, bundle_bytes=dp2_bundle)["updates"][0]["forward"]["status"] == "failed"
     removed = reports[3]["output_errors"].pop()
@@ -251,3 +285,69 @@ def test_rejects_invalid_runtime_constants_fingerprint(reports):
         row["runtime_constants_sha256"] = "not-a-sha"
     with pytest.raises(ValueError, match="Invalid runtime constants SHA-256"):
         summarize_rank_reports(reports)
+
+
+def test_contradictory_usage_and_step_cannot_pass(reports):
+    for row in reports:
+        row["gradient_usage_checks"] = [
+            {"update": u, "name": "weight", "reference_used": False, "actual_used": False, "passed": True}
+            for u in range(3)
+        ]
+    reports[0]["gradient_usage_checks"][0]["actual_used"] = True
+    reports[1]["step_checks"][0].update(actual=999, reference=1200, passed=True)
+    result = summarize_rank_reports(reports)["updates"][0]
+    assert result["backward"]["gradient_usage_check_status"] == "failed"
+    assert result["optimizer"]["recorded_update_check_status"] == "failed"
+
+
+@pytest.mark.parametrize("section,field", [("norm_checks", "actual"), ("parameter_gradient_errors", "relative_l2")])
+def test_nonfinite_evidence_cannot_pass(reports, section, field):
+    reports[0][section][0][field] = float("nan")
+    with pytest.raises(ValueError, match="Nonfinite numeric evidence"):
+        summarize_rank_reports(reports)
+
+
+def test_missing_numeric_details_are_unverified(reports):
+    del reports[0]["parameter_gradient_errors"][0]["relative_l2"]
+    del reports[1]["step_checks"][0]["actual"]
+    result = summarize_rank_reports(reports)["updates"][0]
+    assert result["backward"]["preclip_parameter_check_status"] == "unverified"
+    assert result["optimizer"]["recorded_update_check_status"] == "unverified"
+
+
+@pytest.mark.parametrize(
+    "section,relative_key,maximum_key,group,status_key",
+    [
+        ("output_errors", "relative_l2", "maximum_absolute_error", "forward", "prediction_check_status"),
+        (
+            "parameter_gradient_errors",
+            "comparison_relative_l2",
+            "comparison_maximum_absolute_error",
+            "backward",
+            "preclip_parameter_check_status",
+        ),
+        (
+            "parameter_state_errors",
+            "relative_l2",
+            "maximum_absolute_error",
+            "optimizer",
+            "recorded_update_check_status",
+        ),
+    ],
+)
+def test_contradictory_tensor_error_cannot_pass(reports, section, relative_key, maximum_key, group, status_key):
+    reports[0][section][0].update({relative_key: 999.0, maximum_key: 999.0, "passed": True})
+    assert summarize_rank_reports(reports)["updates"][0][group][status_key] == "failed"
+
+
+def test_near_zero_reference_uses_absolute_tolerance(reports):
+    for row in reports:
+        row["parameter_state_errors"][0].update(reference_squared_l2=0.0, relative_l2=None, maximum_absolute_error=1e-6)
+    assert summarize_rank_reports(reports)["updates"][0]["optimizer"]["recorded_update_check_status"] == "passed"
+    reports[0]["parameter_state_errors"][0]["maximum_absolute_error"] = 3e-6
+    assert summarize_rank_reports(reports)["updates"][0]["optimizer"]["recorded_update_check_status"] == "failed"
+
+
+def test_negative_norm_cannot_pass(reports):
+    reports[0]["norm_checks"][0].update(actual=-1.0, reference=-1.0, passed=True)
+    assert summarize_rank_reports(reports)["updates"][0]["optimizer"]["recorded_update_check_status"] == "failed"
