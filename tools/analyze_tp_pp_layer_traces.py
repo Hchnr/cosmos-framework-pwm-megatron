@@ -110,7 +110,12 @@ def analyze(reference, candidate, *, candidate_dp_size=1):
             first[key] = row
     return {
         "scope": "FP32 sampled layer outputs and available output cotangents, plus full stream norms",
-        "coverage_complete": True,
+        # Matching the files present on both sides does not establish that
+        # every expected cotangent was captured on both sides.
+        "coverage_complete": False,
+        "forward_output_coverage_complete": True,
+        "backward_coverage_complete": None,
+        "backward_trace_file_count": len(expected - outputs),
         "mathematical_acceptance": False,
         "reference": str(reference),
         "candidate": str(candidate),
