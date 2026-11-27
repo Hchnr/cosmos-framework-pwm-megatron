@@ -34,6 +34,10 @@ def finite_or_none(value):
     return value if value is not None and math.isfinite(value) else None
 
 
+def is_sha256(value):
+    return isinstance(value, str) and len(value) == 64 and all(character in "0123456789abcdef" for character in value)
+
+
 def parallel_coordinates(reports, pp, tp, dp):
     coordinates = []
     for rank, row in enumerate(reports):
@@ -159,11 +163,14 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
         verified_names, parameter_coverage = verify_parameter_coverage(reports, coordinates, bundle_bytes, tp, pp)
     if header["updates"] != 3:
         raise ValueError("Expected the full-source diagnostic's three updates")
+    if header["runtime_constants_sha256"] is not None and not is_sha256(header["runtime_constants_sha256"]):
+        raise ValueError("Invalid runtime constants SHA-256")
     if input_hashes is not None and (
         not isinstance(input_hashes, list)
         or type(header["microbatches_per_dp_replica"]) is not int
         or len(input_hashes) != dp * header["microbatches_per_dp_replica"]
         or not input_hashes
+        or any(not is_sha256(value) for value in input_hashes)
     ):
         raise ValueError("Prepared input count differs from the physical DP schedule")
     if prediction_counts is not None and (

@@ -232,3 +232,22 @@ def test_dp2_slot_coverage_and_legacy_loss_reference(reports, dp2_bundle):
     reports[3]["consumed_slots"][0]["index"] = 0
     with pytest.raises(ValueError, match="consumed the wrong logical slots"):
         summarize_rank_reports(reports, bundle_bytes=dp2_bundle)
+
+
+@pytest.mark.parametrize("invalid_hash", [None, "", "1" * 63, "g" * 64, "A" * 64, 7])
+def test_rejects_invalid_prepared_input_fingerprints(reports, invalid_hash):
+    for rank, row in enumerate(reports):
+        row.update(
+            prepared_input_hashes=[invalid_hash],
+            microbatches_per_dp_replica=1,
+            parallel_ranks={"pp": rank // 2, "tp": rank % 2, "dp": 0},
+        )
+    with pytest.raises(ValueError, match="Prepared input count"):
+        summarize_rank_reports(reports)
+
+
+def test_rejects_invalid_runtime_constants_fingerprint(reports):
+    for row in reports:
+        row["runtime_constants_sha256"] = "not-a-sha"
+    with pytest.raises(ValueError, match="Invalid runtime constants SHA-256"):
+        summarize_rank_reports(reports)
