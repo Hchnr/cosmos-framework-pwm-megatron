@@ -4,6 +4,7 @@
 """Locate FP32 layer divergence without replacing full mathematical gates."""
 
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -56,7 +57,7 @@ def candidate_trace_paths(directory, dp_size):
     return result
 
 
-def analyze(reference, candidate, *, candidate_dp_size=1):
+def analyze(reference, candidate, *, candidate_dp_size=1, expected_backward_files=None):
     if candidate_dp_size not in (1, 2):
         raise ValueError("The two-slot diagnostic supports DP1 or DP2 traces")
     expected = {path.name for path in reference.glob("*.pt")}
@@ -71,6 +72,24 @@ def analyze(reference, candidate, *, candidate_dp_size=1):
     }
     if outputs != required_outputs:
         raise ValueError("Require all 36 layers, two batches and three updates")
+    backward_files = expected - outputs
+    backward_coverage = None
+    missing_backward, unexpected_backward = [], []
+    if expected_backward_files is not None:
+        if (
+            not isinstance(expected_backward_files, list)
+            or not expected_backward_files
+            or any(
+                not isinstance(name, str) or Path(name).name != name or not name.endswith(".gradient.pt")
+                for name in expected_backward_files
+            )
+            or len(set(expected_backward_files)) != len(expected_backward_files)
+        ):
+            raise ValueError("Backward coverage manifest must contain unique gradient filenames")
+        required_backward = set(expected_backward_files)
+        missing_backward = sorted(required_backward - backward_files)
+        unexpected_backward = sorted(backward_files - required_backward)
+        backward_coverage = not missing_backward and not unexpected_backward
     rows = []
     for name in sorted(expected):
         left = torch.load(reference / name, map_location="cpu", weights_only=False)
@@ -110,12 +129,14 @@ def analyze(reference, candidate, *, candidate_dp_size=1):
             first[key] = row
     return {
         "scope": "FP32 sampled layer outputs and available output cotangents, plus full stream norms",
-        # Matching the files present on both sides does not establish that
-        # every expected cotangent was captured on both sides.
-        "coverage_complete": False,
+        # Matching the files present on both sides alone cannot establish
+        # that every expected cotangent was captured on both sides.
+        "coverage_complete": backward_coverage is True,
         "forward_output_coverage_complete": True,
-        "backward_coverage_complete": None,
-        "backward_trace_file_count": len(expected - outputs),
+        "backward_coverage_complete": backward_coverage,
+        "backward_trace_file_count": len(backward_files),
+        "missing_backward_files": missing_backward,
+        "unexpected_backward_files": unexpected_backward,
         "mathematical_acceptance": False,
         "reference": str(reference),
         "candidate": str(candidate),
@@ -136,9 +157,20 @@ def main():
     parser.add_argument("--reference", type=Path, required=True)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--candidate-dp-size", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--expected-backward-files", type=Path, help="JSON array of expected gradient filenames")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = analyze(args.reference, args.candidate, candidate_dp_size=args.candidate_dp_size)
+    manifest_bytes = args.expected_backward_files.read_bytes() if args.expected_backward_files else None
+    backward_manifest = json.loads(manifest_bytes) if manifest_bytes is not None else None
+    report = analyze(
+        args.reference,
+        args.candidate,
+        candidate_dp_size=args.candidate_dp_size,
+        expected_backward_files=backward_manifest,
+    )
+    report["expected_backward_manifest_sha256"] = (
+        hashlib.sha256(manifest_bytes).hexdigest() if manifest_bytes is not None else None
+    )
     with args.output.open("x") as handle:
         json.dump(report, handle, indent=2)
         handle.write("\n")

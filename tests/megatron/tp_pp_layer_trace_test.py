@@ -108,6 +108,16 @@ def test_layer_report_traverses_each_boundary_in_its_direction(tmp_path):
     assert report["backward_coverage_complete"] is None
     assert not report["coverage_complete"]
     assert report["backward_trace_file_count"] == 2
+    expected_gradients = sorted(path.name for path in reference.glob("*.gradient.pt"))
+    complete = analyze(reference, candidate, expected_backward_files=expected_gradients)
+    assert complete["coverage_complete"]
+    assert complete["backward_coverage_complete"]
+    missing = "forward000.layer02.full_only_seq.gradient.pt"
+    incomplete = analyze(reference, candidate, expected_backward_files=[*expected_gradients, missing])
+    assert not incomplete["coverage_complete"]
+    assert incomplete["missing_backward_files"] == [missing]
+    with pytest.raises(ValueError, match="unique gradient filenames"):
+        analyze(reference, candidate, expected_backward_files=[missing, missing])
     first = report["first_observed_difference_by_capture_and_stream"]
     assert first["forward"][f"forward000.{stream}"]["layer"] == 1
     assert first["backward"][f"forward000.{stream}"]["layer"] == 7
