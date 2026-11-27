@@ -104,6 +104,10 @@ def test_layer_report_traverses_each_boundary_in_its_direction(tmp_path):
                 torch.save(output, candidate / f"{stem}.{stream}.gradient.pt")
 
     report = analyze(reference, candidate)
+    assert report["forward_output_coverage_complete"]
+    assert report["backward_coverage_complete"] is None
+    assert not report["coverage_complete"]
+    assert report["backward_trace_file_count"] == 2
     first = report["first_observed_difference_by_capture_and_stream"]
     assert first["forward"][f"forward000.{stream}"]["layer"] == 1
     assert first["backward"][f"forward000.{stream}"]["layer"] == 7
