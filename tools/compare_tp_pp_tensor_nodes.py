@@ -12,8 +12,13 @@ Manifest v1 example::
 Each raw path is relative to its manifest directory and contains exactly one
 contiguous tensor. No pickle, torch.load, checkpoint, or executable format is
 accepted. This is a node report, not a training correctness certification.
-Only names present in at least one manifest are checked; a separate expected
-node contract is required to detect a name missing from both manifests. The
+Without ``--expected-names``, coverage is unverified: names missing from both
+manifests cannot be detected. An optional expected-names JSON contract is::
+
+    {"format": "cosmos_tp_pp_expected_node_names", "version": 1,
+     "names": ["layer0.gate", "layer0.up"]}
+
+Both manifests must match the contract exactly when it is supplied. The
 byte limit applies to each raw tensor, not total peak memory: both inputs and
 intermediate copies may coexist.
 
@@ -38,6 +43,7 @@ import torch
 from tools.tp_pp_tensor_metrics import compare_tensor_metrics
 
 FORMAT = "cosmos_tp_pp_tensor_nodes"
+EXPECTED_FORMAT = "cosmos_tp_pp_expected_node_names"
 DTYPES = {"float16": torch.float16, "bfloat16": torch.bfloat16, "float32": torch.float32, "float64": torch.float64}
 SIZES = {"float16": 2, "bfloat16": 2, "float32": 4, "float64": 8}
 
@@ -72,7 +78,7 @@ def _read_fd(fd, limit):
     return b"".join(chunks), before
 
 
-def _manifest(path):
+def _read_json_file(path):
     path = Path(path).absolute()
     fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
     try:
@@ -81,7 +87,28 @@ def _manifest(path):
             raise ValueError("manifest path changed while reading")
     finally:
         os.close(fd)
-    data = json.loads(raw, object_pairs_hook=_unique_object)
+    return path, json.loads(raw, object_pairs_hook=_unique_object), hashlib.sha256(raw).hexdigest()
+
+
+def _expected_names(path):
+    _, data, sha = _read_json_file(path)
+    if (
+        not isinstance(data, dict)
+        or set(data) != {"format", "version", "names"}
+        or data["format"] != EXPECTED_FORMAT
+        or type(data["version"]) is not int
+        or data["version"] != 1
+        or not isinstance(data["names"], list)
+        or not data["names"]
+        or any(not isinstance(name, str) or not name for name in data["names"])
+        or len(set(data["names"])) != len(data["names"])
+    ):
+        raise ValueError("invalid expected-names contract")
+    return set(data["names"]), sha
+
+
+def _manifest(path):
+    path, data, sha = _read_json_file(path)
     if (
         not isinstance(data, dict)
         or data.get("format") != FORMAT
@@ -120,7 +147,7 @@ def _manifest(path):
         paths.add(rel)
     if not records:
         raise ValueError("empty tensor manifest")
-    return path.parent, records, hashlib.sha256(raw).hexdigest()
+    return path.parent, records, sha
 
 
 def _tensor(root, record, max_bytes):
@@ -152,7 +179,15 @@ def _tensor(root, record, max_bytes):
 
 
 def compare_manifests(
-    reference, candidate, *, relative_l2, zero_max_abs, min_cosine, require_bitwise=False, max_tensor_bytes=256 << 20
+    reference,
+    candidate,
+    *,
+    relative_l2,
+    zero_max_abs,
+    min_cosine,
+    require_bitwise=False,
+    max_tensor_bytes=256 << 20,
+    expected_names=None,
 ):
     """Return a fail-closed, JSON-compatible report using caller-specified limits."""
     limits = (relative_l2, zero_max_abs, min_cosine)
@@ -171,6 +206,7 @@ def compare_manifests(
         "version": 1,
         "passed": False,
         "scope": "listed CPU node tensors only; not training correctness",
+        "coverage": {"status": "unverified" if expected_names is None else "invalid"},
         "limits": {
             "relative_l2": relative_l2,
             "zero_reference_max_abs": zero_max_abs,
@@ -190,6 +226,19 @@ def compare_manifests(
         report["manifest_sha256"] = {"reference": sha_a, "candidate": sha_b}
         report["missing"] = sorted(set(records_a) - set(records_b))
         report["extra"] = sorted(set(records_b) - set(records_a))
+        if expected_names is not None:
+            expected, expected_sha = _expected_names(expected_names)
+            differences = {
+                "reference_missing": sorted(expected - set(records_a)),
+                "reference_extra": sorted(set(records_a) - expected),
+                "candidate_missing": sorted(expected - set(records_b)),
+                "candidate_extra": sorted(set(records_b) - expected),
+            }
+            report["coverage"] = {
+                "status": "failed" if any(differences.values()) else "passed",
+                "expected_manifest_sha256": expected_sha,
+                **differences,
+            }
         for side, root, records, names in (
             ("reference", root_a, records_a, report["missing"]),
             ("candidate", root_b, records_b, report["extra"]),
@@ -234,7 +283,10 @@ def compare_manifests(
             except (OSError, ValueError, TypeError, RuntimeError) as exc:
                 report["nodes"].append({"name": name, "passed": False, "error": f"{type(exc).__name__}: {exc}"})
         report["passed"] = (
-            not report["missing"] and not report["extra"] and all(row["passed"] for row in report["nodes"])
+            not report["missing"]
+            and not report["extra"]
+            and report["coverage"]["status"] != "failed"
+            and all(row["passed"] for row in report["nodes"])
         )
     except (OSError, ValueError, TypeError, RuntimeError) as exc:
         report["errors"].append(f"{type(exc).__name__}: {exc}")
@@ -251,6 +303,7 @@ def main(argv=None):
     parser.add_argument("--min-cosine", type=float, required=True)
     parser.add_argument("--require-bitwise", action="store_true")
     parser.add_argument("--max-tensor-bytes", type=int, default=256 << 20)
+    parser.add_argument("--expected-names", type=Path)
     args = parser.parse_args(argv)
     try:
         report = compare_manifests(
@@ -261,12 +314,14 @@ def main(argv=None):
             min_cosine=args.min_cosine,
             require_bitwise=args.require_bitwise,
             max_tensor_bytes=args.max_tensor_bytes,
+            expected_names=args.expected_names,
         )
     except ValueError as exc:
         report = {
             "format": "cosmos_tp_pp_node_comparison",
             "version": 1,
             "passed": False,
+            "coverage": {"status": "unverified" if args.expected_names is None else "invalid"},
             "errors": [f"ValueError: {exc}"],
         }
     with args.output.open("x", encoding="utf-8") as stream:
