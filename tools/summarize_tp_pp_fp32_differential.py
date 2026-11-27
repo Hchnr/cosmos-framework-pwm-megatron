@@ -34,6 +34,52 @@ def finite_or_none(value):
     return value if value is not None and math.isfinite(value) else None
 
 
+def reject_nonfinite(value):
+    """Reject nonfinite numeric evidence anywhere in a rank report."""
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("Nonfinite numeric evidence in rank report")
+    if isinstance(value, dict):
+        for item in value.values():
+            reject_nonfinite(item)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            reject_nonfinite(item)
+
+
+def has_finite_number(row, name):
+    value = row.get(name)
+    return type(value) in (int, float) and math.isfinite(value)
+
+
+def tensor_check(row, *, gradient=False):
+    """Return failed, passed or unverified using the producer's tensor tolerance."""
+    if row.get("passed") is not True or row.get("nonfinite") is True:
+        return "failed"
+    relative_key = "comparison_relative_l2" if gradient else "relative_l2"
+    maximum_key = "comparison_maximum_absolute_error" if gradient else "maximum_absolute_error"
+    if not has_finite_number(row, "reference_squared_l2") or not has_finite_number(row, maximum_key):
+        return "unverified"
+    squared = row["reference_squared_l2"]
+    maximum = row[maximum_key]
+    if squared < 0 or maximum < 0 or (has_finite_number(row, relative_key) and row[relative_key] < 0):
+        return "failed"
+    if gradient:
+        if not has_finite_number(row, "relative_l2") or not has_finite_number(row, "maximum_absolute_error"):
+            return "unverified"
+        if row["relative_l2"] < 0 or row["maximum_absolute_error"] < 0:
+            return "failed"
+        if squared > 1e-16 and row["relative_l2"] > 1e-4:
+            return "failed"
+        if squared <= 1e-16 and row["maximum_absolute_error"] > 2e-6:
+            return "failed"
+    if squared <= 1e-16:
+        return "passed" if maximum <= 2e-6 else "failed"
+    if not has_finite_number(row, relative_key):
+        return "unverified"
+    relative = row[relative_key]
+    return "passed" if 0 <= relative <= 1e-4 else "failed"
+
+
 def is_sha256(value):
     return isinstance(value, str) and len(value) == 64 and all(character in "0123456789abcdef" for character in value)
 
@@ -138,6 +184,7 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
     reference = reports[0]
     header = {field: reference.get(field) for field in header_fields}
     for rank, row in enumerate(reports):
+        reject_nonfinite(row)
         if row.get("rank", rank) != rank or any(row.get(field) != header[field] for field in header_fields):
             raise ValueError(f"Rank {rank} has inconsistent run metadata")
     tp = header["tensor_parallel_size"]
@@ -203,10 +250,12 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
         optimizer_fields = Counter()
         failed_optimizer_fields = Counter()
         loss_checks = []
+        output_proofs = []
 
         for rank, row in enumerate(reports):
             rank_outputs = checks(row, update, "output_errors")
             outputs.extend(rank_outputs)
+            output_proofs.extend(tensor_check(item) for item in rank_outputs)
             grads = checks(row, update, "parameter_gradient_errors")
             usage = checks(row, update, "gradient_usage_checks")
             states = checks(row, update, "parameter_state_errors")
@@ -244,19 +293,63 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
             if verified_names is not None and parameter_counts != Counter(verified_names[rank]):
                 raise ValueError(f"Rank {rank} update {update} gradient checks do not cover the owned intervals")
             gradient_count += len(grads)
-            failed_gradients += sum(item["passed"] is not True for item in grads)
-            backward_covered &= bool(grads) and all(count == 1 for count in parameter_counts.values())
-            backward_failed |= not all_passed(grads)
-            usage_covered &= bool(grads) and Counter(item["name"] for item in usage) == parameter_counts
-            usage_failed |= not all_passed(usage)
-            optimizer_failed |= not all_passed(states + steps + norms) or not all_passed(
-                compute, "compute_equals_master"
+            gradient_proofs = [tensor_check(item, gradient=True) for item in grads]
+            state_proofs = [tensor_check(item) for item in states]
+            failed_gradients += gradient_proofs.count("failed")
+            backward_covered &= (
+                bool(grads)
+                and all(count == 1 for count in parameter_counts.values())
+                and all(proof == "passed" for proof in gradient_proofs)
+                and all(
+                    has_finite_number(item, "relative_l2") and has_finite_number(item, "maximum_absolute_error")
+                    for item in grads
+                )
+            )
+            backward_failed |= "failed" in gradient_proofs
+            usage_covered &= (
+                bool(grads)
+                and Counter(item["name"] for item in usage) == parameter_counts
+                and all(
+                    type(item.get("reference_used")) is bool and type(item.get("actual_used")) is bool for item in usage
+                )
+            )
+            usage_failed |= not all_passed(usage) or any(
+                type(item.get("reference_used")) is bool
+                and type(item.get("actual_used")) is bool
+                and item["reference_used"] != item["actual_used"]
+                for item in usage
+            )
+            optimizer_failed |= (
+                "failed" in state_proofs
+                or not all_passed(steps + norms)
+                or not all_passed(compute, "compute_equals_master")
+                or any(
+                    type(item.get("actual")) is int
+                    and type(item.get("reference")) is int
+                    and (item["actual"] < 0 or item["reference"] < 0 or item["actual"] != item["reference"])
+                    for item in steps
+                )
+                or any(
+                    has_finite_number(item, "actual")
+                    and has_finite_number(item, "reference")
+                    and (
+                        item["actual"] < 0
+                        or item["reference"] < 0
+                        or abs(item["actual"] - item["reference"]) > 2e-6 + 1e-4 * abs(item["reference"])
+                    )
+                    for item in norms
+                )
             )
             optimizer_fields.update(item["field"] for item in states)
-            failed_optimizer_fields.update(item["field"] for item in states if item["passed"] is not True)
+            failed_optimizer_fields.update(
+                item["field"] for item, proof in zip(states, state_proofs, strict=True) if proof == "failed"
+            )
             optimizer_covered &= (
                 bool(grads)
                 and len(norms) == 1
+                and all(proof == "passed" for proof in state_proofs)
+                and all(has_finite_number(item, "actual") and has_finite_number(item, "reference") for item in norms)
+                and all(type(item.get("actual")) is int and type(item.get("reference")) is int for item in steps)
                 and Counter(item["name"] for item in steps) == parameter_counts
                 and Counter(item["name"] for item in compute) == parameter_counts
                 and state_counts
@@ -277,18 +370,31 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
             and cosine >= GRADIENT_COSINE_MINIMUM
         )
         gradient_failed = backward_failed or not aggregate_passed
-        failed_losses = sum(loss["passed"] is False or not math.isfinite(loss["actual"]) for loss in loss_checks)
+        failed_losses = sum(
+            loss.get("passed") is False
+            or not has_finite_number(loss, "actual")
+            or (
+                has_finite_number(loss, "reference")
+                and abs(loss["actual"] - loss["reference"]) > 2e-6 + 1e-4 * abs(loss["reference"])
+            )
+            for loss in loss_checks
+        )
+        loss_covered = bool(loss_checks) and all(
+            loss.get("passed") is True and has_finite_number(loss, "reference") for loss in loss_checks
+        )
         updates.append(
             {
                 "update": update,
                 "forward": {
-                    "status": verdict(not all_passed(outputs) or bool(failed_losses), covered=False),
-                    "prediction_check_status": verdict(not all_passed(outputs), bool(outputs)),
+                    "status": verdict("failed" in output_proofs or bool(failed_losses), covered=False),
+                    "prediction_check_status": verdict(
+                        "failed" in output_proofs, bool(outputs) and all(proof == "passed" for proof in output_proofs)
+                    ),
                     "prediction_coverage_status": verdict(False, prediction_counts is not None),
                     "prediction_checks": len(outputs),
-                    "failed_prediction_checks": sum(item["passed"] is not True for item in outputs),
+                    "failed_prediction_checks": output_proofs.count("failed"),
                     "logical_slot_coverage_status": verdict(False, input_hashes is not None),
-                    "loss_check_status": verdict(bool(failed_losses), bool(loss_checks) and all_passed(loss_checks)),
+                    "loss_check_status": verdict(bool(failed_losses), loss_covered),
                     "loss_checks": len(loss_checks),
                     "failed_loss_checks": failed_losses,
                     "coverage": "predictions, reported logical slots and optional reference losses; layer checks are separate",
