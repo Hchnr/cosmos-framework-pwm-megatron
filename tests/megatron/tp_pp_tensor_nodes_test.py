@@ -135,3 +135,93 @@ def test_cli_outputs_machine_readable_failure(tmp_path):
         ]
     )
     assert result == 1 and json.loads(invalid_output.read_text())["passed"] is False
+
+
+def expected_contract(path, names):
+    path.write_text(json.dumps({"format": "cosmos_tp_pp_expected_node_names", "version": 1, "names": names}))
+    return path
+
+
+def test_expected_names_detect_both_sides_missing_and_extras(tmp_path):
+    a = manifest(tmp_path / "ref", {"gate": torch.ones(2), "unexpected": torch.ones(1)})
+    b = manifest(tmp_path / "cand", {"gate": torch.ones(2), "unexpected": torch.ones(1)})
+    contract = expected_contract(tmp_path / "expected.json", ["gate", "up"])
+    # Existing behavior remains a successful comparison with explicitly unverified coverage.
+    old = compare(a, b)
+    assert old["passed"] is True and old["coverage"]["status"] == "unverified"
+    result = compare(a, b, expected_names=contract)
+    assert result["passed"] is False and result["coverage"]["status"] == "failed"
+    assert result["coverage"]["reference_missing"] == result["coverage"]["candidate_missing"] == ["up"]
+    assert result["coverage"]["reference_extra"] == result["coverage"]["candidate_extra"] == ["unexpected"]
+    assert result["coverage"]["expected_manifest_sha256"] == hashlib.sha256(contract.read_bytes()).hexdigest()
+
+
+def test_expected_names_exact_coverage_and_one_sided_discrepancy(tmp_path):
+    a = manifest(tmp_path / "ref", {"gate": torch.ones(2), "up": torch.ones(1)})
+    b = manifest(tmp_path / "cand", {"gate": torch.ones(2), "up": torch.ones(1)})
+    contract = expected_contract(tmp_path / "expected.json", ["gate", "up"])
+    result = compare(a, b, expected_names=contract)
+    assert result["passed"] is True and result["coverage"]["status"] == "passed"
+    b = manifest(tmp_path / "other", {"gate": torch.ones(2), "other": torch.ones(1)})
+    result = compare(a, b, expected_names=contract)
+    assert not result["passed"]
+    assert result["coverage"]["reference_missing"] == result["coverage"]["reference_extra"] == []
+    assert result["coverage"]["candidate_missing"] == ["up"] and result["coverage"]["candidate_extra"] == ["other"]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '{"format":"cosmos_tp_pp_expected_node_names","version":1,"names":["x","x"]}',
+        '{"format":"cosmos_tp_pp_expected_node_names","version":1,"names":[]}',
+        '{"format":"cosmos_tp_pp_expected_node_names","version":true,"names":["x"]}',
+        '{"format":"cosmos_tp_pp_expected_node_names","version":1,"names":[1]}',
+        '{"format":"cosmos_tp_pp_expected_node_names","version":1,"names":["x"],"unknown":1}',
+        '{"format":"cosmos_tp_pp_expected_node_names","version":1,"names":["x"],"names":["x"]}',
+        "not json",
+    ],
+)
+def test_invalid_expected_contract_fails_closed(tmp_path, body):
+    a = manifest(tmp_path / "ref", {"x": torch.ones(2)})
+    b = manifest(tmp_path / "cand", {"x": torch.ones(2)})
+    contract = tmp_path / "expected.json"
+    contract.write_text(body)
+    result = compare(a, b, expected_names=contract)
+    assert not result["passed"] and result["coverage"]["status"] == "invalid" and result["errors"]
+
+
+def test_expected_contract_absent_file_and_symlink_fail_closed(tmp_path):
+    a = manifest(tmp_path / "ref", {"x": torch.ones(2)})
+    b = manifest(tmp_path / "cand", {"x": torch.ones(2)})
+    contract = expected_contract(tmp_path / "expected.json", ["x"])
+    link = tmp_path / "link.json"
+    link.symlink_to(contract)
+    for path in (link, tmp_path / "missing.json"):
+        result = compare(a, b, expected_names=path)
+        assert not result["passed"] and result["coverage"]["status"] == "invalid" and result["errors"]
+
+
+def test_cli_expected_names_detects_missing_node(tmp_path):
+    a = manifest(tmp_path / "ref", {"x": torch.ones(1)})
+    b = manifest(tmp_path / "cand", {"x": torch.ones(1)})
+    contract = expected_contract(tmp_path / "expected.json", ["x", "y"])
+    out = tmp_path / "out.json"
+    code = main(
+        [
+            "--reference",
+            str(a),
+            "--candidate",
+            str(b),
+            "--output",
+            str(out),
+            "--relative-l2",
+            "0",
+            "--zero-max-abs",
+            "0",
+            "--min-cosine",
+            "1",
+            "--expected-names",
+            str(contract),
+        ]
+    )
+    assert code == 1 and json.loads(out.read_text())["coverage"]["reference_missing"] == ["y"]
