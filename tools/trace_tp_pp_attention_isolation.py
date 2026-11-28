@@ -11,6 +11,14 @@ axis is long enough, otherwise the full tensor is kept. Each record
 contains its original dtype, shape, strides, sample scope and SHA256 of the
 stored bytes. Input hooks see the accumulated gradient if a tensor is shared
 by branches; use attention output cotangents for an isolated operator replay.
+
+The optional branch mode inserts identity autograd edges before the video MLP
+normalization and its gate/up consumers. It records individual input cotangents;
+use layer-output cotangents from the layer trace for the residual shortcut, and
+account for masks. This changes the autograd graph and hooks remain attached for
+the module lifetime. A separate same-configuration output/gradient/RNG test and
+``verify_branch_capture`` coverage check are required before interpreting it;
+no real-GPU invariance is claimed by this tool.
 """
 
 import argparse
@@ -53,6 +61,7 @@ class Recorder:
         max_elements=4_000_000,
         rows=32,
         layers=(30, 31, 32),
+        capture_branch_gradients=False,
     ):
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -70,6 +79,8 @@ class Recorder:
         self.attention_call = 0
         self.seen_layers = set()
         self.seen_modules = set()
+        self.seen_edges = set()
+        self.capture_branch_gradients = capture_branch_gradients
         self.event_order = 0
 
     def begin(self, module, inputs):
@@ -124,6 +135,28 @@ class Recorder:
         if tensor.requires_grad:
             tensor.register_hook(lambda grad: self.save(grad, layer, tag, kind + "_dgrad"))
 
+    def branch_input(self, tensor, layer, tag):
+        """Insert an opt-in identity edge to observe this consumer's cotangent.
+
+        This adds an autograd node and is diagnostic only; numerical invariance
+        must be verified for the exact model and execution configuration.
+        """
+        import torch
+
+        recorder = self
+
+        class EdgeTap(torch.autograd.Function):
+            @staticmethod
+            def forward(ctx, value):
+                return value
+
+            @staticmethod
+            def backward(ctx, gradient):
+                recorder.save(gradient, layer, tag, "branch_input_dgrad")
+                return gradient
+
+        return EdgeTap.apply(tensor)
+
     def attach(self, root, layers):
         root.register_forward_pre_hook(self.begin)
         for index, layer in layers:
@@ -150,6 +183,29 @@ class Recorder:
                 except AttributeError:
                     continue
                 tag = name.replace(".", "_")
+                if self.capture_branch_gradients and name in (
+                    "post_attention_layernorm_moe_gen",
+                    "mlp_moe_gen.gate_proj",
+                    "mlp_moe_gen.up_proj",
+                ):
+
+                    def edge_hook(module, inputs, layer_index=index, module_tag=tag):
+                        import torch
+
+                        identity = (self.sequence, layer_index, module_tag)
+                        if self.active_layer != layer_index or identity in self.seen_edges:
+                            return None
+                        if (
+                            not torch.is_grad_enabled()
+                            or not inputs
+                            or not isinstance(inputs[0], torch.Tensor)
+                            or not inputs[0].requires_grad
+                        ):
+                            raise RuntimeError("Branch diagnostic requires a differentiable tensor input")
+                        self.seen_edges.add(identity)
+                        return (self.branch_input(inputs[0], layer_index, module_tag), *inputs[1:])
+
+                    target.register_forward_pre_hook(edge_hook)
 
                 def hook(module, inputs, output, layer_index=index, module_tag=tag):
                     identity = (self.sequence, layer_index, module_tag)
@@ -201,6 +257,68 @@ class Recorder:
         return output
 
 
+def verify_branch_capture(directory, *, kind, forwards, layers, ranks):
+    """Fail closed unless all explicitly expected opt-in branch tensors exist.
+
+    Call after all backward work; coverage alone does not establish numerical
+    non-perturbation or production correctness. Handles live for module lifetime.
+    """
+    import torch
+
+    if kind not in ("native", "tp") or any(
+        not values or len(values) != len(set(values)) or any(type(value) is not int or value < 0 for value in values)
+        for values in (forwards, layers, ranks)
+    ):
+        raise ValueError("Explicit, unique branch coverage coordinates required")
+    tags = ("post_attention_layernorm_moe_gen", "mlp_moe_gen_gate_proj", "mlp_moe_gen_up_proj")
+    expected = {
+        Path(directory) / f"forward{forward:03d}" / kind / f"layer{layer:02d}.{tag}.branch_input_dgrad.rank{rank}.pt": (
+            forward,
+            layer,
+            tag,
+            rank,
+        )
+        for forward in forwards
+        for layer in layers
+        for rank in ranks
+        for tag in tags
+    }
+    found = {
+        path
+        for forward in forwards
+        for path in (Path(directory) / f"forward{forward:03d}" / kind).glob("*.branch_input_dgrad.rank*.pt")
+    }
+    if found != set(expected):
+        raise ValueError("Branch capture coverage missing or extra files")
+    sampled_files = []
+    for path, coordinates in expected.items():
+        item = torch.load(path, map_location="cpu", weights_only=True)
+        value = item["value"]
+        if (
+            item.get("kind") != "branch_input_dgrad"
+            or (item.get("forward"), item.get("layer"), item.get("tag"), item.get("rank")) != coordinates
+            or not isinstance(value, torch.Tensor)
+            or hashlib.sha256(value.contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()
+            != item.get("stored_sha256")
+        ):
+            raise ValueError(f"Invalid branch capture payload: {path}")
+        scope = item.get("scope")
+        if not isinstance(scope, dict) or scope.get("kind") not in ("full", "first_last_dim0"):
+            raise ValueError(f"Invalid branch capture scope: {path}")
+        if scope["kind"] == "full":
+            if list(value.shape) != item.get("shape"):
+                raise ValueError(f"Invalid full branch tensor shape: {path}")
+        else:
+            sampled_files.append(str(path))
+    return {
+        "coverage_passed": True,
+        "expected_files": len(expected),
+        "full_tensor_coverage": not sampled_files,
+        "sampled_files": sorted(sampled_files),
+        "numerical_invariance_verified": False,
+    }
+
+
 def attach_recorders(
     root,
     layers,
@@ -215,6 +333,7 @@ def attach_recorders(
     max_elements,
     rows,
     selected_layers,
+    capture_branch_gradients=False,
 ):
     recorders = []
     for target_forward in target_forwards:
@@ -228,13 +347,23 @@ def attach_recorders(
             max_elements=max_elements,
             rows=rows,
             layers=selected_layers,
+            capture_branch_gradients=capture_branch_gradients,
         )
         recorder.attach(root, layers)
         recorders.append(recorder)
     return recorders
 
 
-def install(directory, *, target_forwards, split_by_forward, max_elements, rows, layers=(30, 31, 32)):
+def install(
+    directory,
+    *,
+    target_forwards,
+    split_by_forward,
+    max_elements,
+    rows,
+    layers=(30, 31, 32),
+    capture_branch_gradients=False,
+):
     import torch.distributed as dist
 
     from cosmos_framework.model.generator.megatron_tp_pp.stage import PipelineStage
@@ -261,6 +390,7 @@ def install(directory, *, target_forwards, split_by_forward, max_elements, rows,
                 max_elements=max_elements,
                 rows=rows,
                 selected_layers=layers,
+                capture_branch_gradients=capture_branch_gradients,
             )
         )
 
@@ -285,6 +415,7 @@ def install(directory, *, target_forwards, split_by_forward, max_elements, rows,
                 max_elements=max_elements,
                 rows=rows,
                 selected_layers=layers,
+                capture_branch_gradients=capture_branch_gradients,
             )
         )
         return handles
@@ -315,6 +446,11 @@ def main():
     parser.add_argument("--max-elements", type=int, default=4_000_000)
     parser.add_argument("--rows", type=int, default=32)
     parser.add_argument("--layers", default="30,31,32", help="Comma-separated global layer indices")
+    parser.add_argument(
+        "--capture-branch-gradients",
+        action="store_true",
+        help="Diagnostic identity edges; requires separate invariance verification",
+    )
     args, remainder = parser.parse_known_args()
     if args.max_elements < 1 or args.rows < 1:
         parser.error("Sample limits must be positive")
@@ -340,10 +476,11 @@ def main():
     install(
         args.capture_dir,
         target_forwards=forwards,
-        split_by_forward=args.forward_indices is not None,
+        split_by_forward=args.forward_indices is not None or args.capture_branch_gradients,
         max_elements=args.max_elements,
         rows=args.rows,
         layers=layers,
+        capture_branch_gradients=args.capture_branch_gradients,
     )
     sys.argv = [sys.argv[0], *remainder]
     if args.entry == "wide":

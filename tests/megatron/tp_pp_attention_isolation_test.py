@@ -245,3 +245,188 @@ def test_cli_preserves_single_forward_and_supports_two_forwards(monkeypatch, tmp
     assert called["split_by_forward"] is split
     assert called["layers"] == layers
     assert called["downstream_argv"] == ["--mode", "native"]
+
+
+@pytest.mark.parametrize("checkpointed", [False, True])
+def test_opt_in_branch_edges_preserve_gradients_and_close_residual(tmp_path, checkpointed):
+    class Layer(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.self_attn = nn.Module()
+            self.self_attn.o_proj_moe_gen = nn.Linear(4, 4, bias=False)
+            self.post_attention_layernorm_moe_gen = nn.LayerNorm(4)
+            self.mlp_moe_gen = nn.Module()
+            self.mlp_moe_gen.gate_proj = nn.Linear(4, 4, bias=False)
+            self.mlp_moe_gen.up_proj = nn.Linear(4, 4, bias=False)
+
+        def forward(self, x):
+            residual = x + self.self_attn.o_proj_moe_gen(x)
+            normalized = self.post_attention_layernorm_moe_gen(residual)
+            gate = self.mlp_moe_gen.gate_proj(normalized)
+            up = self.mlp_moe_gen.up_proj(normalized)
+            return residual + gate * up
+
+    class Network(nn.Module):
+        def __init__(self, layer):
+            super().__init__()
+            self.layer = checkpoint_wrapper(layer, preserve_rng_state=True) if checkpointed else layer
+
+        def forward(self, x):
+            return self.layer(x)
+
+    torch.manual_seed(12)
+    layer = Layer()
+    reference = copy.deepcopy(layer)
+    model = Network(layer)
+    baseline = Network(reference)
+    recorder = Recorder(
+        tmp_path, rank=0, tp_rank=0, tp_size=1, target_forward=0, layers=(0,), capture_branch_gradients=True
+    )
+    recorder.attach(model, [(0, layer)])
+    inputs = torch.randn(3, 4)
+    x = inputs.clone().requires_grad_()
+    xr = inputs.clone().requires_grad_()
+    rng = torch.get_rng_state().clone()
+    actual = model(x)
+    expected = baseline(xr)
+    dy = (
+        torch.randn_like(actual, generator=None)
+        if False
+        else torch.arange(1, 13, dtype=actual.dtype).reshape_as(actual)
+    )
+    actual.backward(dy)
+    expected.backward(dy)
+    assert torch.equal(actual, expected)
+    assert torch.equal(x.grad, xr.grad)
+    for p, q in zip(layer.parameters(), reference.parameters(), strict=True):
+        assert torch.equal(p.grad, q.grad)
+    assert torch.equal(torch.get_rng_state(), rng)
+
+    def captured(tag, kind):
+        return torch.load(tmp_path / f"layer00.{tag}.{kind}.rank0.pt", weights_only=True)["value"]
+
+    gate = captured("mlp_moe_gen_gate_proj", "branch_input_dgrad")
+    up = captured("mlp_moe_gen_up_proj", "branch_input_dgrad")
+    norm_out = captured("post_attention_layernorm_moe_gen", "output_dgrad")
+    norm_branch = captured("post_attention_layernorm_moe_gen", "branch_input_dgrad")
+    attention_out = captured("self_attn_o_proj_moe_gen", "output_dgrad")
+    assert torch.equal(gate + up, norm_out)
+    assert not torch.equal(gate, up)
+    # Independent local VJPs must match each edge, not just their sum.
+    residual = (inputs + reference.self_attn.o_proj_moe_gen(inputs)).detach().requires_grad_()
+    normalized = reference.post_attention_layernorm_moe_gen(residual)
+    gate_value = reference.mlp_moe_gen.gate_proj(normalized)
+    up_value = reference.mlp_moe_gen.up_proj(normalized)
+    gate_expected = torch.autograd.grad(gate_value, normalized, dy * up_value, retain_graph=True)[0]
+    up_expected = torch.autograd.grad(up_value, normalized, dy * gate_value, retain_graph=True)[0]
+    norm_expected = torch.autograd.grad(normalized, residual, gate_expected + up_expected)[0]
+    assert torch.equal(gate, gate_expected)
+    assert torch.equal(up, up_expected)
+    assert torch.equal(norm_branch, norm_expected)
+    assert torch.equal(norm_branch + dy, attention_out)
+
+
+def test_branch_capture_interleaved_microbatches_and_missing_file_fails(tmp_path):
+    class Layer(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.post_attention_layernorm_moe_gen = nn.LayerNorm(4)
+            self.mlp_moe_gen = nn.Module()
+            self.mlp_moe_gen.gate_proj = nn.Linear(4, 4, bias=False)
+            self.mlp_moe_gen.up_proj = nn.Linear(4, 4, bias=False)
+
+        def forward(self, x):
+            normalized = self.post_attention_layernorm_moe_gen(x)
+            return x + self.mlp_moe_gen.gate_proj(normalized) * self.mlp_moe_gen.up_proj(normalized)
+
+    layer = Layer()
+    model = nn.Sequential(checkpoint_wrapper(layer, preserve_rng_state=True))
+    attach_recorders(
+        model,
+        [(0, layer)],
+        tmp_path,
+        "tp",
+        rank=0,
+        tp_rank=0,
+        tp_size=1,
+        target_forwards=(0, 1),
+        split_by_forward=True,
+        max_elements=1000,
+        rows=4,
+        selected_layers=(0,),
+        capture_branch_gradients=True,
+    )
+    inputs = [torch.randn(3, 4, requires_grad=True) for _ in range(2)]
+    outputs = [model(value) for value in inputs]
+    for value in outputs:
+        value.square().sum().backward()
+    check = trace_tp_pp_attention_isolation.verify_branch_capture(
+        tmp_path, kind="tp", forwards=(0, 1), layers=(0,), ranks=(0,)
+    )
+    assert check == {
+        "coverage_passed": True,
+        "expected_files": 6,
+        "full_tensor_coverage": True,
+        "sampled_files": [],
+        "numerical_invariance_verified": False,
+    }
+    for index in range(2):
+        folder = tmp_path / f"forward{index:03d}" / "tp"
+
+        def value(tag, kind):
+            return torch.load(folder / f"layer00.{tag}.{kind}.rank0.pt", weights_only=True)["value"]
+
+        gate = value("mlp_moe_gen_gate_proj", "branch_input_dgrad")
+        up = value("mlp_moe_gen_up_proj", "branch_input_dgrad")
+        norm = value("post_attention_layernorm_moe_gen", "output_dgrad")
+        assert torch.equal(gate + up, norm)
+    corrupt = tmp_path / "forward000/tp/layer00.mlp_moe_gen_up_proj.branch_input_dgrad.rank0.pt"
+    record = torch.load(corrupt, weights_only=True)
+    record["value"][0, 0] += 1
+    torch.save(record, corrupt)
+    with pytest.raises(ValueError, match="Invalid branch capture payload"):
+        trace_tp_pp_attention_isolation.verify_branch_capture(
+            tmp_path, kind="tp", forwards=(0, 1), layers=(0,), ranks=(0,)
+        )
+    (tmp_path / "forward001/tp/layer00.mlp_moe_gen_up_proj.branch_input_dgrad.rank0.pt").unlink()
+    with pytest.raises(ValueError, match="coverage"):
+        trace_tp_pp_attention_isolation.verify_branch_capture(
+            tmp_path, kind="tp", forwards=(0, 1), layers=(0,), ranks=(0,)
+        )
+
+
+def test_branch_coverage_reports_sampled_tensors(tmp_path):
+    folder = tmp_path / "forward000/tp"
+    recorder = Recorder(folder, rank=0, tp_rank=0, tp_size=1, target_forward=0, max_elements=4, rows=1)
+    for tag in ("post_attention_layernorm_moe_gen", "mlp_moe_gen_gate_proj", "mlp_moe_gen_up_proj"):
+        recorder.save(torch.ones(10, 4), 0, tag, "branch_input_dgrad")
+    result = trace_tp_pp_attention_isolation.verify_branch_capture(
+        tmp_path, kind="tp", forwards=(0,), layers=(0,), ranks=(0,)
+    )
+    assert result["coverage_passed"] is True
+    assert result["full_tensor_coverage"] is False
+    assert len(result["sampled_files"]) == 3
+
+
+def test_single_forward_branch_cli_uses_split_layout(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(trace_tp_pp_attention_isolation, "install", lambda *args, **kwargs: calls.append(kwargs))
+    monkeypatch.setattr(run_tp_pp_traced_fp32_math, "main", lambda: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "trace",
+            "--entry",
+            "standard",
+            "--capture-dir",
+            str(tmp_path),
+            "--forward-index",
+            "0",
+            "--capture-branch-gradients",
+        ],
+    )
+    trace_tp_pp_attention_isolation.main()
+    assert calls[0]["split_by_forward"] is True
+    assert calls[0]["target_forwards"] == (0,)
+    assert calls[0]["capture_branch_gradients"] is True
