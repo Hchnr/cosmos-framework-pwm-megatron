@@ -407,3 +407,20 @@ def test_isolated_builder_observer_matches_base_diagnostic():
     )
     built = next(n for n in ast.parse(DECODER_DTYPE_OBSERVER).body if isinstance(n, ast.FunctionDef))
     assert ast.dump(base, include_attributes=False) == ast.dump(built, include_attributes=False)
+
+
+def test_legacy_telemetry_rejects_current_instrumented_helper():
+    from tools.build_tp_pp_capacity_telemetry import helper
+
+    source = Path(__file__).with_name("tp_pp_full_source_math.py").read_text()
+    with pytest.raises(ValueError, match="refusing ambiguous telemetry transformation"):
+        helper(source)
+
+
+def test_original_capacity_builder_accepts_current_helper():
+    from tools.build_tp_pp_original_capacity_helper import transform
+
+    source = Path(__file__).with_name("tp_pp_full_source_math.py").read_text()
+    generated = transform(source)
+    assert '"fingerprint_version": 2' in generated
+    assert "initial_shapes(network, original_capacity=args.original_capacity)" in generated
