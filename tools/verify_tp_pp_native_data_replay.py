@@ -73,6 +73,22 @@ def native_preparation(config):
     return NativePreparation(config)
 
 
+def fingerprint_evidence_flags(version, *, prepared, logical_dp, slots):
+    """Distinguish equality under the legacy encoding from v2 acceptance."""
+    strong = version == 2
+    slot_keys = [(row["slot"][1], row["slot"][2]) for row in slots]
+    production_slots = {(microstep, rank) for microstep in range(3) for rank in range(192)}
+    complete = len(slot_keys) == len(production_slots) and set(slot_keys) == production_slots
+    return {
+        "passed": strong,
+        "recorded_fingerprints_match": True,
+        "fingerprint_version": version,
+        "legacy_fingerprint_ambiguous": not strong,
+        "noise_equality_independently_checked": prepared and strong,
+        "production_576_slot_raw_data_accepted": strong and logical_dp == 192 and complete,
+    }
+
+
 def verify(
     toml,
     bundle,
@@ -84,8 +100,15 @@ def verify(
     capture_prepared_dir=None,
     compile_tokenizer=False,
     rank_range=None,
+    allow_legacy_fingerprints=False,
 ):
     records = json.loads(Path(plan).read_text())
+    versions = {record.get("fingerprint_version", 1) for record in records}
+    if len(versions) != 1 or any(type(version) is not int or version not in (1, 2) for version in versions):
+        raise ValueError("Inconsistent or unsupported batch fingerprint versions")
+    fingerprint_version = next(iter(versions))
+    if fingerprint_version == 1 and not allow_legacy_fingerprints:
+        raise ValueError("Legacy ambiguous fingerprints require explicit opt-in")
     reader = CanonicalDCPReader(Path(bundle) / "logical_state" / "trainer")
     iteration = (
         json.loads((Path(runtime_checkpoint) / "manifest.json").read_text())["iteration"]
@@ -182,7 +205,7 @@ def verify(
                     batch["logical_data_rank"] = rank
                     batch[LOADER_META_KEY]["global_id"] = (cursor + step) * logical_dp + rank
                     batch[LOADER_META_KEY]["source"] += rank * len(streams)
-                    digest = batch_fingerprint(batch)
+                    digest = batch_fingerprint(batch, version=fingerprint_version)
                     if digest != record["sha256"]:
                         raise AssertionError(f"Native media/packing/augmentation mismatch at {record['slot']}")
                     result = {"slot": record["slot"], "source": batch["dataset_name"], "sha256": digest}
@@ -196,7 +219,7 @@ def verify(
                             "timesteps_sound": native["timesteps_sound"],
                             "is_image_batch": native["gen_data_clean"].is_image_batch,
                         }
-                        actual = batch_fingerprint(inputs, allow_cuda=True)
+                        actual = batch_fingerprint(inputs, allow_cuda=True, version=fingerprint_version)
                         if actual != record["prepared_noise_sha256"]:
                             raise AssertionError(f"Native VAE/noise/timestep mismatch at {record['slot']}")
                         result["prepared_noise_sha256"] = actual
@@ -209,7 +232,9 @@ def verify(
                             )
                             torch.save(inputs, capture_prepared_dir / f"rank{rank}.micro{step}.loss.pt")
                     if prepared and "prepared_packed_sha256" in record:
-                        packed = batch_fingerprint(native["packed_sequence"], allow_cuda=True)
+                        packed = batch_fingerprint(
+                            native["packed_sequence"], allow_cuda=True, version=fingerprint_version
+                        )
                         if packed != record["prepared_packed_sha256"]:
                             raise AssertionError(f"Native prepared text/masks/packing mismatch at {record['slot']}")
                         result["prepared_packed_sha256"] = packed
@@ -222,15 +247,13 @@ def verify(
             os.environ.update(environment)
         print(json.dumps({"native_checked_rank": rank, "checked_slots": len(checked)}), flush=True)
     return {
-        "passed": True,
+        **fingerprint_evidence_flags(fingerprint_version, prepared=prepared, logical_dp=logical_dp, slots=checked),
         "scope": "separate native per-logical-rank loaders and optional native VAE/noising versus TP/PP replay",
         "logical_data_parallel_size": logical_dp,
         "checked_logical_data_ranks": ranks,
         "checked_slots": len(checked),
         "slots": checked,
-        "noise_equality_independently_checked": prepared,
         "native_tokenizer_compile_requested": compile_tokenizer,
-        "production_576_slot_raw_data_accepted": logical_dp == 192 and len(checked) == 576,
         "production_capacity_576_slot_acceptance": False,
     }
 
@@ -243,6 +266,7 @@ def main():
     parser.add_argument("--logical-dp", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--runtime-checkpoint", type=Path)
+    parser.add_argument("--allow-legacy-fingerprints", action="store_true")
     parser.add_argument("--prepared", action="store_true", help="Use one CUDA GPU for native VAE/noise verification")
     parser.add_argument("--capture-prepared-dir", type=Path, help="Save verified native packed inputs for math replay")
     parser.add_argument("--compile-tokenizer", action="store_true", help="Use the recipe's native AOT callback")
@@ -265,9 +289,12 @@ def main():
         capture_prepared_dir=args.capture_prepared_dir,
         compile_tokenizer=args.compile_tokenizer,
         rank_range=args.rank_range,
+        allow_legacy_fingerprints=args.allow_legacy_fingerprints,
     )
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({key: value for key, value in report.items() if key != "slots"}))
+    if report["passed"] is not True:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

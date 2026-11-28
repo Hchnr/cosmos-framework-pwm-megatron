@@ -236,6 +236,7 @@ def test_dp2_slot_coverage_and_legacy_loss_reference(reports, dp2_bundle):
         replica = row["parallel_ranks"]["dp"]
         row.update(
             prepared_input_hashes=hashes,
+            fingerprint_version=2,
             microbatches_per_dp_replica=1,
             reference_prediction_counts=[[{"vision": 1}, {"vision": 1}] for _ in range(3)],
             consumed_slots=[
@@ -252,6 +253,12 @@ def test_dp2_slot_coverage_and_legacy_loss_reference(reports, dp2_bundle):
     assert summary["updates"][0]["forward"]["logical_slot_coverage_status"] == "passed"
     assert summary["updates"][0]["forward"]["prediction_coverage_status"] == "passed"
     assert summary["updates"][0]["forward"]["loss_check_status"] == "unverified"
+    for row in reports:
+        row.pop("fingerprint_version")
+    legacy = summarize_rank_reports(reports, bundle_bytes=dp2_bundle)
+    assert legacy["updates"][0]["forward"]["logical_slot_coverage_status"] == "unverified"
+    for row in reports:
+        row["fingerprint_version"] = 2
     reports[3]["loss_checks"][0].update(reference=2.0, passed=True)
     assert (
         summarize_rank_reports(reports, bundle_bytes=dp2_bundle)["updates"][0]["forward"]["loss_check_status"]

@@ -371,6 +371,7 @@ def native(args, config, instance, network, inputs):
         "seed": args.seed,
         "rng_state_evidence": "not_recorded",
         "names": names,
+        "fingerprint_version": 2,
         "input_hashes": [batch_fingerprint(s) for s in inputs],
         "runtime_constants_sha256": batch_fingerprint(constants),
         "scope": (
@@ -573,14 +574,19 @@ def tp(args, config, language, network, inputs):
         print(json.dumps({"rank": dist.get_rank(), "waiting_for_native_reference": True}), flush=True)
         time.sleep(30)
     validate_reference_seed(reference, args.seed)
-    input_hashes = [batch_fingerprint(s) for s in inputs]
+    fingerprint_version = reference.get("fingerprint_version", 1)
+    if type(fingerprint_version) is not int or fingerprint_version not in (1, 2):
+        raise ValueError("Unsupported reference fingerprint version")
+    if fingerprint_version == 1 and not getattr(args, "allow_legacy_fingerprints", False):
+        raise ValueError("Legacy ambiguous fingerprints require --allow-legacy-fingerprints")
+    input_hashes = [batch_fingerprint(s, version=fingerprint_version) for s in inputs]
     assert reference["input_hashes"] == input_hashes
     assert reference.get("original_capacity", False) == args.original_capacity
     assert reference.get("attention_backend", "sdpa") == args.attention_backend
     if ps.is_pipeline_first_stage():
-        assert reference["runtime_constants_sha256"] == batch_fingerprint(runtime_constants(stage.input_adapter)), (
-            "Native and pipeline nonpersistent runtime constants differ"
-        )
+        assert reference["runtime_constants_sha256"] == batch_fingerprint(
+            runtime_constants(stage.input_adapter), version=fingerprint_version
+        ), "Native and pipeline nonpersistent runtime constants differ"
     indices = {name: index for index, name in enumerate(reference["names"])}
     records = torch.load(args.reference_dir / "outputs.pt", weights_only=False)
     reference_prediction_counts = [
@@ -886,7 +892,7 @@ def tp(args, config, language, network, inputs):
     total_failures = torch.tensor(len(gate_failures), dtype=torch.int64, device="cuda")
     dist.all_reduce(total_failures)
     pointwise_gates_passed = total_failures.item() == 0
-    passed = pointwise_gates_passed and not args.replay_native_state
+    passed = pointwise_gates_passed and not args.replay_native_state and fingerprint_version == 2
     args.output.with_name(f"{args.output.stem}.rank{dist.get_rank()}.json").write_text(
         json.dumps(
             {
@@ -913,6 +919,8 @@ def tp(args, config, language, network, inputs):
                 },
                 "canonical_bundle_manifest_sha256": bundle_manifest_sha256,
                 "owned_parameter_fragments": owned_parameter_fragments,
+                "fingerprint_version": fingerprint_version,
+                "legacy_fingerprint_ambiguous": fingerprint_version == 1,
                 "prepared_input_hashes": input_hashes,
                 "reference_prediction_counts": reference_prediction_counts,
                 "microbatches_per_dp_replica": driver.microbatches,
@@ -990,6 +998,7 @@ def main():
     parser.add_argument("--toml", type=Path, required=True)
     parser.add_argument("--prepared-dir", type=Path, required=True)
     parser.add_argument("--reference-dir", type=Path, required=True)
+    parser.add_argument("--allow-legacy-fingerprints", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.pp is not None and args.mode != "tp":

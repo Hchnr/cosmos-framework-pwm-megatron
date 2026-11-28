@@ -18,12 +18,15 @@ from tools.verify_tp_pp_native_data_replay import native_preparation, runtime_ra
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--allow-legacy-fingerprints", action="store_true")
     parser.add_argument("--toml", type=Path, required=True)
     parser.add_argument("--raw-root", type=Path, required=True)
     parser.add_argument("--runtime-checkpoint", type=Path, required=True)
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    if not args.allow_legacy_fingerprints:
+        parser.error("Legacy ambiguous fingerprints require --allow-legacy-fingerprints")
     args.output.mkdir(parents=True, exist_ok=False)
     os.environ["OUTPUT_ROOT"] = str(args.output.resolve() / "runtime")
     torch.cuda.set_device(0)
@@ -37,6 +40,8 @@ def main():
         folder = args.raw_root / f"legacy_raw_rank{rank}"
         manifest = json.loads((folder / "manifest.json").read_text())
         target = expected[(iteration, 0, rank)]
+        if target.get("fingerprint_version", 1) != 1:
+            raise ValueError("Legacy recovery requires a version 1 plan")
         assert manifest["passed"] and manifest["records"][0]["sha256"] == target["sha256"]
         raw = torch.load(folder / "micro000.raw.pt", map_location="cpu", weights_only=False)
         with preserve_training_rng(), torch.no_grad():
@@ -49,8 +54,8 @@ def main():
             "timesteps_sound": prepared["timesteps_sound"],
             "is_image_batch": prepared["gen_data_clean"].is_image_batch,
         }
-        noise = batch_fingerprint(loss_inputs, allow_cuda=True)
-        packed = batch_fingerprint(prepared["packed_sequence"], allow_cuda=True)
+        noise = batch_fingerprint(loss_inputs, allow_cuda=True, version=1)
+        packed = batch_fingerprint(prepared["packed_sequence"], allow_cuda=True, version=1)
         if noise != target["prepared_noise_sha256"] or packed != target["prepared_packed_sha256"]:
             raise ValueError(f"Former failing input changed at logical rank {rank}")
         torch.save(prepared["packed_sequence"], args.output / f"rank{rank}.micro0.pt")
@@ -58,8 +63,22 @@ def main():
         rows.append(dict(rank=rank, raw_sha256=target["sha256"], noise_sha256=noise, packed_sha256=packed))
         print(json.dumps(rows[-1]), flush=True)
     (args.output / "manifest.json").write_text(
-        json.dumps(dict(passed=True, scope=__doc__, rows=rows, mathematical_acceptance=False), indent=2) + "\n"
+        json.dumps(
+            dict(
+                passed=False,
+                recorded_fingerprints_match=True,
+                scope=__doc__,
+                rows=rows,
+                mathematical_acceptance=False,
+                fingerprint_version=1,
+                legacy_fingerprint_ambiguous=True,
+            ),
+            indent=2,
+        )
+        + "\n"
     )
+    # Recovery completed but the legacy fingerprint cannot establish structural identity.
+    raise SystemExit(1)
 
 
 if __name__ == "__main__":

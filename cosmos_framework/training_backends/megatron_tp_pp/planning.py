@@ -38,7 +38,7 @@ _TIMING = {
 }
 
 
-def batch_fingerprint(batch, *, allow_cuda=False):
+def _legacy_batch_fingerprint(batch, *, allow_cuda=False):
     digest = hashlib.sha256()
 
     def visit(value):
@@ -73,6 +73,83 @@ def batch_fingerprint(batch, *, allow_cuda=False):
     return digest.hexdigest()
 
 
+BATCH_FINGERPRINT_VERSION = 2
+
+
+def batch_fingerprint(batch, *, allow_cuda=False, version=BATCH_FINGERPRINT_VERSION):
+    """Hash a typed, length-delimited batch tree; version 1 is historical only.
+
+    Version 1 has ambiguous container boundaries and must not be treated as a
+    collision-resistant commitment to structure. Request it explicitly only
+    when comparing against a recorded legacy artifact.
+    """
+    if type(version) is not int or version not in (1, 2):
+        raise ValueError("Unsupported batch fingerprint version")
+    if version == 1:
+        return _legacy_batch_fingerprint(batch, allow_cuda=allow_cuda)
+    digest = hashlib.sha256(b"cosmos-tp-pp-batch-fingerprint-v2\0")
+
+    def frame(target, tag, payload):
+        target.update(tag)
+        target.update(len(payload).to_bytes(8, "big"))
+        target.update(payload)
+
+    def encode(value, target):
+        if isinstance(value, torch.Tensor):
+            if value.device.type != "cpu" and not allow_cuda:
+                raise ValueError("Preflight hashes raw CPU data, before VAE or noising")
+            tensor = value.detach().cpu().contiguous()
+            frame(target, b"T", str(tensor.dtype).encode())
+            encode(tuple(tensor.shape), target)
+            frame(target, b"D", tensor.reshape(-1).view(torch.uint8).numpy().data)
+        elif is_dataclass(value) and not isinstance(value, type):
+            frame(target, b"C", (type(value).__module__ + "." + type(value).__qualname__).encode())
+            encoded_fields = fields(value)
+            frame(target, b"N", len(encoded_fields).to_bytes(8, "big"))
+            for field in encoded_fields:
+                frame(target, b"F", field.name.encode())
+                encode(getattr(value, field.name), target)
+        elif isinstance(value, dict):
+            keys = [key for key in value if key not in _TIMING]
+
+            def sort_key(key):
+                if not isinstance(key, (str, int, float, bool, bytes, tuple, type(None))):
+                    raise TypeError(f"No deterministic raw batch fingerprint key registered for {type(key).__name__}")
+                key_digest = hashlib.sha256(b"cosmos-tp-pp-batch-key-v2\0")
+                encode(key, key_digest)
+                return key_digest.digest()
+
+            key_digests = [(sort_key(key), key) for key in keys]
+            if len({item[0] for item in key_digests}) != len(key_digests):
+                raise ValueError("Ambiguous dictionary keys in batch fingerprint")
+            keys = [key for _, key in sorted(key_digests, key=lambda item: item[0])]
+            frame(target, b"M", len(keys).to_bytes(8, "big"))
+            for key in keys:
+                encode(key, target)
+                encode(value[key], target)
+        elif isinstance(value, (list, tuple)):
+            frame(target, b"L" if isinstance(value, list) else b"U", len(value).to_bytes(8, "big"))
+            for child in value:
+                encode(child, target)
+        elif value is None:
+            frame(target, b"0", b"")
+        elif isinstance(value, bool):
+            frame(target, b"B", b"1" if value else b"0")
+        elif isinstance(value, int):
+            frame(target, b"I", str(value).encode())
+        elif isinstance(value, float):
+            frame(target, b"R", repr(value).encode())
+        elif isinstance(value, str):
+            frame(target, b"S", value.encode())
+        elif isinstance(value, bytes):
+            frame(target, b"Y", value)
+        else:
+            raise TypeError(f"No deterministic raw batch fingerprint registered for {type(value).__name__}")
+
+    encode(batch, digest)
+    return digest.hexdigest()
+
+
 def _raw_record(loader, raw, slot, preparation, *, hash_raw=True):
     if raw["logical_data_rank"] != slot.logical_rank:
         raise ValueError("Logical loader order disagrees with the update slot schedule")
@@ -89,6 +166,7 @@ def _raw_record(loader, raw, slot, preparation, *, hash_raw=True):
         ),
         "image": preparation.is_image_batch(raw),
         "sha256": batch_fingerprint(loader.fingerprint_batch(raw)) if hash_raw else None,
+        "fingerprint_version": BATCH_FINGERPRINT_VERSION,
         "tokens": {
             "text": packed.text_indexes.numel(),
             "vision": packed.vision.sequence_indexes.numel() if packed.vision is not None else 0,
@@ -196,6 +274,7 @@ def prepare_slot(
         if record:
             matches = (
                 raw["logical_data_rank"] == slot.logical_rank
+                and record.get("fingerprint_version") == BATCH_FINGERPRINT_VERSION
                 and batch_fingerprint(loader.fingerprint_batch(raw)) == record["sha256"]
             )
         else:
