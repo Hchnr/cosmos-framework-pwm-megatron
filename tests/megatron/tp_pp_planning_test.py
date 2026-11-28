@@ -194,3 +194,31 @@ def test_single_pass_matches_double_pass_inputs_and_committed_loader_rng(monkeyp
     assert observations[0] == observations[1] == observations[2]
     assert fingerprints[0] == fingerprints[1]
     assert all(value is None for update in fingerprints[2] for value in update)
+
+
+def test_batch_fingerprint_v2_frames_nested_containers_and_preserves_legacy_explicitly():
+    left = {"a": {"b": 1}, "c": 2}
+    right = {"a": {"b": 1, "c": 2}}
+    assert (
+        planning.batch_fingerprint(left, version=1)
+        == "70a60a459ed021a148f2bcac27a44be8ea7331314b9669537b57954fca0611a4"
+    )
+    assert planning.batch_fingerprint(left, version=1) == planning.batch_fingerprint(right, version=1)
+    assert planning.batch_fingerprint(left) != planning.batch_fingerprint(right)
+    assert planning.batch_fingerprint({"a": 1, "b": 2}) == planning.batch_fingerprint({"b": 2, "a": 1})
+    assert planning.batch_fingerprint([1, 2]) != planning.batch_fingerprint((1, 2))
+    assert planning.batch_fingerprint({}) != planning.batch_fingerprint([])
+    assert planning.batch_fingerprint({"a": 1}) != planning.batch_fingerprint({"a": True})
+    assert planning.batch_fingerprint(left, version=1) != planning.batch_fingerprint(left)
+    with pytest.raises(ValueError, match="Unsupported batch fingerprint version"):
+        planning.batch_fingerprint(left, version=3)
+
+
+def test_batch_fingerprint_v2_includes_tensor_type_shape_and_bytes():
+    values = torch.tensor([1, 2], dtype=torch.int32)
+    assert planning.batch_fingerprint(values) != planning.batch_fingerprint(values.reshape(1, 2))
+    assert planning.batch_fingerprint(values) != planning.batch_fingerprint(values.to(torch.int64))
+    assert planning.batch_fingerprint(values) != planning.batch_fingerprint(torch.tensor([1, 3], dtype=torch.int32))
+    assert planning.batch_fingerprint({"timing": 1, "value": values}) == planning.batch_fingerprint(
+        {"timing": 2, "value": values}
+    )

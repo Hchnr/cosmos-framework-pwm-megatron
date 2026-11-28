@@ -177,6 +177,7 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
         "continuous_trajectory",
         "runtime_constants_sha256",
         "seed",
+        "fingerprint_version",
         "prepared_input_hashes",
         "reference_prediction_counts",
         "microbatches_per_dp_replica",
@@ -202,6 +203,9 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
     header["data_parallel_size"] = dp
     input_hashes = header["prepared_input_hashes"]
     prediction_counts = header["reference_prediction_counts"]
+    fingerprint_version = header["fingerprint_version"]
+    if fingerprint_version is not None and (type(fingerprint_version) is not int or fingerprint_version not in (1, 2)):
+        raise ValueError("Unsupported fingerprint version")
     coordinates = None
     if bundle_bytes is not None or input_hashes is not None:
         coordinates = parallel_coordinates(reports, pp, tp, dp)
@@ -393,7 +397,9 @@ def summarize_rank_reports(reports, *, data_parallel_size=None, bundle_bytes=Non
                     "prediction_coverage_status": verdict(False, prediction_counts is not None),
                     "prediction_checks": len(outputs),
                     "failed_prediction_checks": output_proofs.count("failed"),
-                    "logical_slot_coverage_status": verdict(False, input_hashes is not None),
+                    "logical_slot_coverage_status": verdict(
+                        False, input_hashes is not None and fingerprint_version == 2
+                    ),
                     "loss_check_status": verdict(bool(failed_losses), loss_covered),
                     "loss_checks": len(loss_checks),
                     "failed_loss_checks": failed_losses,

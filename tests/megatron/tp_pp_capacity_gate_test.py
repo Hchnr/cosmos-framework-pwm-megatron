@@ -338,6 +338,8 @@ def test_streamed_reference_builder_preserves_telemetry():
     assert '"reference_squared_l2": difference.get("reference_squared_l2")' in generated
     assert '"sample_index": sample_index' in generated
     assert '"rank": dist.get_rank()' in generated
+    assert "outputs, slot_losses = [], []" in generated
+    assert '"fingerprint_version": 2' in generated
 
 
 def test_telemetry_builder_rejects_wrong_input_before_writing(tmp_path):

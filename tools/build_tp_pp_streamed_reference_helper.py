@@ -21,9 +21,9 @@ def transform(source):
             "    args.reference_dir.mkdir",
         ),
         (
-            "    for update in range(3):\n        optimizer.zero_grad(set_to_none=True)\n        outputs = []",
+            "    for update in range(3):\n        optimizer.zero_grad(set_to_none=True)\n        outputs, slot_losses = [], []",
             "    for update in range(3):\n        optimizer.zero_grad(set_to_none=True)\n"
-            "        if streamer is not None:\n            streamer.reset()\n        outputs = []",
+            "        if streamer is not None:\n            streamer.reset()\n        outputs, slot_losses = [], []",
         ),
         (
             '{"gradient": param.grad.detach().cpu() if param.grad is not None else None}',
@@ -71,9 +71,7 @@ def transform(source):
     ]
     for old, _ in replacements:
         if source.count(old) != 1:
-            raise ValueError(
-                "Unexpected helper source; refusing ambiguous gradient-streaming transformation"
-            )
+            raise ValueError("Unexpected helper source; refusing ambiguous gradient-streaming transformation")
     result = source
     for old, new in replacements:
         result = result.replace(old, new, 1)
